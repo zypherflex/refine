@@ -1,0 +1,648 @@
+// RefineryLens data model.
+// Provenance, review status and correction history are first-class so every figure can be traced.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ANALYST
+  EDITOR
+  ADMIN
+}
+
+enum Plan {
+  FREE
+  PRO
+  TEAM
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  plan      Plan     @default(TEAM)
+  createdAt DateTime @default(now())
+  members   User[]
+}
+
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  name           String
+  passwordHash   String
+  role           Role          @default(USER)
+  plan           Plan          @default(FREE)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  // Opt-in to email copies of alerts. Only offered when an email provider is configured.
+  emailAlerts    Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+
+  sessions      Session[]
+  theses        Thesis[]
+  documents     Document[]       @relation("DocumentOwner")
+  watchlists    Watchlist[]
+  alerts        Alert[]
+  conversations Conversation[]
+  reviews       EditorialReview[]
+  auditLogs     AuditLog[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+enum CoverageStatus {
+  ACTIVE
+  IN_PREPARATION
+  DEMONSTRATION
+}
+
+model Company {
+  id             String         @id @default(cuid())
+  slug           String         @unique
+  name           String
+  shortName      String
+  country        String
+  sector         String
+  description    String
+  coverageStatus CoverageStatus @default(IN_PREPARATION)
+  coverageNote   String         @default("")
+  isFictional    Boolean        @default(false)
+  // Company-stated facts shown on the profile with their source, e.g. [{label, value, sourceUrl, retrievedAt}]
+  profileFacts   Json?
+  createdAt      DateTime       @default(now())
+
+  legalEntities LegalEntity[]
+  documents     Document[]
+  announcements Announcement[]
+  metrics       Metric[]
+  risks         Risk[]
+  theses        Thesis[]
+  watchlists    Watchlist[]
+  conflicts     SourceConflict[]
+}
+
+enum EntityScope {
+  GROUP
+  REFINERY
+  SUBSIDIARY
+  NATIONAL_SECTOR
+}
+
+model LegalEntity {
+  id        String      @id @default(cuid())
+  companyId String
+  company   Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name      String
+  scope     EntityScope
+  notes     String      @default("")
+
+  announcements Announcement[]
+  metrics       Metric[]
+}
+
+// Who published something. Labels describe provenance, not accuracy.
+enum Provenance {
+  COMPANY_DISCLOSED
+  REGULATOR_EXCHANGE
+  INDEPENDENT_REPORT
+  ANALYST_ESTIMATE
+  USER_ASSUMPTION
+  UNVERIFIED
+}
+
+model Source {
+  id           String     @id @default(cuid())
+  name         String
+  publisher    String
+  homepageUrl  String     @default("")
+  provenance   Provenance
+  approved     Boolean    @default(false)
+  approvedById String?
+  approvedAt   DateTime?
+  licenseNotes String     @default("")
+  isFictional  Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  documents     Document[]
+  announcements Announcement[]
+}
+
+enum DocumentType {
+  ANNUAL_REPORT
+  INTERIM_REPORT
+  PRESS_RELEASE
+  EXCHANGE_FILING
+  REGULATORY_PUBLICATION
+  NEWS_REPORT
+  ANALYST_NOTE
+  PRESENTATION
+  OTHER
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum DocumentStatus {
+  UPLOADED
+  PROCESSING
+  EXTRACTED
+  APPROVED
+  FAILED
+  RETRACTED
+}
+
+model Document {
+  id             String         @id @default(cuid())
+  companyId      String?
+  company        Company?       @relation(fields: [companyId], references: [id])
+  sourceId       String?
+  source         Source?        @relation(fields: [sourceId], references: [id])
+  title          String
+  publisher      String         @default("")
+  url            String         @default("")
+  documentType   DocumentType   @default(OTHER)
+  version        String         @default("1")
+  publishedAt    DateTime?
+  eventDate      DateTime?
+  retrievedAt    DateTime       @default(now())
+  provenance     Provenance     @default(UNVERIFIED)
+  visibility     Visibility     @default(PUBLIC)
+  ownerId        String?
+  owner          User?          @relation("DocumentOwner", fields: [ownerId], references: [id])
+  storageKey     String?
+  originalName   String         @default("")
+  mimeType       String         @default("")
+  sizeBytes      Int            @default(0)
+  sha256         String         @default("")
+  pageCount      Int            @default(0)
+  status         DocumentStatus @default(UPLOADED)
+  processingNote String         @default("")
+  topics         String[]       @default([])
+  isFictional    Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  pages     DocumentPage[]
+  metrics   Metric[]
+  excerpts  Excerpt[]
+  citations Citation[]
+  reviews   EditorialReview[]
+
+  @@index([visibility, ownerId])
+}
+
+model DocumentPage {
+  id         String   @id @default(cuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  pageNumber Int
+  text       String
+
+  @@unique([documentId, pageNumber])
+}
+
+enum PublicationStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  RETRACTED
+  SUPERSEDED
+}
+
+model Announcement {
+  id              String            @id @default(cuid())
+  companyId       String
+  company         Company           @relation(fields: [companyId], references: [id])
+  legalEntityId   String?
+  legalEntity     LegalEntity?      @relation(fields: [legalEntityId], references: [id])
+  sourceId        String?
+  source          Source?           @relation(fields: [sourceId], references: [id])
+  headline        String
+  originalTitle   String
+  publisher       String
+  sourceUrl       String
+  documentType    DocumentType
+  sourceVersion   String            @default("1")
+  eventDate       DateTime?
+  sourcePublishedAt DateTime
+  retrievedAt     DateTime
+  provenance      Provenance
+  summary         String
+  whatChanged     String            @default("")
+  whyItMatters    String
+  uncertainties   String
+  analysis        String            @default("")
+  alternativeExplanations String    @default("")
+  openQuestions   String            @default("")
+  topics          String[]          @default([])
+  status          PublicationStatus @default(DRAFT)
+  aiGenerated     Boolean           @default(false)
+  reviewerId      String?
+  reviewedAt      DateTime?
+  publishedAt     DateTime?
+  retractedAt     DateTime?
+  retractionReason String           @default("")
+  revision        Int               @default(1)
+  supersedesId    String?           @unique
+  supersedes      Announcement?     @relation("Supersession", fields: [supersedesId], references: [id])
+  supersededBy    Announcement?     @relation("Supersession")
+  duplicateOfId   String?
+  isFictional     Boolean           @default(false)
+  createdById     String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  excerpts       Excerpt[]
+  corrections    Correction[]
+  reviews        EditorialReview[]
+  thesisEvidence ThesisEvidence[]
+  citations      Citation[]
+  conflictClaims ConflictClaim[]
+  riskEvidence   RiskEvidence[]
+
+  @@index([companyId, status])
+}
+
+model Excerpt {
+  id             String        @id @default(cuid())
+  announcementId String?
+  announcement   Announcement? @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  documentId     String?
+  document       Document?     @relation(fields: [documentId], references: [id])
+  page           Int?
+  quote          String
+}
+
+enum MetricCategory {
+  FINANCIAL
+  OPERATIONAL
+}
+
+enum AuditStatus {
+  AUDITED
+  UNAUDITED
+  RESTATED
+  NOT_APPLICABLE
+}
+
+enum ValueType {
+  REPORTED
+  CALCULATED
+  ESTIMATED
+}
+
+enum DisclosureStatus {
+  DISCLOSED
+  NOT_DISCLOSED
+}
+
+model Metric {
+  id               String            @id @default(cuid())
+  companyId        String
+  company          Company           @relation(fields: [companyId], references: [id])
+  legalEntityId    String?
+  legalEntity      LegalEntity?      @relation(fields: [legalEntityId], references: [id])
+  key              String
+  category         MetricCategory
+  label            String
+  value            Decimal?          @db.Decimal(24, 6)
+  unit             String
+  currency         String?
+  scale            String            @default("units")
+  periodStart      DateTime?
+  periodEnd        DateTime?
+  periodLabel      String
+  periodType       String
+  scope            EntityScope
+  auditStatus      AuditStatus       @default(NOT_APPLICABLE)
+  valueType        ValueType         @default(REPORTED)
+  disclosureStatus DisclosureStatus  @default(DISCLOSED)
+  provenance       Provenance
+  formula          String            @default("")
+  inputs           Json?
+  methodology      String            @default("")
+  documentId       String?
+  document         Document?         @relation(fields: [documentId], references: [id])
+  page             Int?
+  excerpt          String            @default("")
+  status           PublicationStatus @default(DRAFT)
+  notes            String            @default("")
+  isFictional      Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  corrections    Correction[]
+  conflictClaims ConflictClaim[]
+  citations      Citation[]
+
+  @@index([companyId, key, status])
+}
+
+model SourceConflict {
+  id          String          @id @default(cuid())
+  companyId   String
+  company     Company         @relation(fields: [companyId], references: [id])
+  topic       String
+  description String
+  // DRAFT (flagged, not yet public) | UNRESOLVED (public, difference open) | RESOLVED
+  status      String          @default("UNRESOLVED")
+  resolution  String          @default("")
+  flaggedById String?
+  createdAt   DateTime        @default(now())
+  claims      ConflictClaim[]
+}
+
+model ConflictClaim {
+  id             String         @id @default(cuid())
+  conflictId     String
+  conflict       SourceConflict @relation(fields: [conflictId], references: [id], onDelete: Cascade)
+  claim          String
+  sourceLabel    String
+  sourceDate     DateTime
+  provenance     Provenance
+  announcementId String?
+  announcement   Announcement?  @relation(fields: [announcementId], references: [id])
+  metricId       String?
+  metric         Metric?        @relation(fields: [metricId], references: [id])
+}
+
+model Correction {
+  id             String        @id @default(cuid())
+  entityType     String
+  entityId       String
+  announcementId String?
+  announcement   Announcement? @relation(fields: [announcementId], references: [id])
+  metricId       String?
+  metric         Metric?       @relation(fields: [metricId], references: [id])
+  kind           String        @default("CORRECTION") // CORRECTION | RETRACTION | SUPERSESSION | EXTRACTION_FIX
+  summary        String
+  before         Json?
+  after          Json?
+  createdById    String
+  createdAt      DateTime      @default(now())
+}
+
+model EditorialReview {
+  id             String        @id @default(cuid())
+  announcementId String?
+  announcement   Announcement? @relation(fields: [announcementId], references: [id])
+  documentId     String?
+  document       Document?     @relation(fields: [documentId], references: [id])
+  reviewerId     String
+  reviewer       User          @relation(fields: [reviewerId], references: [id])
+  decision       String // APPROVE | REQUEST_CHANGES | REJECT
+  notes          String        @default("")
+  createdAt      DateTime      @default(now())
+}
+
+enum RiskCategory {
+  CRUDE_SUPPLY
+  PRICES_AND_MARGINS
+  FOREIGN_EXCHANGE
+  DEBT_AND_LIQUIDITY
+  OPERATIONAL_RELIABILITY
+  REGULATION_AND_TAX
+  COMPETITION
+  EXPANSION_EXECUTION
+  GOVERNANCE
+  ENVIRONMENT_AND_COMMUNITY
+}
+
+enum Level {
+  LOW
+  MODERATE
+  HIGH
+}
+
+model Risk {
+  id                    String            @id @default(cuid())
+  companyId             String
+  company               Company           @relation(fields: [companyId], references: [id])
+  category              RiskCategory
+  title                 String
+  summary               String
+  evidenceSummary       String
+  impactPathway         String
+  horizon               String
+  severity              Level
+  confidence            Level
+  evidenceQuality       String
+  uncertainty           String
+  clarifyingDisclosure  String
+  status                PublicationStatus @default(DRAFT)
+  isFictional           Boolean           @default(false)
+  updatedAt             DateTime          @updatedAt
+  createdAt             DateTime          @default(now())
+  evidence              RiskEvidence[]
+}
+
+model RiskEvidence {
+  id             String        @id @default(cuid())
+  riskId         String
+  risk           Risk          @relation(fields: [riskId], references: [id], onDelete: Cascade)
+  announcementId String?
+  announcement   Announcement? @relation(fields: [announcementId], references: [id])
+  note           String        @default("")
+}
+
+model Thesis {
+  id                     String   @id @default(cuid())
+  ownerId                String
+  owner                  User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  companyId              String
+  company                Company  @relation(fields: [companyId], references: [id])
+  title                  String
+  rationale              String
+  reassessmentConditions String   @default("")
+  reviewDate             DateTime?
+  version                Int      @default(1)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  assumptions Assumption[]
+  indicators  ThesisIndicator[]
+  evidence    ThesisEvidence[]
+  versions    ThesisVersion[]
+
+  @@index([ownerId])
+}
+
+model Assumption {
+  id        String           @id @default(cuid())
+  thesisId  String
+  thesis    Thesis           @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  statement String
+  topics    String[]         @default([])
+  position  Int              @default(0)
+  evidence  ThesisEvidence[]
+}
+
+model ThesisIndicator {
+  id        String   @id @default(cuid())
+  thesisId  String
+  thesis    Thesis   @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  metricKey String
+  label     String
+  operator  String   @default("BELOW") // BELOW | ABOVE
+  threshold Decimal? @db.Decimal(24, 6)
+  unit      String   @default("")
+}
+
+model ThesisEvidence {
+  id                      String        @id @default(cuid())
+  thesisId                String
+  thesis                  Thesis        @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  assumptionId            String?
+  assumption              Assumption?   @relation(fields: [assumptionId], references: [id], onDelete: SetNull)
+  announcementId          String?
+  announcement            Announcement? @relation(fields: [announcementId], references: [id])
+  stance                  String        @default("UNCLEAR") // SUPPORTS | CHALLENGES | UNCLEAR
+  note                    String        @default("")
+  origin                  String        @default("USER") // USER | SUGGESTED
+  status                  String        @default("ACCEPTED") // PENDING_REVIEW | ACCEPTED | DISMISSED
+  matchReason             String        @default("")
+  alternativeExplanations String        @default("")
+  questions               String        @default("")
+  createdAt               DateTime      @default(now())
+
+  @@unique([thesisId, assumptionId, announcementId])
+}
+
+model ThesisVersion {
+  id        String   @id @default(cuid())
+  thesisId  String
+  thesis    Thesis   @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  version   Int
+  snapshot  Json
+  note      String   @default("")
+  createdAt DateTime @default(now())
+
+  @@unique([thesisId, version])
+}
+
+enum AlertFrequency {
+  IMMEDIATE
+  DAILY
+  WEEKLY
+}
+
+model Watchlist {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId String
+  company   Company        @relation(fields: [companyId], references: [id])
+  topics    String[]       @default([])
+  frequency AlertFrequency @default(IMMEDIATE)
+  createdAt DateTime       @default(now())
+
+  @@unique([userId, companyId])
+}
+
+model Alert {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String // NEW_ANNOUNCEMENT | CORRECTION | RETRACTION | SUPERSESSION | THESIS_MATCH
+  title     String
+  body      String
+  link      String
+  dedupeKey String
+  channel   String    @default("IN_APP")
+  // Alerts for daily/weekly subscribers become visible at the next digest time.
+  visibleAt DateTime  @default(now())
+  readAt    DateTime?
+  // Set once an email copy has been sent (or deliberately skipped when the user opted in later).
+  emailedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@unique([userId, dedupeKey])
+  @@index([emailedAt, visibleAt])
+  @@index([userId, readAt])
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId String?
+  title     String
+  createdAt DateTime  @default(now())
+  messages  Message[]
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String // user | assistant
+  content        String
+  structured     Json?
+  mode           String       @default("")
+  createdAt      DateTime     @default(now())
+  citations      Citation[]
+}
+
+model Citation {
+  id             String        @id @default(cuid())
+  messageId      String
+  message        Message       @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  ref            String // e.g. "S1"
+  kind           String // DOCUMENT_PAGE | ANNOUNCEMENT | METRIC | THESIS
+  documentId     String?
+  document       Document?     @relation(fields: [documentId], references: [id])
+  page           Int?
+  announcementId String?
+  announcement   Announcement? @relation(fields: [announcementId], references: [id])
+  metricId       String?
+  metric         Metric?       @relation(fields: [metricId], references: [id])
+  label          String
+  quote          String        @default("")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id])
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+}
+
+model Job {
+  id          String    @id @default(cuid())
+  type        String
+  payload     Json
+  status      String    @default("QUEUED") // QUEUED | RUNNING | DONE | FAILED
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(3)
+  runAt       DateTime  @default(now())
+  lockedAt    DateTime?
+  error       String    @default("")
+  createdById String?
+  createdAt   DateTime  @default(now())
+  finishedAt  DateTime?
+
+  @@index([status, runAt])
+}
