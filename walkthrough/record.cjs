@@ -1,8 +1,15 @@
 // Records a captioned walkthrough of RefineryLens against a running, seeded app on localhost:3000.
-// Usage: node walkthrough/record.cjs <outDir>  (writes a .webm; convert with ffmpeg -i in.webm -c:v libx264 -pix_fmt yuv420p out.mp4)
-const { chromium } = require("playwright");
+// Usage: node walkthrough/record.cjs <outDir> [durations.json]
+// Writes a .webm and timeline.json (when each narration line starts, in ms from the start of the video).
+// With durations.json from narrate.py, each line stays on screen until it has been spoken; mix.sh adds the voice.
+const fs = require("fs");
+const path = require("path");
+// PLAYWRIGHT_MODULE lets this use a Playwright install other than the project's (one with a matching browser and ffmpeg).
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
 const BASE = "http://localhost:3000";
 const out = process.argv[2];
+const lines = Object.fromEntries(JSON.parse(fs.readFileSync(path.join(__dirname, "narration.json"), "utf8")).map((l) => [l.id, l]));
+const durations = process.argv[3] ? JSON.parse(fs.readFileSync(process.argv[3], "utf8")) : {};
 
 (async () => {
   const browser = await chromium.launch();
@@ -12,10 +19,18 @@ const out = process.argv[2];
     acceptDownloads: true,
   });
   const page = await context.newPage();
+  const videoStart = Date.now();
+  const timeline = [];
+  let speakingUntil = 0;
   page.setDefaultTimeout(15000);
   const wait = (ms) => page.waitForTimeout(ms);
 
-  async function caption(text, ms = 2600) {
+  // Shows a line's caption and holds for `ms`; the following steps run while it is spoken.
+  async function caption(id, ms = 2600) {
+    const text = lines[id].caption;
+    if (Date.now() < speakingUntil) await wait(speakingUntil - Date.now());
+    timeline.push({ id, at: Date.now() - videoStart });
+    speakingUntil = Date.now() + (durations[id] ?? 0) + 500;
     await page.evaluate((t) => {
       let el = document.getElementById("__wt_caption");
       if (!el) {
@@ -51,14 +66,14 @@ const out = process.argv[2];
 
   await step("landing", async () => {
     await go("/");
-    await caption("RefineryLens: independent business intelligence on opportunities around Dangote", 3500);
+    await caption("intro", 3500);
     await scroll(900, 8, 350);
-    await caption("Every figure carries its source, period and provenance label", 2800);
+    await caption("sourced", 2800);
   });
 
   await step("login", async () => {
     await go("/login");
-    await caption("Sign in with a demo account (investor, Pro plan)", 1800);
+    await caption("login", 1800);
     await page.getByLabel("Email").pressSequentially("investor@refinerylens.test", { delay: 35 });
     await page.getByLabel("Password").pressSequentially("RefineryLens-demo-2026", { delay: 25 });
     await Promise.all([page.waitForURL(/\/opportunities/), page.getByRole("button", { name: "Sign in" }).click()]);
@@ -66,20 +81,20 @@ const out = process.argv[2];
   });
 
   await step("hub", async () => {
-    await caption("The business opportunities hub: 14 ways to plug into the Lekki complex", 3200);
+    await caption("hub", 3200);
     await scroll(1200, 10, 300);
-    await caption("Filter by business size, from micro to enterprise", 1800);
+    await caption("filter", 1800);
     await go("/opportunities");
     await page.getByRole("link", { name: /^Micro/ }).click();
     await page.waitForLoadState("networkidle");
     await wait(800);
     await scroll(700, 6, 300);
-    await caption("Only opportunities a micro business can realistically pursue remain", 2600);
+    await caption("micro", 2600);
   });
 
   await step("fit", async () => {
     await go("/opportunities/fit");
-    await caption("Find my fit: describe your business, get ranked matches", 2600);
+    await caption("fit", 2600);
     await page.getByLabel(/^Micro/).check();
     await wait(500);
     await page.getByLabel("LPG and CNG").check();
@@ -90,43 +105,43 @@ const out = process.argv[2];
     await page.waitForURL(/fit=1/);
     await page.waitForLoadState("networkidle");
     await page.locator("#for-you").scrollIntoViewIfNeeded();
-    await caption("Each match explains why it is listed, including assets you already have", 3400);
+    await caption("matches", 3400);
     await scroll(600, 6, 350);
   });
 
   await step("opportunity", async () => {
     await go("/opportunities/lpg-retail");
-    await caption("An opportunity page: LPG cylinder refilling and retail", 2600);
+    await caption("opp", 2600);
     await scroll(700, 7, 350);
-    await caption("Company-stated facts, dated independent reports, questions and licences to check", 3200);
+    await caption("evidence", 3200);
     await scroll(700, 7, 350);
     const tick = page.getByRole("button", { name: /^Tick: / }).first();
     await tick.scrollIntoViewIfNeeded();
-    await caption("Readiness checklist: tick off what you have already answered", 2200);
+    await caption("ready", 2200);
     await tick.click();
     await wait(1400);
     const fill = page.getByRole("button", { name: "Fill blanks with example numbers" });
     await fill.scrollIntoViewIfNeeded();
-    await caption("The sizing tool: enter your own numbers, or start from labelled examples", 2600);
+    await caption("sizing", 2600);
     await fill.click();
     await wait(1200);
     await scroll(500, 5, 350);
-    await caption("Formulas stay visible, so every result can be checked", 2600);
+    await caption("formulas", 2600);
     await page.getByTestId("sensitivity").scrollIntoViewIfNeeded();
-    await caption("What-if table: each key input moved ±10% to show what matters most", 3400);
+    await caption("whatif", 3400);
     const save = page.getByLabel("Save as a private scenario");
     await save.scrollIntoViewIfNeeded();
+    await caption("board", 800);
     await save.pressSequentially("Lekki LPG kiosk", { delay: 40 });
     await page.getByRole("button", { name: "Save scenario" }).click();
     await wait(1200);
-    await caption("Save a private scenario and track the opportunity on your board", 2200);
     await page.getByLabel("Stage").selectOption("VALIDATING");
     await page.getByLabel("Next step").pressSequentially("Ask two bulk suppliers for quotes", { delay: 30 });
     await page.getByRole("button", { name: /Add to my board|Update board/ }).click();
     await wait(1500);
     const brief = page.getByRole("button", { name: "Download brief (PDF)" });
     await brief.scrollIntoViewIfNeeded();
-    await caption("Download a one-page PDF brief with sources, readiness answers and the scenario", 2400);
+    await caption("brief", 2400);
     const [dl] = await Promise.all([page.waitForEvent("download"), brief.click()]);
     await dl.saveAs(`${out}/brief.pdf`);
     await wait(1200);
@@ -134,7 +149,7 @@ const out = process.argv[2];
 
   await step("board", async () => {
     await go("/opportunities/board");
-    await caption("My opportunity board: stage, next step, readiness progress and saved scenarios", 3400);
+    await caption("boardpage", 3400);
     await scroll(500, 5, 350);
   });
 
@@ -145,33 +160,36 @@ const out = process.argv[2];
       await Promise.all([page.waitForLoadState("networkidle"), sw.selectOption("demo-lagoon-coast")]).catch(() => {});
       await wait(800);
     }
-    await caption("Behind it: the evidence-first research layer (shown here on a fictional demo company)", 3400);
+    await caption("research", 3400);
     await scroll(900, 8, 350);
-    await caption("Sourced metrics, what changed, conflicts kept visible", 2600);
+    await caption("metrics", 2600);
   });
 
   await step("assistant", async () => {
     await go("/assistant");
-    await caption("The research assistant answers only from cited evidence", 2400);
+    await caption("assistant", 2400);
     await page.getByLabel("Your question").pressSequentially("Why did operating cash flow lag net profit in H1 2026?", { delay: 25 });
     await page.getByRole("button", { name: "Ask" }).click();
     await page.getByRole("heading", { name: "Direct answer" }).waitFor({ timeout: 20000 });
     await wait(800);
-    await caption("A direct answer, with every claim linked to its source", 3000);
+    await caption("answer", 3000);
     await scroll(700, 7, 350);
   });
 
   await step("market", async () => {
     await go("/market");
-    await caption("Market and macro context, labelled as non-company data, with honest gaps", 3200);
+    await caption("market", 3200);
     await scroll(600, 6, 350);
   });
 
   await step("end", async () => {
     await go("/opportunities");
-    await caption("RefineryLens: find the opportunity, examine the evidence, size it with your own numbers", 4000);
+    await caption("outro", 4000);
   });
 
+  if (Date.now() < speakingUntil) await wait(speakingUntil - Date.now());
+  await wait(800);
+  fs.writeFileSync(path.join(out, "timeline.json"), JSON.stringify(timeline, null, 2));
   await context.close();
   await browser.close();
 })();
