@@ -263,3 +263,33 @@ test("find my fit ranks opportunities with reasons; readiness, what-if table and
   await page.goto("/opportunities/board");
   await expect(page.getByText("1 of 3 readiness questions answered")).toBeVisible();
 });
+
+test("trade hub: a buyer enquires about a refinery's offer, the refinery replies, and an admin verifies a business @mobile", async ({ page }) => {
+  // Start from no conversation between these two demo businesses, and Kano Gas waiting for verification.
+  const db = new PrismaClient();
+  await db.hubThread.deleteMany({ where: { starter: { email: "converter@refinerylens.test" } } });
+  await db.hubBusiness.updateMany({ where: { owner: { email: "buyer@refinerylens.test" } }, data: { verification: "PENDING_REVIEW", verifiedAt: null } });
+  await db.$disconnect();
+
+  await signIn(page, "converter@refinerylens.test");
+  await page.goto("/hub?product=pp");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Sellers, buyers, delivery partners and refineries");
+  await page.getByRole("link", { name: "Polypropylene resin, injection and raffia grades" }).click();
+  await expect(page.getByText("✓ Verified").first()).toBeVisible();
+  await page.getByLabel("Your message").fill("We need 40 tonnes of raffia grade a month in Sagamu. Can you quote?");
+  await Promise.all([page.waitForURL(/\/hub\/inbox\/[a-z0-9]+$/), page.getByRole("button", { name: "Send message" }).click()]);
+  await expect(page.getByText("We need 40 tonnes of raffia grade")).toBeVisible();
+
+  await signIn(page, "refinery@refinerylens.test");
+  await page.goto("/hub/inbox");
+  await page.getByRole("link", { name: /Ogun Resin Converters/ }).click();
+  await page.getByLabel("Reply").fill("Yes. 40 tonnes monthly is fine; quote follows by Friday.");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(page.getByText("quote follows by Friday")).toBeVisible();
+
+  await signIn(page, "admin@refinerylens.test");
+  await page.goto("/admin/hub");
+  await expect(page.getByText("RC 0000002 (demo)")).toBeVisible();
+  await page.getByRole("button", { name: "Verify", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Verification requests (0)" })).toBeVisible();
+});

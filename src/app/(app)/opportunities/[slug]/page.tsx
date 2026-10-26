@@ -11,6 +11,8 @@ import { BoardForm } from "@/components/opportunities/BoardForm";
 import { ContextList, SourceLine } from "@/components/opportunities/ContextList";
 import { ScenarioList } from "@/components/opportunities/ScenarioList";
 import { Readiness } from "@/components/opportunities/Readiness";
+import { liveCountsByProduct } from "@/server/hub/listings";
+import { productLabel, productsForSegment } from "@/lib/hub/catalog";
 import { PageHeader, Pill, Unavailable } from "@/components/ui";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -23,7 +25,7 @@ export default async function OpportunityPage({ params }: { params: Promise<{ sl
   const o = opportunityBySlug((await params).slug);
   if (!o) notFound();
   const calcKeys = o.calculator ? CALCULATORS[o.calculator.id].fields({ unit: o.calculator.unit }).flatMap((f) => (f.signal ? [f.signal.key] : [])) : [];
-  const [item, scenarios, points] = await Promise.all([boardItem(user, o.slug), listScenarios(user, { opportunitySlug: o.slug }), signalPoints([...new Set([...o.signals, ...calcKeys])], user)]);
+  const [item, scenarios, points, hubCounts] = await Promise.all([boardItem(user, o.slug), listScenarios(user, { opportunitySlug: o.slug }), signalPoints([...new Set([...o.signals, ...calcKeys])], user), liveCountsByProduct(user, productsForSegment(o.segment))]);
 
   return (
     <>
@@ -95,6 +97,16 @@ export default async function OpportunityPage({ params }: { params: Promise<{ sl
               <button className="btn-secondary btn-sm">Download brief (PDF)</button>
             </form>
           </section>
+          {hubCounts.length > 0 && (
+            <section className="card" aria-labelledby="hub-h">
+              <h2 id="hub-h" className="h-section">On the trade hub</h2>
+              <p className="muted mb-2">Suppliers, buyers and hauliers posting now. Their offers are their own, not RefineryLens analysis.</p>
+              <ul className="space-y-1 text-sm">
+                {hubCounts.map((c) => <li key={c.product}><Link href={`/hub?product=${c.product}`}>{productLabel(c.product)}</Link> <span className="text-ink-600">· {c.count} live listing{c.count === 1 ? "" : "s"}</span></li>)}
+              </ul>
+              <Link href="/hub/post" className="btn-secondary btn-sm mt-3 no-underline">Post what you need</Link>
+            </section>
+          )}
         </aside>
       </div>
     </>

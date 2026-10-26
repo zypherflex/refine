@@ -24,7 +24,7 @@ function UserCard({ user }: { user: CurrentUser }) {
   );
 }
 
-export function Shell({ user, children, companies, current, unread, company }: { user: CurrentUser; children: React.ReactNode; companies: { slug: string; name: string }[]; current: string; unread: number; company: { name: string; isFictional: boolean; coverageStatus: string } }) {
+export function Shell({ user, children, companies, current, unread, hubUnread, company }: { user: CurrentUser; children: React.ReactNode; companies: { slug: string; name: string }[]; current: string; unread: number; hubUnread: number; company: { name: string; isFictional: boolean; coverageStatus: string } }) {
   const groups: NavGroup[] = [
     {
       label: "Opportunities",
@@ -33,6 +33,15 @@ export function Shell({ user, children, companies, current, unread, company }: {
         { href: "/opportunities/fit", label: "Find my fit", icon: "fit" },
         { href: "/opportunities/tools", label: "Sizing tools", icon: "tools" },
         { href: "/opportunities/board", label: "My opportunity board", icon: "board" },
+      ],
+    },
+    {
+      label: "Trade hub",
+      items: [
+        { href: "/hub", label: "Buy, sell & deliver", icon: "hub" },
+        { href: "/hub/refineries", label: "Refineries", icon: "refinery" },
+        { href: "/hub/inbox", label: "Hub inbox", icon: "inbox", badge: hubUnread },
+        { href: "/hub/me", label: "My business", icon: "business" },
       ],
     },
     {

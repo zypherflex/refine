@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { seedDangote } from "./seed-dangote";
 import { seedDemo } from "./seed-demo";
+import { seedHub } from "./seed-hub";
 import { createThesis } from "../src/server/services/thesis";
 import { suggestEvidenceForTheses } from "../src/server/services/thesis-matching";
 import { notifyWatchers } from "../src/server/services/alerts";
@@ -25,6 +26,7 @@ async function main() {
 
   const dangote = await seedDangote(db, editor.id);
   const demo = await seedDemo(db, { editorId: editor.id, analystId: analyst.id });
+  await seedHub(db, (email, name) => mk(email, name, "USER"), admin.id);
 
   await db.watchlist.create({ data: { userId: investor.id, companyId: demo.company.id, topics: [], frequency: "IMMEDIATE" } });
   await db.watchlist.create({ data: { userId: investor.id, companyId: dangote.id, topics: [], frequency: "DAILY" } });
@@ -102,6 +104,7 @@ async function main() {
   console.log("Seeded RefineryLens.");
   console.log(`  Users (password ${DEMO_PASSWORD}): admin@, editor@, analyst@, investor@, other@ refinerylens.test`);
   console.log(`  Companies: ${dangote.name} (website facts awaiting review); ${demo.company.name}`);
+  console.log("  Trade hub (same password): seller@, buyer@, haulier@, refinery@, converter@ refinerylens.test; five demo businesses, eight listings");
 }
 
 main()

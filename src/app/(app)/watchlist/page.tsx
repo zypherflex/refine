@@ -10,8 +10,8 @@ import { EmptyState, Notice, PageHeader, Pill } from "@/components/ui";
 
 export const metadata = { title: "Watchlist and alerts" };
 
-const kindLabel: Record<string, string> = { NEW_ANNOUNCEMENT: "New", CORRECTION: "Correction", RETRACTION: "Retraction", SUPERSESSION: "Superseded", THESIS_MATCH: "Thesis evidence" };
-const kindStyle: Record<string, string> = { NEW_ANNOUNCEMENT: "bg-brand-100 text-brand-800", CORRECTION: "bg-amber-100 text-amber-800", RETRACTION: "bg-risk-100 text-risk-800", SUPERSESSION: "bg-ink-100 text-ink-800", THESIS_MATCH: "bg-ink-900 text-white" };
+const kindLabel: Record<string, string> = { NEW_ANNOUNCEMENT: "New", CORRECTION: "Correction", RETRACTION: "Retraction", SUPERSESSION: "Superseded", THESIS_MATCH: "Thesis evidence", HUB_MESSAGE: "Trade hub message", HUB_VERIFICATION: "Trade hub" };
+const kindStyle: Record<string, string> = { NEW_ANNOUNCEMENT: "bg-brand-100 text-brand-800", CORRECTION: "bg-amber-100 text-amber-800", RETRACTION: "bg-risk-100 text-risk-800", SUPERSESSION: "bg-ink-100 text-ink-800", THESIS_MATCH: "bg-ink-900 text-white", HUB_MESSAGE: "bg-brand-600 text-white", HUB_VERIFICATION: "bg-brand-100 text-brand-800" };
 
 export default async function WatchlistPage() {
   const user = await requireUser();

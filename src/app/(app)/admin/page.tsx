@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireRole } from "@/server/auth";
 import { changePlanAction, changeRoleAction } from "@/app/actions/admin";
@@ -19,6 +20,7 @@ export default async function AdminPage() {
     db.job.groupBy({ by: ["status"], _count: true }),
     latestIngestionRuns(),
   ]);
+  const hubPending = (await db.hubBusiness.count({ where: { verification: "PENDING_REVIEW" } })) + (await db.hubReport.count({ where: { status: "OPEN" } }));
   const st = integrationStatus();
   const integrations = [
     ["PostgreSQL database", st.database],
@@ -31,7 +33,7 @@ export default async function AdminPage() {
   ] as const;
   return (
     <>
-      <PageHeader eyebrow="Administration" title="Administration" subtitle="Users, roles, plans, background jobs and the audit log. Administrators cannot open users' private files or theses." />
+      <PageHeader eyebrow="Administration" title="Administration" subtitle="Users, roles, plans, background jobs and the audit log. Administrators cannot open users' private files or theses." actions={<Link href="/admin/hub" className="btn-secondary btn-sm no-underline">Trade hub moderation{hubPending ? ` (${hubPending})` : ""}</Link>} />
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="card lg:col-span-2">
           <h2 className="h-section">Users</h2>
