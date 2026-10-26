@@ -27,6 +27,16 @@ function UserCard({ user }: { user: CurrentUser }) {
 export function Shell({ user, children, companies, current, unread, company }: { user: CurrentUser; children: React.ReactNode; companies: { slug: string; name: string }[]; current: string; unread: number; company: { name: string; isFictional: boolean; coverageStatus: string } }) {
   const groups: NavGroup[] = [
     {
+      label: "Trade hub",
+      items: [
+        { href: "/hub", label: "Trade hub", icon: "hub" },
+        { href: "/hub/prices", label: "Price board", icon: "prices" },
+        { href: "/hub/gas-map", label: "Gas network map", icon: "map" },
+        { href: "/hub/jobs", label: "Delivery jobs", icon: "truck" },
+        { href: "/hub/supply", label: "Recurring supply", icon: "repeat" },
+      ],
+    },
+    {
       label: "Opportunities",
       items: [
         { href: "/opportunities", label: "Business opportunities", icon: "opportunities" },
@@ -66,17 +76,17 @@ export function Shell({ user, children, companies, current, unread, company }: {
   ];
   const staff = [];
   if (hasRole(user, "ANALYST")) staff.push({ href: "/editorial", label: "Editorial desk", icon: "editorial" as const });
+  if (hasRole(user, "EDITOR")) staff.push({ href: "/hub/review", label: "Hub review", icon: "verified" as const });
   if (hasRole(user, "ADMIN")) staff.push({ href: "/admin", label: "Administration", icon: "admin" as const });
   if (staff.length) groups.push({ label: "Staff", items: staff });
-  groups.push({ label: "", items: [{ href: "/settings", label: "Account & plan", icon: "settings" }] });
+  groups.push({ label: "", items: [{ href: "/plans", label: "Plans & pricing", icon: "plans" }, { href: "/settings", label: "Account & plan", icon: "settings" }] });
 
   return (
     <div className="min-h-screen lg:flex">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2">Skip to content</a>
       <div className="hidden w-[17rem] shrink-0 bg-ink-950 lg:block">
-      <aside className="relative sticky top-0 flex h-screen flex-col bg-[radial-gradient(120%_60%_at_0%_0%,rgba(47,191,120,0.16),transparent_60%)] text-ink-200">
-        <div aria-hidden className="bg-adire pointer-events-none absolute inset-0 opacity-[0.035]" />
-        <div aria-hidden className="band-ng h-1 w-full opacity-90" />
+      <aside className="relative sticky top-0 flex h-screen flex-col text-ink-200">
+        <div aria-hidden className="band-ng h-[3px] w-full" />
         <div className="relative px-5 pb-4 pt-5"><Link href="/dashboard" className="no-underline hover:no-underline"><Logo light /></Link></div>
         <nav aria-label="Main" className="relative flex-1 overflow-y-auto px-3 pb-4"><NavLinks groups={groups} /></nav>
         <div className="relative border-t border-white/5 px-5 py-4">
@@ -87,7 +97,7 @@ export function Shell({ user, children, companies, current, unread, company }: {
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 border-b border-ink-100 bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/75">
-          <div aria-hidden className="band-ng h-1 w-full lg:hidden" />
+          <div aria-hidden className="band-ng h-[3px] w-full lg:hidden" />
           <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-8">
             <div className="flex min-w-0 items-center gap-3">
               <details className="relative lg:hidden">

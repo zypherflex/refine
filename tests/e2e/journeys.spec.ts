@@ -263,3 +263,84 @@ test("find my fit ranks opportunities with reasons; readiness, what-if table and
   await page.goto("/opportunities/board");
   await expect(page.getByText("1 of 3 readiness questions answered")).toBeVisible();
 });
+
+test("trade hub: price board shows medians with its fairness rules and refuses unconfirmed prices @mobile", async ({ page }) => {
+  await signIn(page, "trader@refinerylens.test");
+  await page.goto("/hub/prices");
+  await expect(page.getByText("How this board stays fair")).toBeVisible();
+  await expect(page.getByText(/agree prices with competitors/)).toBeVisible();
+  const lagosLpg = page.locator("tr", { hasText: "LPG (cooking gas)" }).filter({ hasText: "Lagos" });
+  await expect(lagosLpg).toContainText(/₦1,3\d\d/);
+  await expect(page.locator("tr", { hasText: "Ogun" }).first()).toContainText("Not enough reports yet");
+  await page.getByLabel("Price per unit (₦)").fill("1360");
+  await page.getByLabel("This is a price I actually charged").check();
+  await page.getByRole("button", { name: "Record price" }).click();
+  await expect(page.getByText("Price recorded.")).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
+test("trade hub: post a load, a haulier quotes, accept it and confirm delivery on both sides", async ({ page }) => {
+  await signIn(page, "trader@refinerylens.test");
+  await page.goto("/hub/jobs");
+  await page.getByLabel("Quantity").fill("15000");
+  await page.getByLabel("Collection point").fill("Ikeja Gas Hub plant");
+  await page.getByLabel("Deliver to (state)").selectOption("OG");
+  await page.getByLabel("Delivery point").fill("E2E test site, Ota");
+  const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+  await page.getByLabel("Load ready by").fill(tomorrow);
+  await Promise.all([page.waitForURL(/\/hub\/jobs\/[a-z0-9]+$/), page.getByRole("button", { name: "Post load" }).click()]);
+  const jobUrl = page.url();
+
+  await signIn(page, "haulier@refinerylens.test");
+  await page.goto(jobUrl);
+  await page.getByLabel("Your price for the whole job (₦)").fill("410000");
+  await page.getByRole("button", { name: "Send quote" }).click();
+  await expect(page.getByText("Quote sent.")).toBeVisible();
+
+  await signIn(page, "trader@refinerylens.test");
+  await page.goto(jobUrl);
+  await page.getByRole("button", { name: "Accept quote" }).click();
+  await expect(page.getByRole("button", { name: "Confirm I received it" })).toBeVisible();
+  await page.getByRole("button", { name: "Confirm I received it" }).click();
+  await expect(page.getByText("✓ Poster confirmed delivery")).toBeVisible();
+
+  await signIn(page, "haulier@refinerylens.test");
+  await page.goto(jobUrl);
+  await page.getByRole("button", { name: "Confirm I delivered it" }).click();
+  await expect(page.getByText("Delivered and confirmed by both sides")).toBeVisible();
+});
+
+test("trade hub: gas map shows gaps and famous names stay hidden until verified @mobile", async ({ page }) => {
+  await signIn(page, "other@refinerylens.test");
+  await page.goto("/hub/gas-map");
+  await expect(page.getByRole("heading", { name: "Gaps: demand with no listed supply" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Kaduna", exact: true }).first()).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+
+  await page.goto("/hub/my");
+  if (await page.getByRole("button", { name: "Add my business" }).isVisible()) {
+    await page.getByLabel("Business name").fill("Dangote Gas Agents");
+    await page.getByLabel("State").selectOption("LA");
+    await page.locator("input[name=roles][value=SELLER]").check();
+    await page.getByRole("button", { name: "Add my business" }).click();
+    await expect(page.getByText("Business profile saved.")).toBeVisible();
+  }
+  await page.goto("/hub/directory?q=Gas+Agents");
+  await expect(page.getByText("Name hidden until verified").first()).toBeVisible();
+  expect(await page.locator("main").innerText()).not.toContain("Dangote Gas Agents");
+});
+
+test("plans page labels partner services as coming soon and editors see the hub review queue", async ({ page }) => {
+  await signIn(page, "investor@refinerylens.test");
+  await page.goto("/plans");
+  await expect(page.getByRole("heading", { name: "Free to find. Paid to scale." })).toBeVisible();
+  await expect(page.getByText("Coming soon · licensed partner")).toHaveCount(3);
+  await page.goto("/hub/review");
+  await expect(page).not.toHaveURL(/\/hub\/review$/);
+  await signIn(page, "editor@refinerylens.test");
+  await page.goto("/hub/review");
+  await expect(page.getByText("Sango-Ota LPG Plant").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Waiting for verification" })).toBeVisible();
+});

@@ -44,17 +44,19 @@ model User {
   emailAlerts    Boolean       @default(false)
   createdAt      DateTime      @default(now())
 
-  sessions      Session[]
-  theses        Thesis[]
-  documents     Document[]       @relation("DocumentOwner")
-  watchlists    Watchlist[]
-  alerts        Alert[]
-  conversations Conversation[]
-  reviews       EditorialReview[]
-  auditLogs     AuditLog[]
-  opportunities OpportunityBoardItem[]
-  scenarios     OpportunityScenario[]
+  sessions        Session[]
+  theses          Thesis[]
+  documents       Document[]             @relation("DocumentOwner")
+  watchlists      Watchlist[]
+  alerts          Alert[]
+  conversations   Conversation[]
+  reviews         EditorialReview[]
+  auditLogs       AuditLog[]
+  opportunities   OpportunityBoardItem[]
+  scenarios       OpportunityScenario[]
   businessProfile BusinessProfile?
+  hubBusiness     HubBusiness?           @relation("HubBusinessOwner")
+  planInterests   PlanInterest[]
 }
 
 model Session {
@@ -235,47 +237,47 @@ enum PublicationStatus {
 }
 
 model Announcement {
-  id              String            @id @default(cuid())
-  companyId       String
-  company         Company           @relation(fields: [companyId], references: [id])
-  legalEntityId   String?
-  legalEntity     LegalEntity?      @relation(fields: [legalEntityId], references: [id])
-  sourceId        String?
-  source          Source?           @relation(fields: [sourceId], references: [id])
-  headline        String
-  originalTitle   String
-  publisher       String
-  sourceUrl       String
-  documentType    DocumentType
-  sourceVersion   String            @default("1")
-  eventDate       DateTime?
-  sourcePublishedAt DateTime
-  retrievedAt     DateTime
-  provenance      Provenance
-  summary         String
-  whatChanged     String            @default("")
-  whyItMatters    String
-  uncertainties   String
-  analysis        String            @default("")
-  alternativeExplanations String    @default("")
-  openQuestions   String            @default("")
-  topics          String[]          @default([])
-  status          PublicationStatus @default(DRAFT)
-  aiGenerated     Boolean           @default(false)
-  reviewerId      String?
-  reviewedAt      DateTime?
-  publishedAt     DateTime?
-  retractedAt     DateTime?
-  retractionReason String           @default("")
-  revision        Int               @default(1)
-  supersedesId    String?           @unique
-  supersedes      Announcement?     @relation("Supersession", fields: [supersedesId], references: [id])
-  supersededBy    Announcement?     @relation("Supersession")
-  duplicateOfId   String?
-  isFictional     Boolean           @default(false)
-  createdById     String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id                      String            @id @default(cuid())
+  companyId               String
+  company                 Company           @relation(fields: [companyId], references: [id])
+  legalEntityId           String?
+  legalEntity             LegalEntity?      @relation(fields: [legalEntityId], references: [id])
+  sourceId                String?
+  source                  Source?           @relation(fields: [sourceId], references: [id])
+  headline                String
+  originalTitle           String
+  publisher               String
+  sourceUrl               String
+  documentType            DocumentType
+  sourceVersion           String            @default("1")
+  eventDate               DateTime?
+  sourcePublishedAt       DateTime
+  retrievedAt             DateTime
+  provenance              Provenance
+  summary                 String
+  whatChanged             String            @default("")
+  whyItMatters            String
+  uncertainties           String
+  analysis                String            @default("")
+  alternativeExplanations String            @default("")
+  openQuestions           String            @default("")
+  topics                  String[]          @default([])
+  status                  PublicationStatus @default(DRAFT)
+  aiGenerated             Boolean           @default(false)
+  reviewerId              String?
+  reviewedAt              DateTime?
+  publishedAt             DateTime?
+  retractedAt             DateTime?
+  retractionReason        String            @default("")
+  revision                Int               @default(1)
+  supersedesId            String?           @unique
+  supersedes              Announcement?     @relation("Supersession", fields: [supersedesId], references: [id])
+  supersededBy            Announcement?     @relation("Supersession")
+  duplicateOfId           String?
+  isFictional             Boolean           @default(false)
+  createdById             String?
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
 
   excerpts       Excerpt[]
   corrections    Correction[]
@@ -440,25 +442,25 @@ enum Level {
 }
 
 model Risk {
-  id                    String            @id @default(cuid())
-  companyId             String
-  company               Company           @relation(fields: [companyId], references: [id])
-  category              RiskCategory
-  title                 String
-  summary               String
-  evidenceSummary       String
-  impactPathway         String
-  horizon               String
-  severity              Level
-  confidence            Level
-  evidenceQuality       String
-  uncertainty           String
-  clarifyingDisclosure  String
-  status                PublicationStatus @default(DRAFT)
-  isFictional           Boolean           @default(false)
-  updatedAt             DateTime          @updatedAt
-  createdAt             DateTime          @default(now())
-  evidence              RiskEvidence[]
+  id                   String            @id @default(cuid())
+  companyId            String
+  company              Company           @relation(fields: [companyId], references: [id])
+  category             RiskCategory
+  title                String
+  summary              String
+  evidenceSummary      String
+  impactPathway        String
+  horizon              String
+  severity             Level
+  confidence           Level
+  evidenceQuality      String
+  uncertainty          String
+  clarifyingDisclosure String
+  status               PublicationStatus @default(DRAFT)
+  isFictional          Boolean           @default(false)
+  updatedAt            DateTime          @updatedAt
+  createdAt            DateTime          @default(now())
+  evidence             RiskEvidence[]
 }
 
 model RiskEvidence {
@@ -471,18 +473,18 @@ model RiskEvidence {
 }
 
 model Thesis {
-  id                     String   @id @default(cuid())
+  id                     String    @id @default(cuid())
   ownerId                String
-  owner                  User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner                  User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   companyId              String
-  company                Company  @relation(fields: [companyId], references: [id])
+  company                Company   @relation(fields: [companyId], references: [id])
   title                  String
   rationale              String
-  reassessmentConditions String   @default("")
+  reassessmentConditions String    @default("")
   reviewDate             DateTime?
-  version                Int      @default(1)
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  version                Int       @default(1)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   assumptions Assumption[]
   indicators  ThesisIndicator[]
@@ -812,4 +814,254 @@ model BusinessProfile {
   segments  String[] @default([])
   assets    String[] @default([])
   updatedAt DateTime @updatedAt
+}
+
+// Trade hub. RefineryLens is a neutral marketplace: it never trades fuel, holds money or sets prices. These tables hold
+// what businesses state about themselves (with who stated it and when) and the records both sides confirm.
+enum HubVerification {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  SUSPENDED
+}
+
+model HubBusiness {
+  id                  String          @id @default(cuid())
+  ownerId             String          @unique
+  owner               User            @relation("HubBusinessOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  name                String
+  // SELLER, BUYER, HAULIER, REFINERY
+  roles               String[]        @default([])
+  // Product codes from src/lib/hub/products.ts
+  products            String[]        @default([])
+  state               String
+  town                String          @default("")
+  description         String          @default("")
+  phone               String          @default("")
+  // Registration and licence numbers as stated by the business. A reviewer checks the documents before the badge.
+  cacNumber           String          @default("")
+  licenceNumbers      String          @default("")
+  verification        HubVerification @default(UNVERIFIED)
+  verificationNote    String          @default("")
+  verificationAskedAt DateTime?
+  verifiedAt          DateTime?
+  verifiedById        String?
+  // Seeded sample businesses are labelled as such everywhere.
+  isSample            Boolean         @default(false)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  listings         HubListing[]
+  sites            GasSite[]
+  prices           PriceReport[]
+  postedJobs       DeliveryJob[]     @relation("JobPoster")
+  quotes           DeliveryQuote[]
+  buyerAgreements  SupplyAgreement[] @relation("AgreementBuyer")
+  sellerAgreements SupplyAgreement[] @relation("AgreementSeller")
+  reports          HubReport[]       @relation("ReportedBusiness")
+  enquiriesSent    HubEnquiry[]      @relation("EnquiryFrom")
+  enquiriesIn      HubEnquiry[]      @relation("EnquiryTo")
+
+  @@index([state])
+  @@index([verification])
+}
+
+enum ListingKind {
+  OFFER
+  REQUEST
+}
+
+model HubListing {
+  id         String       @id @default(cuid())
+  businessId String
+  business   HubBusiness  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  kind       ListingKind
+  product    String
+  quantity   Float
+  unit       String
+  state      String
+  details    String       @default("")
+  // Paid placement. Always shown with a "Promoted" label.
+  promoted   Boolean      @default(false)
+  active     Boolean      @default(true)
+  expiresAt  DateTime
+  createdAt  DateTime     @default(now())
+  enquiries  HubEnquiry[]
+
+  @@index([active, product, state])
+}
+
+model HubEnquiry {
+  id        String      @id @default(cuid())
+  fromId    String
+  from      HubBusiness @relation("EnquiryFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  toId      String
+  to        HubBusiness @relation("EnquiryTo", fields: [toId], references: [id], onDelete: Cascade)
+  listingId String?
+  listing   HubListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  message   String
+  createdAt DateTime    @default(now())
+
+  @@index([toId, createdAt])
+}
+
+model HubReport {
+  id         String      @id @default(cuid())
+  businessId String
+  business   HubBusiness @relation("ReportedBusiness", fields: [businessId], references: [id], onDelete: Cascade)
+  reporterId String
+  reason     String
+  details    String      @default("")
+  resolved   Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+
+  @@index([resolved])
+}
+
+// Seller-stated prices actually charged on a past date. Only medians across several sellers are ever shown.
+model PriceReport {
+  id         String      @id @default(cuid())
+  businessId String
+  business   HubBusiness @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  product    String
+  state      String
+  priceNgn   Float
+  chargedOn  DateTime    @db.Date
+  createdAt  DateTime    @default(now())
+
+  @@unique([businessId, product, state, chargedOn])
+  @@index([product, state, chargedOn])
+}
+
+enum GasSiteKind {
+  SUPPLY
+  DELIVERY
+  DEMAND
+}
+
+model GasSite {
+  id              String      @id @default(cuid())
+  businessId      String
+  business        HubBusiness @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  kind            GasSiteKind
+  // LPG, CNG or PNG
+  gas             String
+  name            String
+  state           String
+  town            String      @default("")
+  // e.g. "20 t storage", "1,500 scm/day", "needs 3 t a week"
+  capacityNote    String      @default("")
+  lastConfirmedAt DateTime    @default(now())
+  createdAt       DateTime    @default(now())
+
+  @@index([gas, state])
+}
+
+enum JobStatus {
+  OPEN
+  AWARDED
+  DELIVERED
+  CANCELLED
+}
+
+model DeliveryJob {
+  id                 String          @id @default(cuid())
+  posterId           String
+  poster             HubBusiness     @relation("JobPoster", fields: [posterId], references: [id], onDelete: Cascade)
+  product            String
+  quantity           Float
+  unit               String
+  fromState          String
+  fromPlace          String
+  toState            String
+  toPlace            String
+  readyBy            DateTime        @db.Date
+  notes              String          @default("")
+  status             JobStatus       @default(OPEN)
+  acceptedQuoteId    String?         @unique
+  posterConfirmedAt  DateTime?
+  haulierConfirmedAt DateTime?
+  createdAt          DateTime        @default(now())
+  quotes             DeliveryQuote[]
+
+  @@index([status, fromState])
+}
+
+enum QuoteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+}
+
+model DeliveryQuote {
+  id        String      @id @default(cuid())
+  jobId     String
+  job       DeliveryJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  haulierId String
+  haulier   HubBusiness @relation(fields: [haulierId], references: [id], onDelete: Cascade)
+  priceNgn  Float
+  days      Int
+  note      String      @default("")
+  status    QuoteStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+
+  @@unique([jobId, haulierId])
+}
+
+enum AgreementStatus {
+  PROPOSED
+  ACTIVE
+  DECLINED
+  ENDED
+}
+
+model SupplyAgreement {
+  id           String           @id @default(cuid())
+  buyerId      String
+  buyer        HubBusiness      @relation("AgreementBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  sellerId     String
+  seller       HubBusiness      @relation("AgreementSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  proposedById String
+  product      String
+  quantity     Float
+  unit         String
+  // WEEKLY, FORTNIGHTLY, MONTHLY
+  frequency    String
+  deliverTo    String           @default("")
+  startsOn     DateTime         @db.Date
+  status       AgreementStatus  @default(PROPOSED)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  deliveries   SupplyDelivery[]
+
+  @@index([buyerId])
+  @@index([sellerId])
+}
+
+// A delivery under an agreement. It counts towards a business's record only once both sides confirm it.
+model SupplyDelivery {
+  id                String          @id @default(cuid())
+  agreementId       String
+  agreement         SupplyAgreement @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+  deliveredOn       DateTime        @db.Date
+  quantity          Float
+  note              String          @default("")
+  sellerConfirmedAt DateTime?
+  buyerConfirmedAt  DateTime?
+  createdAt         DateTime        @default(now())
+
+  @@index([agreementId, deliveredOn])
+}
+
+// "Register interest" for paid plans. Payments are not collected in this release.
+model PlanInterest {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  line      String
+  message   String   @default("")
+  createdAt DateTime @default(now())
+
+  @@unique([userId, line])
 }

@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { seedDangote } from "./seed-dangote";
 import { seedDemo } from "./seed-demo";
+import { seedHub } from "./seed-hub";
 import { createThesis } from "../src/server/services/thesis";
 import { suggestEvidenceForTheses } from "../src/server/services/thesis-matching";
 import { notifyWatchers } from "../src/server/services/alerts";
@@ -25,6 +26,7 @@ async function main() {
 
   const dangote = await seedDangote(db, editor.id);
   const demo = await seedDemo(db, { editorId: editor.id, analystId: analyst.id });
+  await seedHub(db, { passwordHash: hash, editorId: editor.id });
 
   await db.watchlist.create({ data: { userId: investor.id, companyId: demo.company.id, topics: [], frequency: "IMMEDIATE" } });
   await db.watchlist.create({ data: { userId: investor.id, companyId: dangote.id, topics: [], frequency: "DAILY" } });
@@ -100,7 +102,8 @@ async function main() {
   await db.job.updateMany({ where: { type: "document.extract", status: "QUEUED" }, data: { status: "DONE", finishedAt: new Date() } });
 
   console.log("Seeded RefineryLens.");
-  console.log(`  Users (password ${DEMO_PASSWORD}): admin@, editor@, analyst@, investor@, other@ refinerylens.test`);
+  console.log(`  Users (password ${DEMO_PASSWORD}): admin@, editor@, analyst@, investor@, other@, trader@, haulier@ refinerylens.test`);
+  console.log("  Trade hub: 15 sample businesses with prices, gas sites, delivery jobs and supply agreements");
   console.log(`  Companies: ${dangote.name} (website facts awaiting review); ${demo.company.name}`);
 }
 
