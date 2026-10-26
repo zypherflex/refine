@@ -1,0 +1,157 @@
+[
+  {
+    "id": "intro",
+    "caption": "RefineryLens: independent business intelligence on opportunities around Dangote",
+    "say": "This is RefineryLens: independent business intelligence on the opportunities around Dangote, for businesses of every size."
+  },
+  {
+    "id": "sourced",
+    "caption": "Every figure carries its source, period and provenance label",
+    "say": "Every figure carries its source, its period, and a label saying where it came from. Missing data is shown as missing."
+  },
+  {
+    "id": "login",
+    "caption": "Sign in with a demo account (investor, Pro plan)",
+    "say": "Let's sign in with the demo investor account."
+  },
+  {
+    "id": "hub",
+    "caption": "The business opportunities hub: 14 ways to plug into the Lekki complex",
+    "say": "The opportunities hub maps fourteen ways for a business to plug into the Lekki complex, from fuel retail and haulage to plastics, aviation fuel and plant services."
+  },
+  {
+    "id": "filter",
+    "caption": "Filter by business size, from micro to enterprise",
+    "say": "You can filter by business size."
+  },
+  {
+    "id": "micro",
+    "caption": "Only opportunities a micro business can realistically pursue remain",
+    "say": "Choosing micro leaves only the opportunities a very small business can realistically pursue."
+  },
+  {
+    "id": "fit",
+    "caption": "Find my fit: describe your business, get ranked matches",
+    "say": "Find my fit asks three quick questions: your size, your interests, and the assets you already have."
+  },
+  {
+    "id": "matches",
+    "caption": "Each match explains why it is listed, including assets you already have",
+    "say": "The matches are ranked, and each one explains why it's listed. Here, the tanker trucks we already own count in our favour."
+  },
+  {
+    "id": "opp",
+    "caption": "An opportunity page: LPG cylinder refilling and retail",
+    "say": "Let's open LPG cylinder refilling and retail."
+  },
+  {
+    "id": "evidence",
+    "caption": "Company-stated facts, dated independent reports, questions and licences to check",
+    "say": "Each opportunity shows the company-stated facts it rests on, dated independent reports that help or hurt the case, and the licences you'd need to check."
+  },
+  {
+    "id": "ready",
+    "caption": "Readiness checklist: tick off what you have already answered",
+    "say": "The readiness checklist tracks the questions you've already answered."
+  },
+  {
+    "id": "sizing",
+    "caption": "The sizing tool: enter your own numbers, or start from labelled examples",
+    "say": "The sizing tool takes your own numbers, or you can start from clearly labelled examples."
+  },
+  {
+    "id": "formulas",
+    "caption": "Formulas stay visible, so every result can be checked",
+    "say": "The formulas stay visible, so every result can be checked by hand."
+  },
+  {
+    "id": "whatif",
+    "caption": "What-if table: each key input moved ±10% to show what matters most",
+    "say": "The what-if table moves each key input up and down by ten percent, so you can see which assumption matters most."
+  },
+  {
+    "id": "board",
+    "caption": "Save a private scenario and track the opportunity on your board",
+    "say": "Save the scenario privately, and add the opportunity to your board with a stage and a next step."
+  },
+  {
+    "id": "brief",
+    "caption": "Download a one-page PDF brief with sources, readiness answers and the scenario",
+    "say": "And download a one-page PDF brief, with the sources, your readiness answers, and your scenario."
+  },
+  {
+    "id": "boardpage",
+    "caption": "My opportunity board: stage, next step, readiness progress and saved scenarios",
+    "say": "Your board brings it together: stage, next step, readiness progress and saved scenarios."
+  },
+  {
+    "id": "research",
+    "caption": "Behind it: the evidence-first research layer (shown here on a fictional demo company)",
+    "say": "Behind all this sits the evidence-first research layer, shown here on a clearly labelled fictional demo company."
+  },
+  {
+    "id": "metrics",
+    "caption": "Sourced metrics, what changed, conflicts kept visible",
+    "say": "It tracks what changed, with sourced metrics, and when sources disagree, the conflict stays visible."
+  },
+  {
+    "id": "assistant",
+    "caption": "The research assistant answers only from cited evidence",
+    "say": "The research assistant answers only from cited evidence."
+  },
+  {
+    "id": "answer",
+    "caption": "A direct answer, with every claim linked to its source",
+    "say": "You get a direct answer, with every claim linked back to its source."
+  },
+  {
+    "id": "market",
+    "caption": "Market and macro context, labelled as non-company data, with honest gaps",
+    "say": "Market and macro context is labelled as non-company data, and gaps are shown honestly."
+  },
+  {
+    "id": "tradeintro",
+    "caption": "The trade hub: sellers, buyers, delivery partners and refineries",
+    "say": "Now the trade hub, where sellers, buyers, delivery partners and refineries find each other. Let's sign in as a demo plastics maker that buys polypropylene."
+  },
+  {
+    "id": "trade",
+    "caption": "Offers, buy requests and delivery capacity, each with its business's verification status",
+    "say": "The hub lists offers to sell, requests to buy, and delivery capacity from hauliers. Every business shows whether RefineryLens has checked its registration and licences."
+  },
+  {
+    "id": "tradefilter",
+    "caption": "Filter by product, location, or verified businesses only",
+    "say": "Filter by product and location. Here, polypropylene resin."
+  },
+  {
+    "id": "tradelisting",
+    "caption": "A refinery's offer, with matching buyers and hauliers alongside",
+    "say": "This verified refinery is offering resin. Matching buy requests and delivery capacity appear alongside, and there's a clear warning never to pay an unverified business in advance."
+  },
+  {
+    "id": "tradeenquire",
+    "caption": "Enquire straight from the listing, into a private inbox",
+    "say": "Send an enquiry straight from the listing. It lands in a private inbox that only the two businesses can read."
+  },
+  {
+    "id": "traderefineries",
+    "caption": "Refineries run their own verified accounts",
+    "say": "Refineries run their own accounts. Well-known refiners' names stay hidden until RefineryLens has verified them, so nobody can pose as Dangote."
+  },
+  {
+    "id": "tradereply",
+    "caption": "Signed in as the refinery: the enquiry is waiting in the hub inbox",
+    "say": "Signed in as the refinery, the enquiry is waiting in the hub inbox, ready for a reply."
+  },
+  {
+    "id": "tradeverify",
+    "caption": "Administrators verify businesses and handle reports, but cannot read messages",
+    "say": "Administrators check registration and licence details before verifying a business, and handle reports, but they can't read anyone's messages."
+  },
+  {
+    "id": "outro",
+    "caption": "RefineryLens: find the opportunity, examine the evidence, size it, and find partners to make it happen",
+    "say": "RefineryLens. Find the opportunity, examine the evidence, size it with your own numbers, and find the partners to make it happen."
+  }
+]
