@@ -30,6 +30,7 @@ export function Shell({ user, children, companies, current, unread, company }: {
       label: "Opportunities",
       items: [
         { href: "/opportunities", label: "Business opportunities", icon: "opportunities" },
+        { href: "/opportunities/fit", label: "Find my fit", icon: "fit" },
         { href: "/opportunities/tools", label: "Sizing tools", icon: "tools" },
         { href: "/opportunities/board", label: "My opportunity board", icon: "board" },
       ],

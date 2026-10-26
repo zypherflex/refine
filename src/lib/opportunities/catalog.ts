@@ -37,6 +37,21 @@ export const STAGES = [
   ["PARKED", "Parked"],
 ] as const;
 
+export const ASSETS = [
+  { id: "trucks", label: "Tanker trucks or a delivery fleet" },
+  { id: "station", label: "An existing filling station" },
+  { id: "site", label: "Land or a roadside site" },
+  { id: "storage", label: "Tank storage, a depot or a warehouse" },
+  { id: "factory", label: "A factory or workshop" },
+  { id: "vessel", label: "Vessels or marine assets" },
+  { id: "feedstock", label: "Access to crude, condensate or gas" },
+  { id: "network", label: "Customers or a distribution network" },
+  { id: "technical", label: "Engineering or technical staff" },
+  { id: "finance", label: "Trade finance or bank credit lines" },
+  { id: "licences", label: "Existing NMDPRA licences or permits" },
+] as const;
+export type AssetId = (typeof ASSETS)[number]["id"];
+
 export type Anchor = { text: string; source: SourceId };
 export type ContextNote = { text: string; source: SourceId; stance: "tailwind" | "headwind" | "neutral" };
 
@@ -55,6 +70,8 @@ export type Opportunity = {
   calculator?: { id: CalculatorId; unit?: string };
   /** Open-data series worth watching for this opportunity (keys from the open-data adapters). */
   signals: string[];
+  /** Things a business may already have that give it a head start here. Used by "Find my fit". */
+  leverages: AssetId[];
 };
 
 const PERMIT_NOTE = "Confirm current licence names, fees and conditions with NMDPRA before committing money; categories change.";
@@ -84,6 +101,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     permits: ["Retail outlet approvals from NMDPRA", "State and local planning approvals", PERMIT_NOTE],
     calculator: { id: "unit-margin", unit: "litre" },
     signals: ["eia.gulf_gasoline_spot", "eia.gulf_ulsd_spot", "fx.usd_ngn"],
+    leverages: ["station", "site", "licences", "finance"],
   },
   {
     slug: "depot-bulk-marketing",
@@ -102,6 +120,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     permits: ["Depot licence and operating permits from NMDPRA", PERMIT_NOTE],
     calculator: { id: "unit-margin", unit: "litre" },
     signals: ["eia.gulf_gasoline_spot", "eia.gulf_ulsd_spot", "fx.usd_ngn"],
+    leverages: ["storage", "network", "finance", "licences"],
   },
   {
     slug: "tanker-haulage",
@@ -120,6 +139,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     permits: ["Truck tanker integrity test and calibration (NMDPRA)", PERMIT_NOTE],
     calculator: { id: "haulage" },
     signals: ["fx.usd_ngn", "eia.gulf_ulsd_spot"],
+    leverages: ["trucks", "network"],
   },
   {
     slug: "cng-refuelling",
@@ -138,6 +158,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     permits: ["CNG compression and CNG refuelling permits (NMDPRA gas permits portal)", PERMIT_NOTE],
     calculator: { id: "unit-margin", unit: "kg" },
     signals: ["fx.usd_ngn"],
+    leverages: ["site", "technical", "feedstock", "station"],
   },
   {
     slug: "lpg-retail",
@@ -153,6 +174,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     permits: ["LPG plant, auto refilling or retailer permits (NMDPRA gas permits portal)", PERMIT_NOTE],
     calculator: { id: "unit-margin", unit: "kg" },
     signals: ["fx.usd_ngn"],
+    leverages: ["site", "network", "licences"],
   },
   {
     slug: "diesel-industrial-telecoms",
@@ -168,6 +190,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     permits: ["NMDPRA approvals for storage and dispensing on customer sites", PERMIT_NOTE],
     calculator: { id: "unit-margin", unit: "litre" },
     signals: ["eia.gulf_ulsd_spot", "fx.usd_ngn"],
+    leverages: ["trucks", "network", "storage"],
   },
   {
     slug: "polypropylene-conversion",
@@ -186,6 +209,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     permits: ["Standards Organisation of Nigeria (SON) product certification where applicable", "Environmental permits for plastics processing"],
     calculator: { id: "pp-converter" },
     signals: ["fx.usd_ngn"],
+    leverages: ["factory", "technical", "network"],
   },
   {
     slug: "resin-distribution",
@@ -201,6 +225,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     permits: ["Standard business and warehouse registrations"],
     calculator: { id: "unit-margin", unit: "tonne" },
     signals: ["fx.usd_ngn"],
+    leverages: ["storage", "network", "finance"],
   },
   {
     slug: "aviation-fuel",
@@ -216,6 +241,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     permits: ["Aviation fuel handling approvals (NMDPRA, airport authority, aviation regulator)", PERMIT_NOTE],
     calculator: { id: "unit-margin", unit: "litre" },
     signals: ["eia.gulf_jet_spot", "fx.usd_ngn"],
+    leverages: ["storage", "licences", "technical", "finance"],
   },
   {
     slug: "regional-export-trading",
@@ -234,6 +260,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     permits: ["Export permits and customs documentation", "Destination country import licences"],
     calculator: { id: "import-parity" },
     signals: ["eia.gulf_gasoline_spot", "eia.gulf_ulsd_spot", "calc.crack_321", "fx.usd_ngn"],
+    leverages: ["finance", "network", "vessel"],
   },
   {
     slug: "crude-feedstock-supply",
@@ -252,6 +279,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     risks: ["Concentration on a single buyer.", "Policy changes to domestic crude allocation."],
     permits: ["NUPRC and export or domestic crude supply obligations"],
     signals: ["eia.brent_spot", "eia.wti_spot", "eia.nigeria_crude_production"],
+    leverages: ["feedstock", "vessel", "finance"],
   },
   {
     slug: "modular-refining",
@@ -270,6 +298,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     permits: ["Licence to establish, construct and operate a refinery (NMDPRA)", PERMIT_NOTE],
     calculator: { id: "modular-refinery" },
     signals: ["eia.brent_spot", "eia.gulf_ulsd_spot", "eia.gulf_jet_spot", "calc.crack_321"],
+    leverages: ["feedstock", "site", "technical", "finance"],
   },
   {
     slug: "marine-logistics",
@@ -284,6 +313,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     risks: ["Cabotage and vessel vetting rules.", "Security in the Gulf of Guinea."],
     permits: ["NIMASA vessel and cabotage registration", "Port and terminal approvals"],
     signals: ["eia.brent_spot"],
+    leverages: ["vessel", "technical"],
   },
   {
     slug: "plant-services",
@@ -301,6 +331,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     risks: ["Long payment cycles.", "Strict safety performance requirements."],
     permits: ["Nigerian Content Development and Monitoring Board (NCDMB) registration where required", "Corporate Affairs Commission registration"],
     signals: [],
+    leverages: ["technical", "trucks", "network"],
   },
 ];
 
@@ -320,3 +351,29 @@ export function filterOpportunities(opts: { scale?: string | null; segment?: str
 
 export const scaleLabel = (id: string) => SCALES.find((s) => s.id === id)?.label ?? id;
 export const segmentLabel = (id: string) => SEGMENTS.find((s) => s.id === id)?.label ?? id;
+
+export type FitProfile = { scale: string; segments: string[]; assets: string[] };
+export type FitResult = { opportunity: Opportunity; score: number; reasons: string[] };
+
+/**
+ * Ranks opportunities for a business profile. Size must match; areas of interest and assets the business already has
+ * raise the rank. The reasons are shown to the user, so the ranking is never a black box.
+ */
+export function rankForProfile(profile: FitProfile): FitResult[] {
+  return OPPORTUNITIES.filter((o) => o.scales.includes(profile.scale as ScaleId))
+    .map((o) => {
+      const reasons = [`Suits ${scaleLabel(profile.scale).toLowerCase()} businesses`];
+      let score = 1;
+      if (profile.segments.includes(o.segment)) {
+        score += 2;
+        reasons.push(`In an area you chose: ${segmentLabel(o.segment).toLowerCase()}`);
+      }
+      const have = o.leverages.filter((a) => profile.assets.includes(a));
+      score += have.length;
+      if (have.length) reasons.push(`Uses what you have: ${have.map((a) => assetLabel(a).toLowerCase()).join(", ")}`);
+      return { opportunity: o, score, reasons };
+    })
+    .sort((a, b) => b.score - a.score || a.opportunity.title.localeCompare(b.opportunity.title));
+}
+
+export const assetLabel = (id: string) => ASSETS.find((a) => a.id === id)?.label ?? id;

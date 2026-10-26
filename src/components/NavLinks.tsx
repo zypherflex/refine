@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, BookOpen, Briefcase, Building2, Calculator, ClipboardCheck, Factory, FileStack, Gauge, Globe2, History, LayoutDashboard, Lightbulb, MessagesSquare, Newspaper, Settings, ShieldAlert, SquareKanban, Users } from "lucide-react";
+import { Bell, BookOpen, Briefcase, Building2, Calculator, ClipboardCheck, Compass, Factory, FileStack, Gauge, Globe2, History, LayoutDashboard, Lightbulb, MessagesSquare, Newspaper, Settings, ShieldAlert, SquareKanban, Users } from "lucide-react";
 
 const icons = {
   overview: LayoutDashboard,
@@ -23,6 +23,7 @@ const icons = {
   opportunities: Briefcase,
   tools: Calculator,
   board: SquareKanban,
+  fit: Compass,
 } as const;
 
 export type NavItem = { href: string; label: string; icon: keyof typeof icons; badge?: number };

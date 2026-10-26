@@ -231,3 +231,35 @@ test("sizing tools refuse impossible inputs and show formulas", async ({ page })
   await page.getByLabel(/Diesel \(AGO\) yield/).fill("90");
   await expect(page.getByText(/yields add up to 157%/)).toBeVisible();
 });
+
+test("find my fit ranks opportunities with reasons; readiness, what-if table and PDF brief work @mobile", async ({ page }) => {
+  // Start from a clean board item so the desktop and mobile runs see the same counts.
+  const db = new PrismaClient();
+  await db.opportunityBoardItem.deleteMany({ where: { opportunitySlug: "lpg-retail", user: { email: "analyst@refinerylens.test" } } });
+  await db.$disconnect();
+  await signIn(page, "analyst@refinerylens.test");
+  await page.goto("/opportunities/fit");
+  await page.getByLabel(/^Micro/).check();
+  await page.getByLabel("LPG and CNG").check();
+  await page.getByLabel("Tanker trucks or a delivery fleet").check();
+  await page.getByRole("button", { name: "Show my matches" }).click();
+  await page.waitForURL(/fit=1/);
+  const forYou = page.locator("#for-you");
+  await expect(forYou.getByText("Match 1")).toBeVisible();
+  await expect(forYou.getByText(/Uses what you have: tanker trucks/i).first()).toBeVisible();
+  await expect(forYou.getByRole("link", { name: "Crude and condensate supply" })).toHaveCount(0);
+
+  await page.goto("/opportunities/lpg-retail");
+  const first = page.getByRole("button", { name: /^Tick: / }).first();
+  await first.click();
+  await expect(page.getByText("1 of 3 answered")).toBeVisible();
+
+  await page.getByRole("button", { name: "Fill blanks with example numbers" }).click();
+  await expect(page.getByTestId("sensitivity")).toContainText("Your selling price");
+
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download brief (PDF)" }).click()]);
+  expect(download.suggestedFilename()).toBe("refinerylens-lpg-retail-brief.pdf");
+
+  await page.goto("/opportunities/board");
+  await expect(page.getByText("1 of 3 readiness questions answered")).toBeVisible();
+});

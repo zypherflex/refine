@@ -39,7 +39,7 @@ export async function registerAction(_: FormState, form: FormData): Promise<Form
     if (e instanceof AppError) return { error: e.message };
     throw e;
   }
-  redirect("/opportunities?welcome=1");
+  redirect("/opportunities/fit?welcome=1");
 }
 
 export async function logoutAction() {

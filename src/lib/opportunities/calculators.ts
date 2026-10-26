@@ -41,6 +41,8 @@ export type CalculatorDef = {
   /** Unit words shown in the unit-margin tool, which works for litres, kilograms or tonnes. */
   fields: (opts?: { unit?: string }) => Field[];
   compute: (inputs: Inputs, opts?: { unit?: string }) => CalcOutput;
+  /** Inputs that move the result most, flexed in the sensitivity table. */
+  drivers: string[];
 };
 
 class Missing extends Error {}
@@ -269,11 +271,11 @@ function modularRefinery(inputs: Inputs): CalcOutput {
 // ---------------------------------------------------------------------------------------------------------------------
 
 export const CALCULATORS: Record<CalculatorId, CalculatorDef> = {
-  "unit-margin": { id: "unit-margin", name: "Resale margin and payback", summary: "Margin, monthly profit, break-even volume and payback for reselling fuel, LPG, CNG or resin.", fields: unitMarginFields, compute: unitMargin },
-  haulage: { id: "haulage", name: "Tanker haulage economics", summary: "Trips per month, litres delivered and profit for a truck fleet.", fields: haulageFields, compute: (i) => haulage(i) },
-  "pp-converter": { id: "pp-converter", name: "Polypropylene converter", summary: "Monthly profit for turning resin into sacks, film or moulded goods.", fields: ppFields, compute: (i) => ppConverter(i) },
-  "import-parity": { id: "import-parity", name: "Import parity check", summary: "Compares a local quote with the landed cost of an imported cargo.", fields: parityFields, compute: (i) => importParity(i) },
-  "modular-refinery": { id: "modular-refinery", name: "Modular refinery margin", summary: "Margin per barrel and per year for a small crude or condensate plant, benchmarked against Dangote's stated scale.", fields: modularFields, compute: (i) => modularRefinery(i) },
+  "unit-margin": { id: "unit-margin", name: "Resale margin and payback", summary: "Margin, monthly profit, break-even volume and payback for reselling fuel, LPG, CNG or resin.", fields: unitMarginFields, compute: unitMargin, drivers: ["sellPrice", "buyPrice", "volumePerDay", "fixedMonthly"] },
+  haulage: { id: "haulage", name: "Tanker haulage economics", summary: "Trips per month, litres delivered and profit for a truck fleet.", fields: haulageFields, compute: (i) => haulage(i), drivers: ["ratePerLitre", "fuelCostPerKm", "avgSpeedKmh", "loadUnloadHours"] },
+  "pp-converter": { id: "pp-converter", name: "Polypropylene converter", summary: "Monthly profit for turning resin into sacks, film or moulded goods.", fields: ppFields, compute: (i) => ppConverter(i), drivers: ["productPrice", "resinPrice", "yieldPct", "conversionCost"] },
+  "import-parity": { id: "import-parity", name: "Import parity check", summary: "Compares a local quote with the landed cost of an imported cargo.", fields: parityFields, compute: (i) => importParity(i), drivers: ["intlPriceUsdGal", "fxNgnUsd", "freightUsdTonne", "otherNgnLitre"] },
+  "modular-refinery": { id: "modular-refinery", name: "Modular refinery margin", summary: "Margin per barrel and per year for a small crude or condensate plant, benchmarked against Dangote's stated scale.", fields: modularFields, compute: (i) => modularRefinery(i), drivers: ["crudeUsdBbl", "p_diesel", "utilisationPct", "opexUsdBbl"] },
 };
 
 export function isCalculatorId(id: string): id is CalculatorId {
@@ -282,4 +284,28 @@ export function isCalculatorId(id: string): id is CalculatorId {
 
 export function exampleInputs(id: CalculatorId, opts?: { unit?: string }): Record<string, number> {
   return Object.fromEntries(CALCULATORS[id].fields(opts).map((f) => [f.key, f.example]));
+}
+
+export type SensitivityRow = { key: string; label: string; low: number | null; high: number | null };
+
+/**
+ * Recalculates the headline with each driver moved down and up by `pct` percent, one at a time, all else unchanged.
+ * A flexed value that breaks a limit (e.g. a yield above 100%) gives null rather than a clipped guess.
+ */
+export function sensitivity(id: CalculatorId, inputs: Inputs, opts?: { unit?: string }, pct = 10): { base: OutputLine; rows: SensitivityRow[] } | null {
+  const calc = CALCULATORS[id];
+  const base = calc.compute(inputs, opts);
+  if (!base.ok) return null;
+  const fields = calc.fields(opts);
+  const rows = calc.drivers.flatMap((key) => {
+    const f = fields.find((x) => x.key === key);
+    const v = inputs[key];
+    if (!f || v === null || v === undefined || v === 0) return [];
+    const at = (factor: number) => {
+      const r = calc.compute({ ...inputs, [key]: v * factor }, opts);
+      return r.ok ? r.headline.value : null;
+    };
+    return [{ key, label: f.label, low: at(1 - pct / 100), high: at(1 + pct / 100) }];
+  });
+  return { base: base.headline, rows };
 }

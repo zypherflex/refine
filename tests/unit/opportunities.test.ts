@@ -109,3 +109,29 @@ describe("opportunity catalogue", () => {
     expect(filterOpportunities({ scale: "enterprise", segment: "petrochemicals" })).toEqual([]);
   });
 });
+
+describe("find my fit", () => {
+  it("only recommends opportunities for the chosen size and explains the ranking", async () => {
+    const { rankForProfile } = await import("@/lib/opportunities/catalog");
+    const r = rankForProfile({ scale: "micro", segments: ["gas"], assets: ["trucks"] });
+    expect(r.length).toBeGreaterThan(0);
+    expect(r.every((x) => x.opportunity.scales.includes("micro"))).toBe(true);
+    expect(r[0].opportunity.segment === "gas" || r[0].opportunity.leverages.includes("trucks")).toBe(true);
+    const haul = r.find((x) => x.opportunity.slug === "tanker-haulage")!;
+    expect(haul.reasons.join(" ")).toMatch(/tanker trucks/i);
+    for (let i = 1; i < r.length; i++) expect(r[i - 1].score).toBeGreaterThanOrEqual(r[i].score);
+  });
+});
+
+describe("sensitivity", () => {
+  it("moves one driver at a time and reports n/a when a limit is broken", async () => {
+    const { sensitivity } = await import("@/lib/opportunities/calculators");
+    const s = sensitivity("unit-margin", { volumePerDay: 1000, daysPerMonth: 30, buyPrice: 800, deliveryCost: 10, otherVariable: 5, sellPrice: 850, fixedMonthly: 700_000 });
+    expect(s).not.toBeNull();
+    const sell = s!.rows.find((r) => r.key === "sellPrice")!;
+    expect(sell.high! - s!.base.value).toBeCloseTo(85 * 30_000); // +85 NGN/litre on 30,000 litres
+    const pp = sensitivity("pp-converter", { ...exampleInputs("pp-converter"), yieldPct: 95 })!;
+    expect(pp.rows.find((r) => r.key === "yieldPct")!.high).toBeNull(); // 104.5% yield is impossible
+    expect(sensitivity("unit-margin", {})).toBeNull();
+  });
+});
