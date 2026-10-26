@@ -1,6 +1,7 @@
 /**
- * Coverage of Dangote Petroleum Refinery & Petrochemicals, built only from the company's own public
- * website (refinery.dangote.com), retrieved 25 October 2026.
+ * Dangote coverage, built only from the company's own public website, retrieved 25 October 2026. It is the
+ * factual base for the business-opportunities hub. Product copy says "Dangote", never "Dangote refinery"
+ * (a standing product decision); the news search query below keeps the full name only because it is a search string.
  *
  * Everything here is labelled COMPANY_DISCLOSED and enters the editorial queue as a draft: summaries were
  * drafted by an AI model and must be reviewed by a human editor before publication. No figures were
@@ -16,17 +17,19 @@ const fact = (label: string, value: string, path: string, extra: Record<string, 
 export async function seedDangote(db: PrismaClient, editorId: string) {
   const company = await db.company.create({
     data: {
-      slug: "dangote-petroleum-refinery",
-      name: "Dangote Petroleum Refinery & Petrochemicals",
-      shortName: "DPRP",
+      slug: "dangote",
+      name: "Dangote (Lekki complex)",
+      shortName: "Dangote",
       country: "Nigeria",
       sector: "Oil refining and petrochemicals",
       description:
-        "A merchant refinery and petrochemicals complex in the Lekki Free Zone, Lagos, Nigeria. The description and facts on this page are taken from the company's public website and are shown with their source. RefineryLens is an independent research platform and is not affiliated with, endorsed by or sponsored by the company.",
+        "Dangote's merchant refining and petrochemicals complex in the Lekki Free Zone, Lagos, Nigeria, and the anchor for the business opportunities in RefineryLens. The description and facts on this page are taken from the company's public website and are shown with their source. RefineryLens is an independent research platform and is not affiliated with, endorsed by or sponsored by the company.",
       coverageStatus: "IN_PREPARATION",
       coverageNote:
         "Coverage is being prepared from the company's public website. Drafted items are awaiting editor review. The company states that financial information will be made available to qualified institutional investors through its formal capital markets process, so no financial results are shown.",
       isFictional: false,
+      // News monitoring (GDELT) query for editors' news leads.
+      newsQuery: '("Dangote refinery" OR "Dangote Petroleum Refinery")',
       // `group` places a fact on the profile; `figure`/`unit` make it a headline tile; `claim` marks promotional or
       // comparative statements that RefineryLens cannot verify (rankings, "global" reach) and must label as such.
       profileFacts: [
@@ -52,7 +55,7 @@ export async function seedDangote(db: PrismaClient, editorId: string) {
       ],
       legalEntities: {
         create: [
-          { name: "Dangote Petroleum Refinery and Petrochemicals FZE", scope: "REFINERY", notes: "Named as the issuer in the IPO extension notice dated 12 October 2026." },
+          { name: "Dangote free-zone issuing entity (FZE)", scope: "REFINERY", notes: "The Lekki free-zone enterprise named as the issuer in the IPO extension notice dated 12 October 2026." },
           { name: "Dangote Group", scope: "GROUP", notes: "Parent group as described on the website. Group-level figures must not be combined with refinery-level figures." },
         ],
       },
@@ -63,8 +66,8 @@ export async function seedDangote(db: PrismaClient, editorId: string) {
 
   const source = await db.source.create({
     data: {
-      name: "Company website (refinery.dangote.com)",
-      publisher: "Dangote Petroleum Refinery & Petrochemicals",
+      name: "Dangote company website",
+      publisher: "Dangote (company website)",
       homepageUrl: SITE,
       provenance: "COMPANY_DISCLOSED",
       approved: false,
@@ -79,7 +82,7 @@ export async function seedDangote(db: PrismaClient, editorId: string) {
         companyId: company.id,
         sourceId: source.id,
         title,
-        publisher: "Dangote Petroleum Refinery & Petrochemicals",
+        publisher: "Dangote (company website)",
         url: SITE + path,
         documentType: type,
         publishedAt,
@@ -101,7 +104,7 @@ export async function seedDangote(db: PrismaClient, editorId: string) {
     "EXCHANGE_FILING",
     [
       "Extraction notes (RefineryLens) from the company's notice dated 12 October 2026.",
-      "Issuer: Dangote Petroleum Refinery and Petrochemicals FZE.",
+      "Issuer: the Dangote free-zone enterprise (FZE) named in the notice.",
       "Offer: initial public offering of 4,100,000,000 ordinary shares of US$0.000013 each at N525.00 per share.",
       "Offer opened Monday 14 September 2026. Original closing date Tuesday 13 October 2026. New closing date Tuesday 27 October 2026.",
       "The notice states that the Securities and Exchange Commission (SEC) approved the extension.",
@@ -178,7 +181,7 @@ export async function seedDangote(db: PrismaClient, editorId: string) {
     companyId: company.id,
     legalEntityId: refinery.id,
     sourceId: source.id,
-    publisher: "Dangote Petroleum Refinery & Petrochemicals",
+    publisher: "Dangote (company website)",
     provenance: "COMPANY_DISCLOSED" as const,
     retrievedAt: RETRIEVED,
     status: "IN_REVIEW" as const,

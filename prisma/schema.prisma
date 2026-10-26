@@ -52,6 +52,8 @@ model User {
   conversations Conversation[]
   reviews       EditorialReview[]
   auditLogs     AuditLog[]
+  opportunities OpportunityBoardItem[]
+  scenarios     OpportunityScenario[]
 }
 
 model Session {
@@ -84,6 +86,8 @@ model Company {
   isFictional    Boolean        @default(false)
   // Company-stated facts shown on the profile with their source, e.g. [{label, value, sourceUrl, retrievedAt}]
   profileFacts   Json?
+  // GDELT query used to find news leads for editors, e.g. "Dangote". Empty disables news leads.
+  newsQuery      String         @default("")
   createdAt      DateTime       @default(now())
 
   legalEntities LegalEntity[]
@@ -94,6 +98,7 @@ model Company {
   theses        Thesis[]
   watchlists    Watchlist[]
   conflicts     SourceConflict[]
+  newsLeads     NewsLead[]
 }
 
 enum EntityScope {
@@ -140,6 +145,8 @@ model Source {
 
   documents     Document[]
   announcements Announcement[]
+  marketSeries  MarketSeries[]
+  refineries    RefineryAsset[]
 }
 
 enum DocumentType {
@@ -645,4 +652,150 @@ model Job {
   finishedAt  DateTime?
 
   @@index([status, runAt])
+}
+
+// --- Open data feeds ---
+// Market and macro series pulled from free public APIs. They are context for the sector and the country, never
+// company figures, and readers only see a series once an editor has approved its source.
+
+enum ContextScope {
+  GLOBAL_MARKET
+  NIGERIA_MACRO
+}
+
+model MarketSeries {
+  id              String              @id @default(cuid())
+  key             String              @unique // e.g. "eia.brent_spot"
+  provider        String // eia | worldbank | exchangerate-api
+  externalId      String
+  label           String
+  description     String
+  unit            String
+  frequency       String // DAILY | MONTHLY | ANNUAL
+  contextScope    ContextScope
+  geography       String
+  sourceId        String
+  source          Source              @relation(fields: [sourceId], references: [id])
+  sourcePageUrl   String              @default("")
+  attribution     String              @default("")
+  lastRetrievedAt DateTime?
+  lastError       String              @default("")
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  observations    MarketObservation[]
+}
+
+model MarketObservation {
+  id          String       @id @default(cuid())
+  seriesId    String
+  series      MarketSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  // The period exactly as the publisher labels it ("2026-10-20", "2026-09", "2025").
+  period      String
+  periodStart DateTime
+  periodEnd   DateTime
+  value       Decimal      @db.Decimal(24, 6)
+  retrievedAt DateTime
+  // The request that returned this value, with any API key removed.
+  requestUrl  String       @default("")
+
+  @@unique([seriesId, period])
+  @@index([seriesId, periodStart])
+}
+
+model IngestionRun {
+  id            String    @id @default(cuid())
+  provider      String
+  status        String // OK | FAILED | SKIPPED
+  message       String    @default("")
+  itemsUpserted Int       @default(0)
+  startedAt     DateTime  @default(now())
+  finishedAt    DateTime?
+
+  @@index([provider, startedAt])
+}
+
+// A news article found by a news-monitoring feed. Only metadata and the link are stored; an editor decides whether it
+// becomes a reviewed announcement.
+model NewsLead {
+  id            String    @id @default(cuid())
+  companyId     String
+  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  provider      String
+  url           String
+  title         String
+  domain        String    @default("")
+  language      String    @default("")
+  sourceCountry String    @default("")
+  seenAt        DateTime
+  retrievedAt   DateTime
+  status        String    @default("NEW") // NEW | DRAFTED | DISMISSED
+  reviewedById  String?
+  reviewedAt    DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@unique([companyId, url])
+  @@index([status, seenAt])
+}
+
+// A refinery from a global asset inventory (Climate TRACE). Directory and benchmarking context; capacities and
+// emissions are the inventory's modelled estimates, not company disclosures.
+model RefineryAsset {
+  id             String   @id @default(cuid())
+  provider       String
+  externalId     String
+  name           String
+  countryCode    String // ISO 3166-1 alpha-3
+  assetType      String   @default("")
+  capacityBpd    Decimal? @db.Decimal(14, 2)
+  owners         String[] @default([])
+  lat            Float?
+  lon            Float?
+  emissionsTCo2e Decimal? @db.Decimal(18, 2)
+  emissionsYear  Int?
+  sourceId       String
+  source         Source   @relation(fields: [sourceId], references: [id])
+  sourceUrl      String   @default("")
+  retrievedAt    DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([provider, externalId])
+  @@index([countryCode])
+}
+
+// Business opportunities hub. The opportunity catalogue itself is editorial content in code
+// (src/lib/opportunities); these tables hold each user's private pipeline and saved sizing scenarios.
+enum OpportunityStage {
+  EXPLORING
+  VALIDATING
+  PURSUING
+  PARKED
+}
+
+model OpportunityBoardItem {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportunitySlug String
+  stage           OpportunityStage @default(EXPLORING)
+  notes           String           @default("")
+  nextStep        String           @default("")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@unique([userId, opportunitySlug])
+}
+
+// Inputs are the user's own assumptions; results are recalculated from them on display, never stored.
+model OpportunityScenario {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calculatorId    String
+  opportunitySlug String?
+  name            String
+  inputs          Json
+  createdAt       DateTime @default(now())
+
+  @@index([userId, calculatorId])
 }

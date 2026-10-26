@@ -1,10 +1,12 @@
 # RefineryLens
 
-Independent investor intelligence for refinery businesses. **Understand the change. Examine the evidence. Reassess your investment thesis.**
+Independent business intelligence on **opportunities around Dangote**, for businesses of every size. **Find the opportunity. Examine the evidence. Size it with your own numbers.**
 
 RefineryLens turns company disclosures, filings and news into reviewed, plain-language research. Every figure carries its source, page, period, scope, units and provenance label; missing data is shown as missing; conflicting sources stay visible; AI-drafted content stays a draft until an editor reviews it.
 
-The first coverage is **Dangote Petroleum Refinery & Petrochemicals**, built from its public website. The platform is multi-company. RefineryLens is not affiliated with, endorsed by or sponsored by any company it covers, and nothing in it is investment advice.
+The **business opportunities hub** maps 14 ways for businesses from micro to enterprise scale to plug into Dangote's Lekki complex: fuel retail and depots, tanker haulage, CNG and LPG, polypropylene conversion and resin distribution, Jet A-1, regional export, crude supply, modular refining, marine logistics and plant services. Each opportunity shows the company-stated facts it rests on, dated independent reports that help or hurt the case, questions to answer and licences to check, plus a sizing tool with visible formulas. Users keep a private opportunity board and saved scenarios. Behind it sits the evidence-first research layer (announcements, metrics, conflicts, theses, assistant), built from Dangote's public website.
+
+Product copy says "Dangote", never "Dangote refinery" or the company's full refinery name; that is a standing product decision. The only exception is the hidden news search query in `prisma/seed-dangote.ts`. RefineryLens is not affiliated with, endorsed by or sponsored by Dangote or any Dangote company, the opportunities are analysis rather than offers, and nothing in it is investment or financial advice.
 
 ---
 
@@ -45,7 +47,7 @@ npm run db:seed
 npm run dev                      # http://localhost:3000
 ```
 
-Production build: `npm run build && npm start`. Optionally run `npm run worker` as a separate process for background document extraction and alert emails (see [Background jobs](#background-jobs)).
+Production build: `npm run build && npm start`. Optionally run `npm run worker` as a separate process for background document extraction, alert emails and open-data refreshes (see [Background jobs](#background-jobs)). `npm run ingest` pulls the [open data feeds](#open-data-feeds) once.
 
 `npm run db:reset` drops and recreates the schema and reseeds. The seed **truncates every table**, so never run it against a database with real users.
 
@@ -55,7 +57,8 @@ Production build: `npm run build && npm start`. Optionally run `npm run worker` 
 | --- | --- |
 | `npm run dev` | Next.js dev server |
 | `npm run build` / `npm start` | Production build and server |
-| `npm run worker` | Background job worker (document extraction) |
+| `npm run worker` | Background job worker (document extraction, alert emails, open-data refreshes) |
+| `npm run ingest` | Pull every available open-data feed once and print the result |
 | `npm run db:migrate` | Apply Prisma migrations (`prisma migrate deploy`) |
 | `npm run db:seed` | Truncate and load demo users, Dangote source facts and fictional demo data |
 | `npm run db:reset` | Reset schema and reseed |
@@ -79,7 +82,7 @@ All demo accounts use the password **`RefineryLens-demo-2026`**.
 
 ### Two companies, deliberately different
 
-**Dangote Petroleum Refinery & Petrochemicals** (`prisma/seed-dangote.ts`): facts taken from the public website `refinery.dangote.com`, retrieved 25 October 2026, labelled *Company-disclosed* with URLs and retrieval times. They are loaded **as drafts awaiting editorial review**, not as published content, because the spec requires AI-prepared summaries to stay drafts until a human checks them. Financial metrics the company has not published are stored as *Not publicly disclosed*. Two source conflicts found on the site (an offer described as open versus a page saying there are no active public offerings; processing versus capacity wording) are recorded for an editor to review. No Dangote branding, logos or imagery are used. Sign in as the editor to review and publish them.
+**Dangote (Lekki complex)** (`prisma/seed-dangote.ts`, slug `dangote`): facts taken from the company's public website, retrieved 25 October 2026, labelled *Company-disclosed* with URLs and retrieval times. They are loaded **as drafts awaiting editorial review**, not as published content, because the spec requires AI-prepared summaries to stay drafts until a human checks them. Financial metrics the company has not published are stored as *Not publicly disclosed*. Two source conflicts found on the site (an offer described as open versus a page saying there are no active public offerings; processing versus capacity wording) are recorded for an editor to review. No Dangote branding, logos or imagery are used. Sign in as the editor to review and publish them.
 
 **Lagoon Coast Refining Co. (fictional demo)** (`prisma/seed-demo.ts`): an invented company that exercises every feature with realistic-looking data, including generated PDF reports stamped *FICTIONAL DEMONSTRATION DOCUMENT - NOT A REAL COMPANY - NOT DANGOTE RESULTS*, published, corrected, retracted and superseded announcements, an unresolved conflict and a risk register. Every page for it shows a fictional-data banner.
 
@@ -110,11 +113,30 @@ All demo accounts use the password **`RefineryLens-demo-2026`**.
 | **Email alert delivery** (SMTP) | Implemented and verified against a local mail server. Users opt in on the alerts page; immediate alerts and daily or weekly digests are emailed by the worker, failed sends are retried | An SMTP account with any provider: `EMAIL_PROVIDER=smtp`, `SMTP_URL`, `EMAIL_FROM`, and `npm run worker` running. Until all are set, the UI says alerts are in-app only |
 | **Push notifications** | Not shipped | A push provider (for example web push keys) and an adapter |
 | **Payments** (Pro and Team plans) | Disabled; admins assign plans | A payment provider account (for example Stripe or Paystack) and adapter |
-| **Exchange or regulator data feeds** (prices, filings) | Not connected; no share prices or tickers are shown | Licensed feeds from the relevant exchange or regulator |
+| **Free open-data feeds** (oil and product prices, Nigerian macro data, global refinery inventory, news leads) | Implemented; see [Open data feeds](#open-data-feeds). Keyless feeds are on by default; EIA needs a free key | `EIA_API_KEY` for EIA; nothing for the rest. An editor approves each source before readers see it |
+| **Exchange or regulator data feeds** (share prices, filings) | Not connected; no share prices or tickers are shown | Licensed feeds from the relevant exchange or regulator |
 | **Paywalled news** | Not ingested; only openly available sources, linked rather than copied | Content licences with publishers |
 | **Live plant data** | Not available; the UI states there is no access to live plant systems | Would require a direct agreement with the company |
 
 The admin screen shows the live status of each integration.
+
+### Open data feeds
+
+Free public APIs that give sector-wide and country context. They are cached in PostgreSQL (`MarketSeries`, `MarketObservation`, `RefineryAsset`, `NewsLead`, with every attempt in `IngestionRun`), refreshed by the worker every `OPEN_DATA_INTERVAL_HOURS` (default 12) or with `npm run ingest`, and never fetched by a page. Each provider creates an **unapproved** `Source` carrying its licence notes; readers only see a feed's data after an editor approves that source. Every value keeps its publisher, publisher period label, units, retrieval time and request URL (API keys removed). None of it is company data, and the UI says so.
+
+| Feed | What RefineryLens takes | Scope | Key | Licence and conditions |
+| --- | --- | --- | --- | --- |
+| [EIA Open Data API](https://www.eia.gov/opendata/) | Brent and WTI spot; US Gulf Coast gasoline, ULSD and jet spot; weekly US refinery utilization; monthly Nigerian crude production | Global market, Nigeria | `EIA_API_KEY` (free) | US government data, public domain; cite EIA |
+| [World Bank Indicators API](https://data.worldbank.org/) | Nigeria: official NGN/USD annual average, inflation, GDP, fuel share of imports and exports | Nigeria macro | None | CC BY 4.0; attribute "The World Bank: World Development Indicators" |
+| [ExchangeRate-API open access](https://www.exchangerate-api.com/docs/free) | Daily USD/NGN reference rate (not the CBN official rate) | Nigeria macro | None | Attribution link required on pages showing rates; no redistribution of raw rates, so they are never exported |
+| [Climate TRACE](https://climatetrace.org/) | Global oil and gas refining assets: name, country, type, capacity (bbl/day), owners, coordinates, estimated CO₂e | Global refinery directory | None | CC BY 4.0, commercial use allowed with attribution; modelled estimates, not disclosures |
+| [GDELT DOC 2.0](https://www.gdeltproject.org/) | Headlines and links mentioning covered companies (from `Company.newsQuery`), as editor-only **news leads** | Company news discovery | None | Free with citation; only headline, link, outlet and date are stored |
+
+RefineryLens also shows an **indicative 3-2-1 crack spread** calculated from the EIA prices, labelled as an estimate with its formula; it is a benchmark, not any refiner's margin.
+
+Checked and deliberately **not** ingested: UN Comtrade (commercial use and redistribution need written UN permission); FRED (its oil series are EIA data, taken at source, and its terms restrict third-party series); the OPEC basket price (no documented API or reuse grant); CBN, NBS, NUPRC and NMDPRA (no documented machine-readable API; upload their reports as documents instead); JODI Oil (bulk files, a candidate for a later importer); price-reporting agencies such as Platts and Argus (paid); AIS ship tracking (free tiers such as aisstream.io are live streams with no history, so they need a stream consumer rather than a periodic feed; left for a later release).
+
+Other features reuse the cached data through `src/server/opendata/index.ts`: `getMarketSignals(keys, actor)` returns the latest value per series key with its source, period, units, retrieval time, attribution and licence, and `listRefineryAssets(filter, actor)` returns the refinery directory. Both apply the same approval rule.
 
 ---
 
@@ -136,7 +158,7 @@ Role checks live in `src/lib/permissions.ts` and are enforced in server actions 
 
 ### Background jobs
 
-Uploads enqueue a `document.extract` job. By default the web process drains the queue right after an upload (`INLINE_JOBS` unset). In production set `INLINE_JOBS=false` and run `npm run worker` as its own process. The worker also sends alert emails once a minute when email is configured: one message per user, covering every alert that has become visible (digest alerts become visible at 07:00 UTC daily, or Monday for weekly).
+Uploads enqueue a `document.extract` job. By default the web process drains the queue right after an upload (`INLINE_JOBS` unset). In production set `INLINE_JOBS=false` and run `npm run worker` as its own process. The worker also queues an `opendata.ingest` job whenever the open-data feeds are due, and administrators can queue one from the admin screen. The worker also sends alert emails once a minute when email is configured: one message per user, covering every alert that has become visible (digest alerts become visible at 07:00 UTC daily, or Monday for weekly).
 
 ### Research assistant
 
@@ -149,7 +171,7 @@ Uploads enqueue a `document.extract` job. By default the web process drains the 
 
 ## Screens
 
-Landing, sign-in and registration; **Overview** dashboard; **Company profile**; **Announcements and news** with detail pages; **Financial reports**; **Operational indicators**; **Risk center**; **My investment thesis** (list, create, edit, detail with versions and evidence review); **Research assistant** with saved conversations; **Watchlist and alerts**; **Source library** and document viewer; **Corrections log**; **Account and plan**; **Editorial desk** (announcements, documents, sources, conflicts); **Administration**.
+Landing, sign-in and registration (signing in opens the opportunities hub); **Business opportunities** explorer with size and area filters, opportunity detail pages, **Sizing tools** (resale margin and payback, tanker haulage, polypropylene converter, import parity, modular refinery margin) and **My opportunity board** (private pipeline and saved scenarios); **Overview** dashboard; **Company profile**; **Announcements and news** with detail pages; **Financial reports**; **Operational indicators**; **Risk center**; **Market & macro context** (benchmarks, crack spread, Nigerian macro data); **Global refineries** (directory with West Africa filter); **My investment thesis** (list, create, edit, detail with versions and evidence review); **Research assistant** with saved conversations; **Watchlist and alerts**; **Source library** and document viewer; **Corrections log**; **Account and plan**; **Editorial desk** (announcements, documents, news leads, sources, conflicts); **Administration**.
 
 All screens are responsive from phone to desktop widths, keyboard navigable with visible focus and a skip link, and use semantic headings and labels.
 
@@ -166,6 +188,7 @@ These are enforced in code and covered by tests:
 - Corrections and retractions are logged publicly and alert watchers immediately.
 - Evidence suggestions never edit a user's thesis; the user accepts or dismisses them.
 - No share prices, tickers or offer deadlines are shown unless an editor has verified them against a primary source.
+- Opportunities are RefineryLens analysis, never presented as Dangote offers. Their anchors are company-stated facts with page links; their context notes are dated reports with provenance labels. The catalogue states no opportunity sizes; sizing tools start empty, label example numbers as placeholders, prefill market data only from approved open-data series with attribution, and refuse inconsistent inputs. Saved scenarios store inputs only and are recalculated on display.
 
 ---
 
@@ -209,12 +232,14 @@ prisma/
   seed-dangote.ts        Dangote website facts (drafts awaiting review)
   seed-demo.ts           fictional demo company and generated PDFs
 scripts/worker.ts        background job worker
+scripts/ingest.ts        one-off open-data refresh
 src/
   app/                   routes: (auth), (app) screens, actions/, api/
   components/            UI components
   lib/                   permissions, calculations, labels, formatting, plans
   server/                auth, storage (local, S3), email, extraction, jobs, integrations
-    services/            announcements, metrics, documents, thesis, alerts, users
+    services/            announcements, metrics, documents, thesis, alerts, users, market
+    opendata/            open-data catalogue, provider adapters, ingestion, read API
     assistant/           retrieval, intent classification, answer composition
 tests/
   unit/  integration/    Vitest

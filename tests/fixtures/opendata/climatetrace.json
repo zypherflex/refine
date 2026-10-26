@@ -1,0 +1,5 @@
+{"bbox":[3.0,4.0,8.0,7.0],"assets":[
+{"Id":1001,"Name":"Test Coastal Refinery","NativeId":"x","Country":"NGA","Sector":"oil-and-gas-refining","AssetType":"Medium Conversion","ReportingEntity":"climate-trace","EmissionsSummary":[{"Gas":"co2e_100yr","ActivityUnits":"BBL","Activity":1000,"EmissionsFactorUnits":"t","CapacityUnits":"BBL per day","Capacity":500000,"CapacityFactor":0.5,"EmissionsFactor":0.1,"EmissionsQuantity":2000000.5}],"Owners":[{"CompanyId":null,"CompanyName":null},{"CompanyId":"E1","CompanyName":"Test Owner Ltd"},{"CompanyId":"E1","CompanyName":"Test Owner Ltd"}],"Centroid":{"Geometry":[3.99,6.45],"SRID":4326}},
+{"Id":1002,"Name":"Test Modular Refinery","Country":"NGA","AssetType":"Hydroskimming","EmissionsSummary":[{"Gas":"co2e_100yr","CapacityUnits":"t per year","Capacity":900,"EmissionsQuantity":80000}],"Owners":null,"Centroid":{"Geometry":[5.66,6.07],"SRID":4326}},
+{"Name":"No id, skipped"}
+]}
