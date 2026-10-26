@@ -1,10 +1,12 @@
 # RefineryLens
 
-Independent investor intelligence for refinery businesses. **Understand the change. Examine the evidence. Reassess your investment thesis.**
+Independent business intelligence on **opportunities around Dangote**, for businesses of every size. **Find the opportunity. Examine the evidence. Size it with your own numbers.**
 
 RefineryLens turns company disclosures, filings and news into reviewed, plain-language research. Every figure carries its source, page, period, scope, units and provenance label; missing data is shown as missing; conflicting sources stay visible; AI-drafted content stays a draft until an editor reviews it.
 
-The first coverage is **Dangote Petroleum Refinery & Petrochemicals**, built from its public website. The platform is multi-company. RefineryLens is not affiliated with, endorsed by or sponsored by any company it covers, and nothing in it is investment advice.
+The **business opportunities hub** maps 14 ways for businesses from micro to enterprise scale to plug into Dangote's Lekki complex: fuel retail and depots, tanker haulage, CNG and LPG, polypropylene conversion and resin distribution, Jet A-1, regional export, crude supply, modular refining, marine logistics and plant services. Each opportunity shows the company-stated facts it rests on, dated independent reports that help or hurt the case, questions to answer and licences to check, plus a sizing tool with visible formulas. Users keep a private opportunity board and saved scenarios. Behind it sits the evidence-first research layer (announcements, metrics, conflicts, theses, assistant), built from Dangote's public website.
+
+Product copy says "Dangote", never "Dangote refinery" or the company's full refinery name; that is a standing product decision. The only exception is the hidden news search query in `prisma/seed-dangote.ts`. RefineryLens is not affiliated with, endorsed by or sponsored by Dangote or any Dangote company, the opportunities are analysis rather than offers, and nothing in it is investment or financial advice.
 
 ---
 
@@ -80,7 +82,7 @@ All demo accounts use the password **`RefineryLens-demo-2026`**.
 
 ### Two companies, deliberately different
 
-**Dangote Petroleum Refinery & Petrochemicals** (`prisma/seed-dangote.ts`): facts taken from the public website `refinery.dangote.com`, retrieved 25 October 2026, labelled *Company-disclosed* with URLs and retrieval times. They are loaded **as drafts awaiting editorial review**, not as published content, because the spec requires AI-prepared summaries to stay drafts until a human checks them. Financial metrics the company has not published are stored as *Not publicly disclosed*. Two source conflicts found on the site (an offer described as open versus a page saying there are no active public offerings; processing versus capacity wording) are recorded for an editor to review. No Dangote branding, logos or imagery are used. Sign in as the editor to review and publish them.
+**Dangote (Lekki complex)** (`prisma/seed-dangote.ts`, slug `dangote`): facts taken from the company's public website, retrieved 25 October 2026, labelled *Company-disclosed* with URLs and retrieval times. They are loaded **as drafts awaiting editorial review**, not as published content, because the spec requires AI-prepared summaries to stay drafts until a human checks them. Financial metrics the company has not published are stored as *Not publicly disclosed*. Two source conflicts found on the site (an offer described as open versus a page saying there are no active public offerings; processing versus capacity wording) are recorded for an editor to review. No Dangote branding, logos or imagery are used. Sign in as the editor to review and publish them.
 
 **Lagoon Coast Refining Co. (fictional demo)** (`prisma/seed-demo.ts`): an invented company that exercises every feature with realistic-looking data, including generated PDF reports stamped *FICTIONAL DEMONSTRATION DOCUMENT - NOT A REAL COMPANY - NOT DANGOTE RESULTS*, published, corrected, retracted and superseded announcements, an unresolved conflict and a risk register. Every page for it shows a fictional-data banner.
 
@@ -169,7 +171,7 @@ Uploads enqueue a `document.extract` job. By default the web process drains the 
 
 ## Screens
 
-Landing, sign-in and registration; **Overview** dashboard; **Company profile**; **Announcements and news** with detail pages; **Financial reports**; **Operational indicators**; **Risk center**; **Market & macro context** (benchmarks, crack spread, Nigerian macro data); **Global refineries** (directory with West Africa filter); **My investment thesis** (list, create, edit, detail with versions and evidence review); **Research assistant** with saved conversations; **Watchlist and alerts**; **Source library** and document viewer; **Corrections log**; **Account and plan**; **Editorial desk** (announcements, documents, news leads, sources, conflicts); **Administration**.
+Landing, sign-in and registration (signing in opens the opportunities hub); **Business opportunities** explorer with size and area filters, opportunity detail pages, **Sizing tools** (resale margin and payback, tanker haulage, polypropylene converter, import parity, modular refinery margin) and **My opportunity board** (private pipeline and saved scenarios); **Overview** dashboard; **Company profile**; **Announcements and news** with detail pages; **Financial reports**; **Operational indicators**; **Risk center**; **Market & macro context** (benchmarks, crack spread, Nigerian macro data); **Global refineries** (directory with West Africa filter); **My investment thesis** (list, create, edit, detail with versions and evidence review); **Research assistant** with saved conversations; **Watchlist and alerts**; **Source library** and document viewer; **Corrections log**; **Account and plan**; **Editorial desk** (announcements, documents, news leads, sources, conflicts); **Administration**.
 
 All screens are responsive from phone to desktop widths, keyboard navigable with visible focus and a skip link, and use semantic headings and labels.
 
@@ -186,6 +188,7 @@ These are enforced in code and covered by tests:
 - Corrections and retractions are logged publicly and alert watchers immediately.
 - Evidence suggestions never edit a user's thesis; the user accepts or dismisses them.
 - No share prices, tickers or offer deadlines are shown unless an editor has verified them against a primary source.
+- Opportunities are RefineryLens analysis, never presented as Dangote offers. Their anchors are company-stated facts with page links; their context notes are dated reports with provenance labels. The catalogue states no opportunity sizes; sizing tools start empty, label example numbers as placeholders, prefill market data only from approved open-data series with attribution, and refuse inconsistent inputs. Saved scenarios store inputs only and are recalculated on display.
 
 ---
 
