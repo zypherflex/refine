@@ -52,6 +52,8 @@ model User {
   conversations Conversation[]
   reviews       EditorialReview[]
   auditLogs     AuditLog[]
+  opportunities OpportunityBoardItem[]
+  scenarios     OpportunityScenario[]
 }
 
 model Session {
@@ -759,4 +761,39 @@ model RefineryAsset {
 
   @@unique([provider, externalId])
   @@index([countryCode])
+// Business opportunities hub. The opportunity catalogue itself is editorial content in code
+// (src/lib/opportunities); these tables hold each user's private pipeline and saved sizing scenarios.
+enum OpportunityStage {
+  EXPLORING
+  VALIDATING
+  PURSUING
+  PARKED
+}
+
+model OpportunityBoardItem {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportunitySlug String
+  stage           OpportunityStage @default(EXPLORING)
+  notes           String           @default("")
+  nextStep        String           @default("")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@unique([userId, opportunitySlug])
+}
+
+// Inputs are the user's own assumptions; results are recalculated from them on display, never stored.
+model OpportunityScenario {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calculatorId    String
+  opportunitySlug String?
+  name            String
+  inputs          Json
+  createdAt       DateTime @default(now())
+
+  @@index([userId, calculatorId])
 }

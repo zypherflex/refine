@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/server/auth";
 import { companyFacts, factsIn } from "@/lib/company-facts";
 import { ScaleTiles } from "@/components/CompanyFacts";
 import { Logo } from "@/components/Logo";
+import { OPPORTUNITIES, SCALES, SEGMENTS } from "@/lib/opportunities/catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -120,6 +121,23 @@ export default async function Home() {
                 <span aria-hidden className="absolute inset-x-0 top-0 h-1 bg-brand-600" />
                 <h3 className="font-semibold">{t}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-ink-600">{d}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section aria-labelledby="opps" className="border-b border-ink-100">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-8">
+          <p className="eyebrow">Business opportunities</p>
+          <h2 id="opps" className="mt-2 max-w-3xl font-serif text-3xl font-semibold tracking-tight">From one truck to a crude cargo: where your business could fit around the refinery.</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-ink-600">{OPPORTUNITIES.length} researched business models across {SEGMENTS.length} areas, each with the company-stated facts it rests on, dated reports for and against, and a sizing tool that shows its formula. Independent analysis, not offers from the company.</p>
+          <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {SCALES.map((s) => (
+              <li key={s.id} className="rounded-2xl border border-ink-100 bg-white p-4 shadow-card">
+                <h3 className="font-semibold">{s.label}</h3>
+                <p className="mt-1 text-xs leading-relaxed text-ink-600">{s.who}</p>
+                <p className="mt-2 text-xs font-medium text-brand-800">{OPPORTUNITIES.filter((o) => o.scales.includes(s.id)).length} opportunities</p>
               </li>
             ))}
           </ul>

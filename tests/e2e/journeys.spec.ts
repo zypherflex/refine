@@ -178,4 +178,51 @@ test("readers see an open-data series only once its source is approved, with att
     await db.source.delete({ where: { id: source.id } });
     await db.$disconnect();
   }
+test("business owner filters opportunities by size, sizes one with labelled examples, and saves it privately @mobile", async ({ page }) => {
+  await signIn(page, "investor@refinerylens.test");
+  await page.goto("/opportunities");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Business opportunities around the Dangote refinery");
+  await expect(page.getByText("Independent analysis, not an offer")).toBeVisible();
+  await page.getByRole("link", { name: /^Micro/ }).click();
+  await expect(page).toHaveURL(/scale=micro/);
+  await expect(page.getByRole("link", { name: "LPG cylinder refilling and retail" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Crude and condensate supply" })).toHaveCount(0);
+  // Market data is never invented when the open-data feed has not been loaded.
+  await expect(page.getByText(/Market data is not loaded yet|Some series are not loaded/).first()).toBeVisible();
+
+  await page.getByRole("link", { name: "LPG cylinder refilling and retail" }).click();
+  await expect(page.getByText("Statements from the company's own website")).toBeVisible();
+  await expect(page.getByText("Not calculated yet.")).toBeVisible();
+  await page.getByRole("button", { name: "Fill blanks with example numbers" }).click();
+  await expect(page.getByText(/round placeholder numbers/)).toBeVisible();
+  await expect(page.getByTestId("headline")).toContainText("NGN");
+  await page.getByLabel("Save as a private scenario").fill("E2E LPG kiosk");
+  await page.getByRole("button", { name: "Save scenario" }).click();
+  await expect(page.getByText("Scenario saved. It is private to you.")).toBeVisible();
+
+  await page.getByLabel("Stage").selectOption("VALIDATING");
+  await page.getByLabel("Next step").fill("Ask two bulk suppliers for quotes");
+  await page.getByRole("button", { name: /Add to my board|Update board/ }).click();
+  await expect(page.getByText("Saved to your opportunity board.")).toBeVisible();
+
+  await page.goto("/opportunities/board");
+  await expect(page.getByText("Ask two bulk suppliers for quotes")).toBeVisible();
+  await expect(page.getByRole("link", { name: "E2E LPG kiosk" }).first()).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+
+  // Another user cannot see it.
+  await signIn(page, "other@refinerylens.test");
+  await page.goto("/opportunities/board");
+  await expect(page.getByText("Your board is empty")).toBeVisible();
+  await expect(page.getByText("E2E LPG kiosk")).toHaveCount(0);
+});
+
+test("sizing tools refuse impossible inputs and show formulas", async ({ page }) => {
+  await signIn(page, "investor@refinerylens.test");
+  await page.goto("/opportunities/tools/modular-refinery");
+  await page.getByRole("button", { name: "Fill blanks with example numbers" }).click();
+  await expect(page.getByText("Σ product yield × product price")).toBeVisible();
+  await page.getByLabel(/Diesel \(AGO\) yield/).fill("90");
+  await expect(page.getByText(/yields add up to 157%/)).toBeVisible();
 });
