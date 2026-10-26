@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: { default: "RefineryLens · Business opportunities around Dangote", template: "%s · RefineryLens" },
   description: "Independent business intelligence on opportunities around Dangote, for businesses of every size: sourced facts, dated reports and transparent sizing tools.",
   applicationName: "RefineryLens",
-  icons: { icon: "/icon.svg" },
+  icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#063d24" };
