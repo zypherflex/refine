@@ -213,7 +213,9 @@ npm run test:e2e
 PLAYWRIGHT_CHROMIUM_PATH=/path/to/chromium npm run test:e2e
 ```
 
-Current results: **59 unit and integration tests** and **10 browser tests** (desktop and mobile) passing. They cover calculations and comparability, upload validation and extraction, permissions, the publication and correction workflow (including an editor publishing and correcting in the browser, and the update reaching a reader's thesis), alerts, email delivery and digests, S3 storage, private-file isolation (database, assistant and HTTP), assistant citations and insufficient-evidence handling, honest unavailable states for Dangote, and no horizontal scrolling on mobile.
+GitHub Actions (`.github/workflows/ci.yml`) runs all of this on every pull request and push to `main`: typecheck, lint, unit and integration tests against PostgreSQL 16, then a seeded production build and the browser tests.
+
+Current results: **115 unit and integration tests** and **24 browser tests** (desktop and mobile) passing. They cover calculations and comparability, upload validation and extraction, permissions, the publication and correction workflow (including an editor publishing and correcting in the browser, and the update reaching a reader's thesis), alerts, email delivery and digests, S3 storage, private-file isolation (database, assistant and HTTP), assistant citations and insufficient-evidence handling, honest unavailable states for Dangote, and no horizontal scrolling on mobile.
 
 ---
 
