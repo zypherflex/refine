@@ -1,6 +1,10 @@
 import { db } from "@/lib/db";
 import { requireRole } from "@/server/auth";
 import { changePlanAction, changeRoleAction } from "@/app/actions/admin";
+import { refreshOpenDataAction } from "@/app/actions/opendata";
+import { latestIngestionRuns } from "@/server/services/market";
+import { NOT_INGESTED, PROVIDERS } from "@/server/opendata/catalog";
+import { PROVIDER_ORDER } from "@/server/opendata/ingest";
 import { fmtDateTime } from "@/lib/format";
 import { integrationStatus } from "@/server/integrations";
 import { PageHeader, Pill } from "@/components/ui";
@@ -9,10 +13,11 @@ export const metadata = { title: "Administration" };
 
 export default async function AdminPage() {
   const admin = await requireRole("ADMIN");
-  const [users, logs, jobs] = await Promise.all([
+  const [users, logs, jobs, runs] = await Promise.all([
     db.user.findMany({ orderBy: { createdAt: "asc" }, include: { _count: { select: { theses: true, documents: true } } } }),
     db.auditLog.findMany({ orderBy: { createdAt: "desc" }, take: 60, include: { actor: { select: { name: true } } } }),
     db.job.groupBy({ by: ["status"], _count: true }),
+    latestIngestionRuns(),
   ]);
   const st = integrationStatus();
   const integrations = [
@@ -22,6 +27,7 @@ export default async function AdminPage() {
     ["Language model for the assistant", st.languageModel],
     ["Email alert delivery" + (st.email.configured && !st.email.available ? " (incomplete: needs EMAIL_PROVIDER=smtp, SMTP_URL and EMAIL_FROM)" : ""), st.email.available],
     ["Payment collection" + (st.payments.configured && !st.payments.available ? " (provider set, no adapter)" : ""), st.payments.available],
+    ...PROVIDER_ORDER.map((id) => [`Open data: ${PROVIDERS[id].publisher}${st.openData[id].reason ? ` (${st.openData[id].reason})` : ""}`, st.openData[id].available] as const),
   ] as const;
   return (
     <>
@@ -59,6 +65,23 @@ export default async function AdminPage() {
           <section className="card">
             <h2 className="h-section">Integrations</h2>
             <ul className="mt-2 space-y-1 text-sm">{integrations.map(([n, ok]) => <li key={n} className="flex justify-between gap-2"><span>{n}</span><Pill className={ok ? "bg-brand-100 text-brand-800" : "bg-ink-100 text-ink-800"}>{ok ? "Working" : "Not configured"}</Pill></li>)}</ul>
+          </section>
+          <section className="card">
+            <h2 className="h-section">Open data feeds</h2>
+            <ul className="mt-2 space-y-2 text-sm">
+              {PROVIDER_ORDER.map((id) => {
+                const r = runs.get(id);
+                return (
+                  <li key={id}>
+                    <p className="flex justify-between gap-2"><span>{PROVIDERS[id].publisher}</span>{r ? <Pill className={r.status === "OK" ? "bg-brand-100 text-brand-800" : r.status === "FAILED" ? "bg-risk-100 text-risk-800" : "bg-ink-100 text-ink-800"}>{r.status.toLowerCase()}</Pill> : <Pill className="bg-ink-100 text-ink-800">never run</Pill>}</p>
+                    {r && <p className="text-xs text-ink-700">{fmtDateTime(r.startedAt)} · {r.itemsUpserted} items · {r.message.slice(0, 220)}</p>}
+                  </li>
+                );
+              })}
+            </ul>
+            <form action={refreshOpenDataAction} className="mt-3"><button className="btn-secondary btn-sm">Refresh open data now</button></form>
+            <details className="mt-2 text-xs"><summary className="text-brand-700">Free sources checked and not ingested</summary><ul className="mt-1 space-y-1">{NOT_INGESTED.map((n) => <li key={n.name}><span className="font-medium">{n.name}:</span> {n.reason}</li>)}</ul></details>
+            <p className="mt-2 text-xs text-ink-600">New sources start unapproved; approve them under Editorial desk › Sources before readers see the data.</p>
           </section>
           <section className="card">
             <h2 className="h-section">Background jobs</h2>

@@ -27,6 +27,8 @@ export async function seedDangote(db: PrismaClient, editorId: string) {
       coverageNote:
         "Coverage is being prepared from the company's public website. Drafted items are awaiting editor review. The company states that financial information will be made available to qualified institutional investors through its formal capital markets process, so no financial results are shown.",
       isFictional: false,
+      // News monitoring (GDELT) query for editors' news leads.
+      newsQuery: '("Dangote refinery" OR "Dangote Petroleum Refinery")',
       // `group` places a fact on the profile; `figure`/`unit` make it a headline tile; `claim` marks promotional or
       // comparative statements that RefineryLens cannot verify (rankings, "global" reach) and must label as such.
       profileFacts: [

@@ -45,7 +45,7 @@ npm run db:seed
 npm run dev                      # http://localhost:3000
 ```
 
-Production build: `npm run build && npm start`. Optionally run `npm run worker` as a separate process for background document extraction and alert emails (see [Background jobs](#background-jobs)).
+Production build: `npm run build && npm start`. Optionally run `npm run worker` as a separate process for background document extraction, alert emails and open-data refreshes (see [Background jobs](#background-jobs)). `npm run ingest` pulls the [open data feeds](#open-data-feeds) once.
 
 `npm run db:reset` drops and recreates the schema and reseeds. The seed **truncates every table**, so never run it against a database with real users.
 
@@ -55,7 +55,8 @@ Production build: `npm run build && npm start`. Optionally run `npm run worker` 
 | --- | --- |
 | `npm run dev` | Next.js dev server |
 | `npm run build` / `npm start` | Production build and server |
-| `npm run worker` | Background job worker (document extraction) |
+| `npm run worker` | Background job worker (document extraction, alert emails, open-data refreshes) |
+| `npm run ingest` | Pull every available open-data feed once and print the result |
 | `npm run db:migrate` | Apply Prisma migrations (`prisma migrate deploy`) |
 | `npm run db:seed` | Truncate and load demo users, Dangote source facts and fictional demo data |
 | `npm run db:reset` | Reset schema and reseed |
@@ -110,11 +111,30 @@ All demo accounts use the password **`RefineryLens-demo-2026`**.
 | **Email alert delivery** (SMTP) | Implemented and verified against a local mail server. Users opt in on the alerts page; immediate alerts and daily or weekly digests are emailed by the worker, failed sends are retried | An SMTP account with any provider: `EMAIL_PROVIDER=smtp`, `SMTP_URL`, `EMAIL_FROM`, and `npm run worker` running. Until all are set, the UI says alerts are in-app only |
 | **Push notifications** | Not shipped | A push provider (for example web push keys) and an adapter |
 | **Payments** (Pro and Team plans) | Disabled; admins assign plans | A payment provider account (for example Stripe or Paystack) and adapter |
-| **Exchange or regulator data feeds** (prices, filings) | Not connected; no share prices or tickers are shown | Licensed feeds from the relevant exchange or regulator |
+| **Free open-data feeds** (oil and product prices, Nigerian macro data, global refinery inventory, news leads) | Implemented; see [Open data feeds](#open-data-feeds). Keyless feeds are on by default; EIA needs a free key | `EIA_API_KEY` for EIA; nothing for the rest. An editor approves each source before readers see it |
+| **Exchange or regulator data feeds** (share prices, filings) | Not connected; no share prices or tickers are shown | Licensed feeds from the relevant exchange or regulator |
 | **Paywalled news** | Not ingested; only openly available sources, linked rather than copied | Content licences with publishers |
 | **Live plant data** | Not available; the UI states there is no access to live plant systems | Would require a direct agreement with the company |
 
 The admin screen shows the live status of each integration.
+
+### Open data feeds
+
+Free public APIs that give sector-wide and country context. They are cached in PostgreSQL (`MarketSeries`, `MarketObservation`, `RefineryAsset`, `NewsLead`, with every attempt in `IngestionRun`), refreshed by the worker every `OPEN_DATA_INTERVAL_HOURS` (default 12) or with `npm run ingest`, and never fetched by a page. Each provider creates an **unapproved** `Source` carrying its licence notes; readers only see a feed's data after an editor approves that source. Every value keeps its publisher, publisher period label, units, retrieval time and request URL (API keys removed). None of it is company data, and the UI says so.
+
+| Feed | What RefineryLens takes | Scope | Key | Licence and conditions |
+| --- | --- | --- | --- | --- |
+| [EIA Open Data API](https://www.eia.gov/opendata/) | Brent and WTI spot; US Gulf Coast gasoline, ULSD and jet spot; weekly US refinery utilization; monthly Nigerian crude production | Global market, Nigeria | `EIA_API_KEY` (free) | US government data, public domain; cite EIA |
+| [World Bank Indicators API](https://data.worldbank.org/) | Nigeria: official NGN/USD annual average, inflation, GDP, fuel share of imports and exports | Nigeria macro | None | CC BY 4.0; attribute "The World Bank: World Development Indicators" |
+| [ExchangeRate-API open access](https://www.exchangerate-api.com/docs/free) | Daily USD/NGN reference rate (not the CBN official rate) | Nigeria macro | None | Attribution link required on pages showing rates; no redistribution of raw rates, so they are never exported |
+| [Climate TRACE](https://climatetrace.org/) | Global oil and gas refining assets: name, country, type, capacity (bbl/day), owners, coordinates, estimated CO₂e | Global refinery directory | None | CC BY 4.0, commercial use allowed with attribution; modelled estimates, not disclosures |
+| [GDELT DOC 2.0](https://www.gdeltproject.org/) | Headlines and links mentioning covered companies (from `Company.newsQuery`), as editor-only **news leads** | Company news discovery | None | Free with citation; only headline, link, outlet and date are stored |
+
+RefineryLens also shows an **indicative 3-2-1 crack spread** calculated from the EIA prices, labelled as an estimate with its formula; it is a benchmark, not any refiner's margin.
+
+Checked and deliberately **not** ingested: UN Comtrade (commercial use and redistribution need written UN permission); FRED (its oil series are EIA data, taken at source, and its terms restrict third-party series); the OPEC basket price (no documented API or reuse grant); CBN, NBS, NUPRC and NMDPRA (no documented machine-readable API; upload their reports as documents instead); JODI Oil (bulk files, a candidate for a later importer); price-reporting agencies such as Platts and Argus (paid); AIS ship tracking (free tiers such as aisstream.io are live streams with no history, so they need a stream consumer rather than a periodic feed; left for a later release).
+
+Other features reuse the cached data through `src/server/opendata/index.ts`: `getMarketSignals(keys, actor)` returns the latest value per series key with its source, period, units, retrieval time, attribution and licence, and `listRefineryAssets(filter, actor)` returns the refinery directory. Both apply the same approval rule.
 
 ---
 
@@ -136,7 +156,7 @@ Role checks live in `src/lib/permissions.ts` and are enforced in server actions 
 
 ### Background jobs
 
-Uploads enqueue a `document.extract` job. By default the web process drains the queue right after an upload (`INLINE_JOBS` unset). In production set `INLINE_JOBS=false` and run `npm run worker` as its own process. The worker also sends alert emails once a minute when email is configured: one message per user, covering every alert that has become visible (digest alerts become visible at 07:00 UTC daily, or Monday for weekly).
+Uploads enqueue a `document.extract` job. By default the web process drains the queue right after an upload (`INLINE_JOBS` unset). In production set `INLINE_JOBS=false` and run `npm run worker` as its own process. The worker also queues an `opendata.ingest` job whenever the open-data feeds are due, and administrators can queue one from the admin screen. The worker also sends alert emails once a minute when email is configured: one message per user, covering every alert that has become visible (digest alerts become visible at 07:00 UTC daily, or Monday for weekly).
 
 ### Research assistant
 
@@ -149,7 +169,7 @@ Uploads enqueue a `document.extract` job. By default the web process drains the 
 
 ## Screens
 
-Landing, sign-in and registration; **Overview** dashboard; **Company profile**; **Announcements and news** with detail pages; **Financial reports**; **Operational indicators**; **Risk center**; **My investment thesis** (list, create, edit, detail with versions and evidence review); **Research assistant** with saved conversations; **Watchlist and alerts**; **Source library** and document viewer; **Corrections log**; **Account and plan**; **Editorial desk** (announcements, documents, sources, conflicts); **Administration**.
+Landing, sign-in and registration; **Overview** dashboard; **Company profile**; **Announcements and news** with detail pages; **Financial reports**; **Operational indicators**; **Risk center**; **Market & macro context** (benchmarks, crack spread, Nigerian macro data); **Global refineries** (directory with West Africa filter); **My investment thesis** (list, create, edit, detail with versions and evidence review); **Research assistant** with saved conversations; **Watchlist and alerts**; **Source library** and document viewer; **Corrections log**; **Account and plan**; **Editorial desk** (announcements, documents, news leads, sources, conflicts); **Administration**.
 
 All screens are responsive from phone to desktop widths, keyboard navigable with visible focus and a skip link, and use semantic headings and labels.
 
@@ -209,12 +229,14 @@ prisma/
   seed-dangote.ts        Dangote website facts (drafts awaiting review)
   seed-demo.ts           fictional demo company and generated PDFs
 scripts/worker.ts        background job worker
+scripts/ingest.ts        one-off open-data refresh
 src/
   app/                   routes: (auth), (app) screens, actions/, api/
   components/            UI components
   lib/                   permissions, calculations, labels, formatting, plans
   server/                auth, storage (local, S3), email, extraction, jobs, integrations
-    services/            announcements, metrics, documents, thesis, alerts, users
+    services/            announcements, metrics, documents, thesis, alerts, users, market
+    opendata/            open-data catalogue, provider adapters, ingestion, read API
     assistant/           retrieval, intent classification, answer composition
 tests/
   unit/  integration/    Vitest

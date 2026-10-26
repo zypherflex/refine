@@ -35,6 +35,8 @@ export function Shell({ user, children, companies, current, unread, company }: {
         { href: "/financials", label: "Financial reports", icon: "financials" },
         { href: "/operations", label: "Operational indicators", icon: "operations" },
         { href: "/risks", label: "Risk center", icon: "risks" },
+        { href: "/market", label: "Market & macro context", icon: "gauge" },
+        { href: "/refineries", label: "Global refineries", icon: "globe" },
       ],
     },
     {
