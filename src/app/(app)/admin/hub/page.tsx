@@ -35,6 +35,15 @@ export default async function HubModerationPage() {
                     {b.capacityBpd && <div><dt className="inline text-ink-600">Stated capacity: </dt><dd className="inline">{b.capacityBpd.toLocaleString("en-GB")} bpd</dd></div>}
                     {b.website && <div><dt className="inline text-ink-600">Website: </dt><dd className="inline"><a href={b.website} target="_blank" rel="noopener noreferrer nofollow">{b.website}</a></dd></div>}
                     <div><dt className="inline text-ink-600">Requested: </dt><dd className="inline">{fmtDateTime(b.updatedAt)}</dd></div>
+                    {b.registryCheckedAt && (() => {
+                      const c = b.registryCheck as { ok: boolean; name?: string; status?: string; matches?: boolean; error?: string } | null;
+                      return (
+                        <div className={`mt-2 rounded-lg px-3 py-2 ${c?.ok && c.matches ? "bg-brand-50" : "bg-amber-50"}`}>
+                          <dt className="font-medium">CAC registry (Dojah), {fmtDateTime(b.registryCheckedAt)}</dt>
+                          <dd>{c?.ok ? <>{c.matches ? "✓ Name matches" : "! Name differs"}: {c.name}{c.status ? ` · ${c.status}` : ""}</> : <>! {c?.error ?? "No result"}</>}</dd>
+                        </div>
+                      );
+                    })()}
                   </dl>
                 </div>
                 <DecideForm businessId={b.id} />

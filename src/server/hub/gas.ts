@@ -6,6 +6,8 @@ import type { Actor } from "@/lib/permissions";
 import { NIGERIAN_STATES } from "@/lib/hub/catalog";
 import { allowedSiteKinds, CYLINDER_SIZES, GASES, isSupplyKind, siteKindLabel, stateDistanceKm, summariseNetwork, type GasId } from "@/lib/hub/gas";
 import { audit } from "../audit";
+import { enqueue } from "../jobs";
+import { geocoderConfigured } from "../connect/geocode";
 import { canSeeBusiness, requireMyBusiness } from "./business";
 
 const MAX_SITES = 200;
@@ -43,6 +45,7 @@ export async function createSite(actor: Actor, raw: z.input<typeof siteInput>) {
   if ((await db.gasSite.count({ where: { businessId: business.id } })) >= MAX_SITES) throw new AppError(`A business can list up to ${MAX_SITES} sites.`);
   const s = await db.gasSite.create({ data: { ...data, businessId: business.id } });
   await audit(actor.id, "gas.site.create", "GasSite", s.id, { kind: s.kind, state: s.state });
+  if (geocoderConfigured()) await enqueue("gas.geocode", { siteId: s.id }, actor.id);
   return s;
 }
 
@@ -58,7 +61,9 @@ export async function updateSite(actor: Actor, id: string, raw: z.input<typeof s
   const s = await ownSite(actor, id);
   const data = clean(siteInput.parse(raw));
   if (data.kind !== s.kind && !allowedSiteKinds(s.business.roles).includes(data.kind)) throw new AppError(`Add a matching role to your business profile to make this a “${siteKindLabel(data.kind)}”.`);
-  const updated = await db.gasSite.update({ where: { id }, data: { ...data, lastConfirmedAt: new Date() } });
+  const moved = data.town !== s.town || data.state !== s.state;
+  const updated = await db.gasSite.update({ where: { id }, data: { ...data, lastConfirmedAt: new Date(), ...(moved ? { lat: null, lon: null } : {}) } });
+  if (moved && geocoderConfigured()) await enqueue("gas.geocode", { siteId: id }, actor.id);
   await audit(actor.id, "gas.site.update", "GasSite", id);
   return updated;
 }

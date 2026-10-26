@@ -136,5 +136,58 @@ export async function seedHub(db: PrismaClient, mk: (email: string, name: string
       { threadId: thread.id, senderId: seller.id, createdAt: t1, body: "Thanks, Kano Gas. We can do 20 tonnes weekly. Ex-depot is on the listing; Northern Corridor Haulage carries for us to Kano. Shall I ask them for a delivered quote?" },
     ],
   });
+  // Price board: three extra demo sellers so Lagos and Kano have enough reports for a median. Demo figures only.
+  const extra = await Promise.all(
+    [
+      ["surulere@refinerylens.test", "Sade Surulere", "Surulere Gas Point (demo)", "Lagos"],
+      ["agege@refinerylens.test", "Ade Agege", "Agege Energy (demo)", "Lagos"],
+      ["kanobulk@refinerylens.test", "Musa Kano", "Kano Bulk Gas (demo)", "Kano"],
+    ].map(async ([email, person, name, state]) => {
+      const u = await mk(email, person);
+      return db.hubBusiness.create({ data: { ownerId: u.id, isDemo: true, name, roles: ["SELLER"], state, about: "Fictional demo seller used to populate the price board." } });
+    }),
+  );
+  const [surulere, agege, kanoBulk] = extra;
+  const day = (ago: number) => { const d = new Date(Date.now() - ago * DAY); return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())); };
+  const reports: { businessId: string; state: string; item: string; prices: number[] }[] = [
+    // Each list is that seller's price 10 days ago, then 2 days ago (demo figures).
+    { businessId: ikeja.id, state: "Lagos", item: "lpg_retail_kg", prices: [1240, 1300] },
+    { businessId: surulere.id, state: "Lagos", item: "lpg_retail_kg", prices: [1260, 1320] },
+    { businessId: agege.id, state: "Lagos", item: "lpg_retail_kg", prices: [1220, 1280] },
+    { businessId: ikeja.id, state: "Lagos", item: "lpg_cyl_12_5", prices: [15500, 16200] },
+    { businessId: surulere.id, state: "Lagos", item: "lpg_cyl_12_5", prices: [15800, 16500] },
+    { businessId: agege.id, state: "Lagos", item: "lpg_cyl_12_5", prices: [15200, 16000] },
+    { businessId: ikeja.id, state: "Lagos", item: "lpg_bulk_kg", prices: [1080, 1120] },
+    { businessId: surulere.id, state: "Lagos", item: "lpg_bulk_kg", prices: [1100, 1150] },
+    { businessId: agege.id, state: "Lagos", item: "lpg_bulk_kg", prices: [1070, 1110] },
+    { businessId: ikeja.id, state: "Lagos", item: "ago_depot_litre", prices: [1850, 1800] },
+    { businessId: agege.id, state: "Lagos", item: "ago_depot_litre", prices: [1870, 1830] },
+    { businessId: lagoon.id, state: "Lagos", item: "ago_depot_litre", prices: [1840, 1795] },
+    { businessId: kano.id, state: "Kano", item: "lpg_retail_kg", prices: [1380, 1420] },
+    { businessId: kanoBulk.id, state: "Kano", item: "lpg_retail_kg", prices: [1360, 1400] },
+    { businessId: ikeja.id, state: "Kano", item: "lpg_retail_kg", prices: [1400, 1450] },
+    { businessId: kano.id, state: "Kano", item: "lpg_cyl_12_5", prices: [17200, 17800] },
+    { businessId: kanoBulk.id, state: "Kano", item: "lpg_cyl_12_5", prices: [17000, 17500] },
+    { businessId: abujaCng.id, state: "FCT Abuja", item: "cng_scm", prices: [230, 230] },
+    { businessId: ikeja.id, state: "Ogun", item: "lpg_retail_kg", prices: [1250, 1290] },
+  ];
+  await db.priceReport.createMany({ data: reports.flatMap((r) => [{ businessId: r.businessId, state: r.state, item: r.item, priceNaira: r.prices[0], day: day(10) }, { businessId: r.businessId, state: r.state, item: r.item, priceNaira: r.prices[1], day: day(2) }]) });
+
+  // Delivery jobs: one open with a quote, one completed.
+  const openJob = await db.deliveryJob.create({ data: { posterId: kano.id, title: "20 tonnes LPG, Ikeja to Kano (demo)", products: ["lpg"], quantity: 20, unit: "tonnes", fromState: "Lagos", fromTown: "Ikeja", toState: "Kano", toTown: "Kumbotso", pickupDate: until(3), details: "Fictional demo job. Bullet truck with valid pressure-vessel certificate; offload at our skid plant." } });
+  await db.deliveryQuote.create({ data: { jobId: openJob.id, carrierId: corridor.id, priceNaira: 2_150_000, note: "Demo quote. 20-tonne bullet truck, can load Thursday morning." } });
+  const doneJob = await db.deliveryJob.create({ data: { posterId: ikeja.id, title: "33,000 litres diesel, Lagos to Abuja (demo)", products: ["ago"], quantity: 33_000, unit: "litres", fromState: "Lagos", toState: "FCT Abuja", pickupDate: new Date(Date.now() - 12 * DAY), status: "DELIVERED", posterConfirmedAt: new Date(Date.now() - 9 * DAY), carrierConfirmedAt: new Date(Date.now() - 9 * DAY) } });
+  const doneQuote = await db.deliveryQuote.create({ data: { jobId: doneJob.id, carrierId: corridor.id, priceNaira: 1_900_000, status: "ACCEPTED" } });
+  await db.deliveryJob.update({ where: { id: doneJob.id }, data: { acceptedQuoteId: doneQuote.id } });
+
+  // Supply agreements: Kano Gas buys weekly from Ikeja (two confirmed deliveries, one waiting); Ogun Resin has proposed resin supply to Lagoon Coast.
+  const weekly = await db.supplyAgreement.create({ data: { buyerId: kano.id, sellerId: ikeja.id, proposedById: kano.id, product: "lpg", quantity: 20, unit: "tonnes", frequency: "WEEKLY", deliverTo: "Kano", priceNote: "Demo terms: depot price + ₦60/kg delivered", startDate: day(21), status: "ACTIVE" } });
+  await db.supplyDelivery.createMany({ data: [
+    { agreementId: weekly.id, deliveredOn: day(21), quantity: 20, status: "CONFIRMED", confirmedAt: new Date(Date.now() - 20 * DAY) },
+    { agreementId: weekly.id, deliveredOn: day(14), quantity: 20, status: "CONFIRMED", confirmedAt: new Date(Date.now() - 13 * DAY) },
+    { agreementId: weekly.id, deliveredOn: day(7), quantity: 19.5, status: "LOGGED" },
+  ] });
+  await db.supplyAgreement.create({ data: { buyerId: ogun.id, sellerId: lagoon.id, proposedById: ogun.id, product: "pp", quantity: 40, unit: "tonnes", frequency: "MONTHLY", deliverTo: "Ogun", priceNote: "Demo terms: monthly quote", startDate: day(-10), status: "PROPOSED" } });
+
   return { ikeja, kano, corridor, lagoon, ogun, abujaCng };
 }

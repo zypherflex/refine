@@ -28,7 +28,11 @@ export default async function AdminPage() {
     ["S3-compatible object storage", st.storage.driver === "s3" && st.storage.available],
     ["Language model for the assistant", st.languageModel],
     ["Email alert delivery" + (st.email.configured && !st.email.available ? " (incomplete: needs EMAIL_PROVIDER=smtp, SMTP_URL and EMAIL_FROM)" : ""), st.email.available],
-    ["Payment collection" + (st.payments.configured && !st.payments.available ? " (provider set, no adapter)" : ""), st.payments.available],
+    ["Card payments (Paystack)" + (st.payments.configured && !st.payments.available ? " (needs PAYMENT_PROVIDER=paystack and PAYSTACK_SECRET_KEY)" : ""), st.payments.available],
+    [`Text alerts${st.text.provider ? ` (${st.text.provider})` : st.text.configured ? " (provider set but keys missing)" : " (Termii, Africa's Talking or WhatsApp)"}`, !!st.text.provider],
+    ["USSD price check (Africa's Talking)", st.ussd],
+    ["CAC registry lookup (Dojah)", st.registry],
+    ["Gas site geocoding (OpenStreetMap Nominatim)", st.geocoder],
     ...PROVIDER_ORDER.map((id) => [`Open data: ${PROVIDERS[id].publisher}${st.openData[id].reason ? ` (${st.openData[id].reason})` : ""}`, st.openData[id].available] as const),
   ] as const;
   return (

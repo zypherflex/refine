@@ -2,6 +2,8 @@
 import { drainQueue } from "../src/server/jobs";
 import { jobHandlers } from "../src/server/job-handlers";
 import { sendDueAlertEmails } from "../src/server/services/alert-email";
+import { sendDueAlertTexts, sendPriceDigests } from "../src/server/services/alert-text";
+import { getTextSender } from "../src/server/connect/text";
 import { getMailer } from "../src/server/email";
 import { scheduleIngestionIfDue } from "../src/server/opendata/ingest";
 
@@ -10,7 +12,7 @@ const OPEN_DATA_INTERVAL_MS = Number(process.env.OPEN_DATA_INTERVAL_HOURS ?? 12)
 const OPEN_DATA_CHECK_MS = 10 * 60_000;
 
 async function loop() {
-  console.log(`RefineryLens worker started (alert email ${getMailer() ? "enabled" : "not configured; in-app alerts only"}; open data ${OPEN_DATA_INTERVAL_MS > 0 ? `every ${OPEN_DATA_INTERVAL_MS / 3_600_000} h` : "off"})`);
+  console.log(`RefineryLens worker started (alert email ${getMailer() ? "enabled" : "not configured; in-app alerts only"}; texts ${getTextSender()?.provider ?? "not configured"}; open data ${OPEN_DATA_INTERVAL_MS > 0 ? `every ${OPEN_DATA_INTERVAL_MS / 3_600_000} h` : "off"})`);
   let lastEmail = 0;
   let lastOpenDataCheck = 0;
   for (;;) {
@@ -21,6 +23,10 @@ async function loop() {
     if (Date.now() - lastEmail > EMAIL_INTERVAL_MS) {
       lastEmail = Date.now();
       await sendDueAlertEmails().catch((e) => console.error("alert email error", e));
+      if (getTextSender()) {
+        await sendDueAlertTexts().catch((e) => console.error("alert text error", e));
+        await sendPriceDigests().catch((e) => console.error("price digest error", e));
+      }
     }
     if (OPEN_DATA_INTERVAL_MS > 0 && Date.now() - lastOpenDataCheck > OPEN_DATA_CHECK_MS) {
       lastOpenDataCheck = Date.now();

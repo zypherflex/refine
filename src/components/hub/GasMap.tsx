@@ -13,12 +13,12 @@ const ROWS = 8;
 
 // Steps of the brand green ramp, light to dark, with the text colour that meets contrast on each.
 const STEPS = [
-  { min: 1, fill: "#d2f2e0", text: "#03140c" },
-  { min: 2, fill: "#7bdba7", text: "#03140c" },
+  { min: 1, fill: "#d2f2e0", text: "#0b1530" },
+  { min: 2, fill: "#7bdba7", text: "#0b1530" },
   { min: 4, fill: "#087c47", text: "#ffffff" },
   { min: 7, fill: "#053b22", text: "#ffffff" },
 ] as const;
-const EMPTY = { fill: "#f4f9f6", text: "#5a7a69" };
+const EMPTY = { fill: "#f4f6fb", text: "#66759a" };
 const GAP_STYLE = { fill: "#fbefd5", text: "#7a4a05", stroke: "#b7791f" };
 
 function style(v: number) {
@@ -51,7 +51,7 @@ export function GasMap({ summary, layer, selected, hrefFor }: { summary: StateSu
           return (
             <a key={row.state} href={hrefFor(row.state)} aria-label={`${row.state}: ${detail}`} aria-current={sel ? "true" : undefined} className="group outline-none">
               <title>{`${row.state}: ${detail}`}</title>
-              <rect x={x} y={y} width={TILE} height={TILE} rx={8} fill={s.fill} stroke={sel ? "#03140c" : isGap ? GAP_STYLE.stroke : v ? "transparent" : "#d0ded6"} strokeWidth={sel ? 3 : isGap ? 2 : 1} strokeDasharray={!v && !isGap ? "4 3" : undefined} className="transition-opacity group-hover:opacity-80 group-focus-visible:opacity-80" />
+              <rect x={x} y={y} width={TILE} height={TILE} rx={8} fill={s.fill} stroke={sel ? "#0b1530" : isGap ? GAP_STYLE.stroke : v ? "transparent" : "#d5dbe9"} strokeWidth={sel ? 3 : isGap ? 2 : 1} strokeDasharray={!v && !isGap ? "4 3" : undefined} className="transition-opacity group-hover:opacity-80 group-focus-visible:opacity-80" />
               <text x={x + TILE / 2} y={y + 34} textAnchor="middle" fontSize={13} fontWeight={500} fill={s.text}>{short[row.state] ?? row.state}</text>
               <text x={x + TILE / 2} y={y + 64} textAnchor="middle" fontSize={22} fontWeight={600} fill={s.text} className="num">{isGap ? "! Gap" : layer === "gaps" ? "–" : v}</text>
               {sel && <rect x={x + 2} y={y + 2} width={TILE - 4} height={TILE - 4} rx={7} fill="none" stroke="#ffffff" strokeWidth={1} />}

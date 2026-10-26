@@ -5,6 +5,7 @@ import { getSite } from "@/server/hub/gas";
 import { businessListings } from "@/server/hub/listings";
 import { db } from "@/lib/db";
 import { confirmSiteAction } from "@/app/actions/hub";
+import { osmLink } from "@/server/connect/geocode";
 import { gasLabel, isStale, siteKindLabel } from "@/lib/hub/gas";
 import { fmtDate } from "@/lib/format";
 import { EnquiryForm, ReportForm } from "@/components/hub/forms";
@@ -43,6 +44,7 @@ export default async function GasSitePage({ params, searchParams }: { params: Pr
               <div><dt className="text-ink-600">Delivery</dt><dd>{s.delivers ? (s.kind === "LOGISTICS_BASE" ? "Takes delivery jobs" : "Delivers from this site") : "Collection only"}</dd></div>
               <div><dt className="text-ink-600">Last confirmed</dt><dd className={stale ? "font-medium text-amber-800" : ""}>{stale ? "⚠ " : ""}{fmtDate(s.lastConfirmedAt)}{stale ? " (may be out of date)" : ""}</dd></div>
             </dl>
+            {s.lat !== null && s.lon !== null && <p className="mt-3 text-sm"><a href={osmLink(s.lat, s.lon)} target="_blank" rel="noopener noreferrer">View the area on OpenStreetMap ↗</a> <span className="text-xs text-ink-600">(approximate, from the town; © OpenStreetMap contributors)</span></p>}
             {s.notes && <p className="mt-4 whitespace-pre-line text-sm text-ink-800">{s.notes}</p>}
             <p className="mt-4 text-xs text-ink-600">As stated by {b.name}. RefineryLens has not inspected this site; check licences and safety certificates yourself.</p>
           </section>

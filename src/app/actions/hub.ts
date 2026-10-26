@@ -7,6 +7,9 @@ import { requestVerification, saveBusiness } from "@/server/hub/business";
 import { closeListing, createListing, renewListing, updateListing } from "@/server/hub/listings";
 import { reply, sendEnquiry } from "@/server/hub/messages";
 import { confirmSite, createSite, updateSite } from "@/server/hub/gas";
+import { reportPrices } from "@/server/hub/prices";
+import { acceptQuote, cancelJob, confirmDelivered, postJob, submitQuote, withdrawQuote } from "@/server/hub/jobs";
+import { logDelivery, proposeAgreement, respond, reviewDelivery, setStatus } from "@/server/hub/supply";
 import { closeReport, decideVerification, reinstateBusiness, reportBusiness, suspendBusiness } from "@/server/hub/moderation";
 import { AppError } from "@/lib/errors";
 
@@ -208,4 +211,120 @@ export async function confirmSiteAction(form: FormData) {
   const user = await requireUser();
   await confirmSite(user, text(form, "id")).catch(message);
   revalidatePath("/hub", "layout");
+}
+
+// ---- Price board, delivery jobs and supply agreements ----
+
+export async function reportPricesAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  const prices: Record<string, number | null> = {};
+  for (const [k, v] of form.entries()) if (k.startsWith("price:")) prices[k.slice(6)] = String(v).trim() === "" ? null : Number(String(v).replace(/,/g, ""));
+  try {
+    const n = await reportPrices(user, { state: text(form, "state"), daysAgo: Number(text(form, "daysAgo") || 0), prices });
+    revalidatePath("/hub/prices");
+    return { ok: `${n} price${n === 1 ? "" : "s"} recorded. Thank you; the board shows medians across sellers, never your individual price.` };
+  } catch (e) {
+    return { error: message(e) };
+  }
+}
+
+export async function postJobAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  let id: string;
+  try {
+    id = (await postJob(user, {
+      title: text(form, "title"), products: form.getAll("products").map(String), quantity: num(form, "quantity") ?? NaN, unit: text(form, "unit") as never,
+      fromState: text(form, "fromState"), fromTown: text(form, "fromTown"), toState: text(form, "toState"), toTown: text(form, "toTown"),
+      pickupDate: new Date(text(form, "pickupDate") || NaN), details: text(form, "details"),
+    })).id;
+  } catch (e) {
+    return { error: message(e) };
+  }
+  revalidatePath("/hub/jobs");
+  redirect(`/hub/jobs/${id}`);
+}
+
+export async function quoteAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  const jobId = text(form, "jobId");
+  try {
+    await submitQuote(user, jobId, { priceNaira: num(form, "priceNaira") ?? NaN, note: text(form, "note") });
+  } catch (e) {
+    return { error: message(e) };
+  }
+  revalidatePath(`/hub/jobs/${jobId}`);
+  return { ok: "Quote sent. The business will see it with the others and can accept it." };
+}
+
+async function jobStep(form: FormData, fn: (user: Awaited<ReturnType<typeof requireUser>>, jobId: string) => Promise<unknown>) {
+  const user = await requireUser();
+  const jobId = text(form, "jobId");
+  await fn(user, jobId).catch(message);
+  revalidatePath(`/hub/jobs/${jobId}`);
+  revalidatePath("/hub/jobs");
+}
+export async function acceptQuoteAction(form: FormData) {
+  await jobStep(form, (u, id) => acceptQuote(u, id, text(form, "quoteId")));
+}
+export async function withdrawQuoteAction(form: FormData) {
+  await jobStep(form, withdrawQuote);
+}
+export async function cancelJobAction(form: FormData) {
+  await jobStep(form, cancelJob);
+}
+export async function confirmJobAction(form: FormData) {
+  await jobStep(form, confirmDelivered);
+}
+
+export async function proposeAgreementAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  let id: string;
+  try {
+    id = (await proposeAgreement(user, {
+      counterpartyId: text(form, "counterpartyId"), side: text(form, "side") as never, product: text(form, "product") as never, quantity: num(form, "quantity") ?? NaN,
+      unit: text(form, "unit") as never, frequency: text(form, "frequency") as never, deliverTo: text(form, "deliverTo"), priceNote: text(form, "priceNote"), notes: text(form, "notes"),
+      startDate: new Date(text(form, "startDate") || NaN), endDate: text(form, "endDate") ? new Date(text(form, "endDate")) : null,
+    })).id;
+  } catch (e) {
+    return { error: message(e) };
+  }
+  revalidatePath("/hub/supply");
+  redirect(`/hub/supply/${id}`);
+}
+
+async function supplyStep(form: FormData, fn: (user: Awaited<ReturnType<typeof requireUser>>, id: string) => Promise<unknown>) {
+  const user = await requireUser();
+  const id = text(form, "agreementId");
+  await fn(user, id).catch(message);
+  revalidatePath(`/hub/supply/${id}`);
+  revalidatePath("/hub/supply");
+}
+export async function respondAgreementAction(form: FormData) {
+  await supplyStep(form, (u, id) => respond(u, id, text(form, "accept") === "1"));
+}
+export async function agreementStatusAction(form: FormData) {
+  await supplyStep(form, (u, id) => setStatus(u, id, text(form, "status") as never));
+}
+
+export async function logDeliveryAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  const id = text(form, "agreementId");
+  try {
+    await logDelivery(user, id, { deliveredOn: new Date(text(form, "deliveredOn") || NaN), quantity: num(form, "quantity") ?? NaN });
+  } catch (e) {
+    return { error: message(e) };
+  }
+  revalidatePath(`/hub/supply/${id}`);
+  return { ok: "Delivery logged. The buyer has been asked to confirm it." };
+}
+
+export async function reviewDeliveryAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  try {
+    await reviewDelivery(user, text(form, "deliveryId"), text(form, "ok") === "1", text(form, "note"));
+  } catch (e) {
+    return { error: message(e) };
+  }
+  revalidatePath(`/hub/supply/${text(form, "agreementId")}`);
+  return { ok: "Saved." };
 }

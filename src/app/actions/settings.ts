@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/server/auth";
 import { changePassword } from "@/server/services/users";
 import { AppError } from "@/lib/errors";
+import { saveTextSettings } from "@/server/services/alert-text";
+import { startProCheckout } from "@/server/connect/paystack";
 
 export type SettingsState = { error?: string | null; ok?: string | null };
 
@@ -24,4 +26,28 @@ export async function changePasswordAction(_: SettingsState, form: FormData): Pr
     throw e;
   }
   redirect("/login?changed=1");
+}
+
+export async function saveTextSettingsAction(_: SettingsState, form: FormData): Promise<SettingsState> {
+  const user = await requireUser();
+  const r = await saveTextSettings(user.id, {
+    phone: String(form.get("phone") ?? ""),
+    textAlerts: form.get("textAlerts") === "1",
+    priceDigest: form.get("priceDigest") === "1",
+    digestState: String(form.get("digestState") ?? ""),
+  });
+  return r;
+}
+
+export async function startCheckoutAction(): Promise<SettingsState> {
+  const user = await requireUser();
+  let url: string;
+  try {
+    url = await startProCheckout(user);
+  } catch (e) {
+    if (e instanceof AppError) return { error: e.message };
+    console.error("checkout", e);
+    return { error: "The payment page could not be opened. Try again in a minute." };
+  }
+  redirect(url);
 }

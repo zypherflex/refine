@@ -40,6 +40,9 @@ export function Shell({ user, children, companies, current, unread, hubUnread, c
       items: [
         { href: "/hub", label: "Buy, sell & deliver", icon: "hub" },
         { href: "/hub/gas", label: "Gas network", icon: "gas" },
+        { href: "/hub/prices", label: "Price board", icon: "prices" },
+        { href: "/hub/jobs", label: "Delivery jobs", icon: "jobs" },
+        { href: "/hub/supply", label: "Supply agreements", icon: "supply" },
         { href: "/hub/refineries", label: "Refineries", icon: "refinery" },
         { href: "/hub/inbox", label: "Hub inbox", icon: "inbox", badge: hubUnread },
         { href: "/hub/me", label: "My business", icon: "business" },
@@ -84,7 +87,7 @@ export function Shell({ user, children, companies, current, unread, hubUnread, c
     <div className="min-h-screen lg:flex">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2">Skip to content</a>
       <div className="hidden w-[17rem] shrink-0 bg-ink-950 lg:block">
-      <aside className="relative sticky top-0 flex h-screen flex-col bg-[radial-gradient(120%_60%_at_0%_0%,rgba(47,191,120,0.16),transparent_60%)] text-ink-200">
+      <aside className="relative sticky top-0 flex h-screen flex-col bg-[radial-gradient(120%_60%_at_0%_0%,rgba(47,191,120,0.10),transparent_60%)] text-ink-200">
         <div aria-hidden className="bg-adire pointer-events-none absolute inset-0 opacity-[0.035]" />
         <div aria-hidden className="band-ng h-1 w-full opacity-90" />
         <div className="relative px-5 pb-4 pt-5"><Link href="/dashboard" className="no-underline hover:no-underline"><Logo light /></Link></div>

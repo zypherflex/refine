@@ -42,6 +42,12 @@ model User {
   organization   Organization? @relation(fields: [organizationId], references: [id])
   // Opt-in to email copies of alerts. Only offered when an email provider is configured.
   emailAlerts    Boolean       @default(false)
+  // Phone in international format (e.g. +2348012345678) for SMS or WhatsApp copies of alerts and the price digest.
+  phone          String?
+  textAlerts     Boolean       @default(false)
+  priceDigest    Boolean       @default(false)
+  // State whose prices the morning digest covers.
+  digestState    String?
   createdAt      DateTime      @default(now())
 
   sessions        Session[]
@@ -59,6 +65,7 @@ model User {
   hubThreads      HubThread[]            @relation("HubThreadStarter")
   hubMessages     HubMessage[]
   hubReports      HubReport[]
+  payments        Payment[]
 }
 
 model Session {
@@ -583,6 +590,8 @@ model Alert {
   readAt    DateTime?
   // Set once an email copy has been sent (or deliberately skipped when the user opted in later).
   emailedAt DateTime?
+  // Set once an SMS or WhatsApp copy has been sent (or skipped for alerts that predate opting in).
+  textedAt  DateTime?
   createdAt DateTime  @default(now())
 
   @@unique([userId, dedupeKey])
@@ -858,15 +867,23 @@ model HubBusiness {
   verificationNote   String          @default("")
   verifiedAt         DateTime?
   verifiedById       String?
+  // What the company registry returned for the registration number, when a registry lookup is configured.
+  registryCheck      Json?
+  registryCheckedAt  DateTime?
   // Seeded demo businesses are labelled so nobody mistakes them for real trading partners.
   isDemo             Boolean         @default(false)
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 
-  listings HubListing[]
-  threads  HubThread[]
-  reports  HubReport[]
-  gasSites GasSite[]
+  listings         HubListing[]
+  threads          HubThread[]
+  reports          HubReport[]
+  gasSites         GasSite[]
+  priceReports     PriceReport[]
+  jobsPosted       DeliveryJob[]     @relation("JobPoster")
+  quotes           DeliveryQuote[]
+  buyerAgreements  SupplyAgreement[] @relation("AgreementBuyer")
+  sellerAgreements SupplyAgreement[] @relation("AgreementSeller")
 
   @@index([verification])
 }
@@ -1002,9 +1019,177 @@ model GasSite {
   notes           String        @default("")
   // The owner confirms the details are still right; older entries are flagged as possibly out of date.
   lastConfirmedAt DateTime      @default(now())
+  // From geocoding the town and state, when a geocoder is configured. Approximate.
+  lat             Float?
+  lon             Float?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
   @@index([state, status])
   @@index([businessId])
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Price board: prices sellers state for their own sales. Shown only as medians across several sellers per state,
+// so no single seller's price is exposed and the board reports the market rather than coordinating it.
+
+model PriceReport {
+  id         String      @id @default(cuid())
+  businessId String
+  business   HubBusiness @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  // An entry from PRICE_ITEMS, e.g. lpg_retail_kg or ago_depot_litre.
+  item       String
+  state      String
+  priceNaira Float
+  // The day the price applied, at midnight UTC. One report per business, item, state and day.
+  day        DateTime
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@unique([businessId, item, state, day])
+  @@index([item, day])
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Delivery jobs: a business posts a load, delivery partners quote, the poster accepts one, and both sides confirm
+// the delivery. RefineryLens records the agreement; payment is settled between the businesses.
+
+enum DeliveryJobStatus {
+  OPEN
+  AWARDED
+  DELIVERED
+  CANCELLED
+}
+
+enum QuoteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+}
+
+model DeliveryJob {
+  id                 String            @id @default(cuid())
+  posterId           String
+  poster             HubBusiness       @relation("JobPoster", fields: [posterId], references: [id], onDelete: Cascade)
+  title              String
+  products           String[]
+  quantity           Float
+  unit               String
+  fromState          String
+  fromTown           String            @default("")
+  toState            String
+  toTown             String            @default("")
+  pickupDate         DateTime
+  details            String            @default("")
+  status             DeliveryJobStatus @default(OPEN)
+  acceptedQuoteId    String?           @unique
+  posterConfirmedAt  DateTime?
+  carrierConfirmedAt DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  quotes DeliveryQuote[]
+
+  @@index([status, pickupDate])
+}
+
+model DeliveryQuote {
+  id         String      @id @default(cuid())
+  jobId      String
+  job        DeliveryJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  carrierId  String
+  carrier    HubBusiness @relation(fields: [carrierId], references: [id], onDelete: Cascade)
+  priceNaira Float
+  note       String      @default("")
+  status     QuoteStatus @default(PENDING)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@unique([jobId, carrierId])
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Recurring supply agreements: a buyer and a seller record a standing arrangement, the seller logs each delivery and
+// the buyer confirms or disputes it. Confirmed deliveries build each seller's public reliability record.
+
+enum AgreementFrequency {
+  WEEKLY
+  FORTNIGHTLY
+  MONTHLY
+}
+
+enum AgreementStatus {
+  PROPOSED
+  ACTIVE
+  PAUSED
+  ENDED
+  DECLINED
+}
+
+enum SupplyDeliveryStatus {
+  LOGGED
+  CONFIRMED
+  DISPUTED
+}
+
+model SupplyAgreement {
+  id           String             @id @default(cuid())
+  buyerId      String
+  buyer        HubBusiness        @relation("AgreementBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  sellerId     String
+  seller       HubBusiness        @relation("AgreementSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  // Which side proposed; the other side accepts or declines.
+  proposedById String
+  product      String
+  quantity     Float
+  unit         String
+  frequency    AgreementFrequency
+  deliverTo    String
+  priceNote    String             @default("")
+  notes        String             @default("")
+  startDate    DateTime
+  endDate      DateTime?
+  status       AgreementStatus    @default(PROPOSED)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  deliveries SupplyDelivery[]
+
+  @@index([buyerId])
+  @@index([sellerId])
+}
+
+model SupplyDelivery {
+  id          String               @id @default(cuid())
+  agreementId String
+  agreement   SupplyAgreement      @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+  deliveredOn DateTime
+  quantity    Float
+  status      SupplyDeliveryStatus @default(LOGGED)
+  buyerNote   String               @default("")
+  confirmedAt DateTime?
+  createdAt   DateTime             @default(now())
+
+  @@unique([agreementId, deliveredOn])
+}
+
+// Card payments through a payment provider (Paystack). Only the provider's verified result changes a plan.
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model Payment {
+  id         String        @id @default(cuid())
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider   String
+  reference  String        @unique
+  purpose    String
+  amountKobo Int
+  status     PaymentStatus @default(PENDING)
+  paidAt     DateTime?
+  createdAt  DateTime      @default(now())
 }

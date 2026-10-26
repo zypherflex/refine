@@ -47,7 +47,7 @@ export default async function Home() {
     <div className="min-h-screen bg-white">
       <div className="relative overflow-hidden bg-ink-950 text-white">
         <div aria-hidden className="band-ng h-1.5 w-full" />
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_85%_10%,rgba(47,191,120,0.28),transparent_60%),radial-gradient(40%_60%_at_0%_100%,rgba(123,219,167,0.12),transparent_70%)]" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_85%_10%,rgba(47,191,120,0.14),transparent_60%),radial-gradient(40%_60%_at_0%_100%,rgba(111,138,214,0.14),transparent_70%)]" />
         <div aria-hidden className="bg-adire pointer-events-none absolute inset-0 opacity-[0.05] [mask-image:radial-gradient(80%_70%_at_70%_30%,#000,transparent)]" />
         <header className="relative mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-8">
           <Logo light />

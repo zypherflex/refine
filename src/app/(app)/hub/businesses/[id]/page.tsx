@@ -2,6 +2,8 @@ import Link from "next/link";
 import { requireUser } from "@/server/auth";
 import { getBusiness, getMyBusiness } from "@/server/hub/business";
 import { businessListings } from "@/server/hub/listings";
+import { reliability } from "@/server/hub/supply";
+import { carrierRecord } from "@/server/hub/jobs";
 import { db } from "@/lib/db";
 import { fmtDate } from "@/lib/format";
 import { EnquiryForm, ReportForm } from "@/components/hub/forms";
@@ -15,11 +17,14 @@ export default async function BusinessPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   const b = await getBusiness(user, id);
   const own = b.ownerId === user.id;
-  const [listings, mine, existing] = await Promise.all([
+  const [listings, mine, existing, record, jobsDone] = await Promise.all([
     businessListings(b.id),
     getMyBusiness(user),
     db.hubThread.findFirst({ where: { starterId: user.id, businessId: b.id, listingId: null }, select: { id: true } }),
+    reliability(b.id),
+    carrierRecord(b.id),
   ]);
+  const sells = b.roles.some((r) => r === "SELLER" || r === "REFINERY");
   return (
     <>
       <p className="mb-2 text-sm"><Link href="/hub">← Trade hub</Link></p>
@@ -52,6 +57,20 @@ export default async function BusinessPage({ params }: { params: Promise<{ id: s
           </section>
         </div>
         <aside className="space-y-4">
+          {(sells || b.roles.includes("DELIVERY")) && (
+            <section className="card" aria-labelledby="rec-h">
+              <h2 id="rec-h" className="eyebrow">Track record on RefineryLens</h2>
+              <dl className="mt-2 space-y-2 text-sm">
+                {sells && <div><dt className="text-ink-600">Supply deliveries confirmed by buyers</dt><dd className="num font-semibold">{record.rate === null ? "None reviewed yet" : `${record.rate}% (${record.confirmed} confirmed, ${record.disputed} disputed)`}</dd></div>}
+                {sells && <div><dt className="text-ink-600">Active supply agreements</dt><dd className="num font-semibold">{record.activeBuyers}</dd></div>}
+                {b.roles.includes("DELIVERY") && <div><dt className="text-ink-600">Delivery jobs completed</dt><dd className="num font-semibold">{jobsDone}</dd></div>}
+              </dl>
+              <p className="mt-2 text-xs text-ink-600">Counts only deliveries both sides confirmed in the app.</p>
+            </section>
+          )}
+          {!own && mine && mine.verification !== "SUSPENDED" && (sells || mine.roles.some((r) => r === "SELLER" || r === "REFINERY")) && (
+            <Link href={`/hub/supply/new?with=${b.id}`} className="btn-secondary btn-sm w-full justify-center no-underline">Propose a supply agreement</Link>
+          )}
           {own ? (
             <section className="card text-sm">This is your business. <Link href="/hub/me">Edit your profile</Link>.</section>
           ) : (

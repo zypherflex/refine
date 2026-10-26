@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, BookOpen, Briefcase, Building2, Calculator, ClipboardCheck, Compass, Factory, FileStack, Gauge, Globe2, History, Flame, Inbox, Store, Warehouse, LayoutDashboard, Lightbulb, MessagesSquare, Newspaper, Settings, ShieldAlert, SquareKanban, Users } from "lucide-react";
+import { Bell, BookOpen, Briefcase, Building2, Calculator, ClipboardCheck, Compass, Factory, FileStack, Gauge, Globe2, History, Flame, Inbox, Repeat, Store, Tags, Truck, Warehouse, LayoutDashboard, Lightbulb, MessagesSquare, Newspaper, Settings, ShieldAlert, SquareKanban, Users } from "lucide-react";
 
 const icons = {
   overview: LayoutDashboard,
@@ -26,6 +26,9 @@ const icons = {
   fit: Compass,
   hub: Store,
   gas: Flame,
+  prices: Tags,
+  jobs: Truck,
+  supply: Repeat,
   inbox: Inbox,
   refinery: Factory,
   business: Warehouse,

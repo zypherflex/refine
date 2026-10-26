@@ -5,8 +5,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Ink: green-tinted neutrals, from the white page background to the deep forest sidebar.
-        ink: { 950: "#03140c", 900: "#082216", 800: "#0f2f20", 700: "#1b4331", 600: "#365a48", 500: "#5a7a69", 400: "#7f998b", 300: "#a6bcb0", 200: "#d0ded6", 100: "#e4eee8", 50: "#f4f9f6" },
+        // Ink: navy-tinted neutrals, from the white page background to Atlantic navy (#0b1530), the structural colour of
+        // the brand. Green stays the accent for actions, links and verified states; white is the page.
+        ink: { 950: "#0b1530", 900: "#111c3a", 800: "#1b2748", 700: "#2b3a60", 600: "#45557c", 500: "#66759a", 400: "#8b97b6", 300: "#b3bdd3", 200: "#d5dbe9", 100: "#e7ebf4", 50: "#f4f6fb" },
+        // Atlantic navy ramp, more saturated than ink, for navy fills and data marks.
+        navy: { 950: "#0b1530", 900: "#111e42", 800: "#182a5a", 700: "#22387a", 600: "#2e4a9b", 500: "#4766be", 400: "#6f8ad6", 300: "#a3b4e6", 200: "#cbd5f2", 100: "#e4e9f8", 50: "#f3f5fc" },
         // Brand green: the single accent. Used for actions, focus and verified states.
         brand: { 900: "#053b22", 800: "#064d2c", 700: "#076339", 600: "#087c47", 500: "#0c9a58", 400: "#2fbf78", 300: "#7bdba7", 100: "#d2f2e0", 50: "#ecfaf2" },
         amber: { 800: "#7a4a05", 700: "#95600a", 600: "#b7791f", 400: "#e2a843", 100: "#fbefd5", 50: "#fdf8ec" },
@@ -17,8 +20,8 @@ export default {
         serif: ["\"Source Serif 4 Variable\"", "\"Source Serif 4\"", "Georgia", "serif"],
       },
       boxShadow: {
-        card: "0 1px 2px rgba(10,22,40,0.04), 0 1px 1px rgba(10,22,40,0.03)",
-        lift: "0 10px 30px -12px rgba(10,22,40,0.18), 0 2px 6px rgba(10,22,40,0.05)",
+        card: "0 1px 2px rgba(11,21,48,0.05), 0 1px 1px rgba(11,21,48,0.03)",
+        lift: "0 12px 32px -12px rgba(11,21,48,0.22), 0 2px 6px rgba(11,21,48,0.06)",
       },
       letterSpacing: { eyebrow: "0.14em" },
     },

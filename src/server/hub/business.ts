@@ -5,6 +5,8 @@ import { AppError, ForbiddenError, NotFoundError } from "@/lib/errors";
 import type { Actor } from "@/lib/permissions";
 import { isPubliclyVisible, LOCATIONS } from "@/lib/hub/catalog";
 import { audit } from "../audit";
+import { enqueue } from "../jobs";
+import { registryConfigured } from "../connect/registry";
 
 const location = z.string().refine((s) => LOCATIONS.includes(s), "Choose a location from the list");
 
@@ -44,7 +46,7 @@ export async function saveBusiness(actor: Actor, raw: z.input<typeof businessInp
   }
   if (existing.verification === "SUSPENDED") throw new ForbiddenError("This business is suspended. Contact RefineryLens to resolve it.");
   const identityChanged = IDENTITY.some((k) => existing[k] !== data[k]) || (data.roles.includes("REFINERY") && !existing.roles.includes("REFINERY"));
-  const reset: Partial<HubBusiness> =
+  const reset: Prisma.HubBusinessUpdateInput =
     identityChanged && existing.verification !== "UNVERIFIED"
       ? { verification: "UNVERIFIED", verifiedAt: null, verifiedById: null, verificationNote: "Your name, registration, licences or refinery role changed, so the business needs to be checked again. Request verification when ready." }
       : {};
@@ -61,6 +63,8 @@ export async function requestVerification(actor: Actor) {
   if (!b.registrationNumber) throw new AppError("Add your CAC registration number before requesting verification.");
   const updated = await db.hubBusiness.update({ where: { id: b.id }, data: { verification: "PENDING_REVIEW", verificationNote: "" } });
   await audit(actor.id, "hub.business.request_verification", "HubBusiness", b.id);
+  // Look the number up in the company registry in the background, for the administrator who checks the request.
+  if (registryConfigured()) await enqueue("hub.registry-lookup", { businessId: b.id }, actor.id);
   return updated;
 }
 
