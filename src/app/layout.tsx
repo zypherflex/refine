@@ -4,8 +4,8 @@ import "@fontsource-variable/source-serif-4";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "RefineryLens · Independent refinery research", template: "%s · RefineryLens" },
-  description: "Independent investor research on refinery businesses. Understand the change. Examine the evidence. Reassess your investment thesis.",
+  title: { default: "RefineryLens · Business opportunities around Dangote", template: "%s · RefineryLens" },
+  description: "Independent business intelligence on opportunities around Dangote, for businesses of every size: sourced facts, dated reports and transparent sizing tools.",
   applicationName: "RefineryLens",
   icons: { icon: "/icon.svg" },
 };

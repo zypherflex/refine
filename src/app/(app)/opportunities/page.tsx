@@ -2,16 +2,15 @@ import Link from "next/link";
 import { requireUser } from "@/server/auth";
 import { listBoard } from "@/server/opportunities/board";
 import { regionalRefineries, signalPoints } from "@/server/opportunities/context";
-import { filterOpportunities, OPPORTUNITIES, SCALES, SEGMENTS, scaleLabel, segmentLabel } from "@/lib/opportunities/catalog";
+import { filterOpportunities, OPPORTUNITIES, SCALES, SEGMENTS, STAGES, scaleLabel, segmentLabel } from "@/lib/opportunities/catalog";
 import { DANGOTE_STATED_CDU_BPD } from "@/lib/opportunities/calculators";
 import { HUB_SIGNALS } from "@/lib/opportunities/signals";
 import { MarketPanel } from "@/components/opportunities/MarketPanel";
-import { STAGES } from "@/components/opportunities/BoardForm";
 import { EmptyState, Notice, PageHeader, Pill, Unavailable } from "@/components/ui";
 
 export const metadata = { title: "Business opportunities" };
 
-type Search = Promise<{ scale?: string; segment?: string; q?: string }>;
+type Search = Promise<{ scale?: string; segment?: string; q?: string; welcome?: string }>;
 
 export default async function OpportunitiesPage({ searchParams }: { searchParams: Search }) {
   const user = await requireUser();
@@ -20,7 +19,7 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
   const segment = SEGMENTS.some((s) => s.id === sp.segment) ? sp.segment! : "";
   const q = (sp.q ?? "").slice(0, 80);
   const list = filterOpportunities({ scale, segment, q });
-  const [board, points, refineries] = await Promise.all([listBoard(user), signalPoints(HUB_SIGNALS, user), regionalRefineries()]);
+  const [board, points, refineries] = await Promise.all([listBoard(user), signalPoints(HUB_SIGNALS, user), regionalRefineries(user)]);
   const onBoard = new Map(board.map((b) => [b.opportunitySlug, b.stage]));
   const stageLabel = Object.fromEntries(STAGES) as Record<string, string>;
 
@@ -28,13 +27,14 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
     <>
       <PageHeader
         eyebrow="Opportunities"
-        title="Business opportunities around the Dangote refinery"
-        subtitle="Where businesses of every size could plug into a 700,000 bpd merchant refinery and petrochemicals complex: fuel distribution, gas, logistics, polypropylene, crude supply, modular refining and plant services. Each idea shows the company-stated facts it rests on, dated reports that help or hurt the case, and a tool to size it with your own numbers."
+        title="Business opportunities around Dangote"
+        subtitle="Where businesses of every size could plug into Dangote's Lekki complex, which the company states has 700,000 bpd of refining and 830 KTPA of polypropylene capacity: fuel distribution, gas, logistics, polypropylene, crude supply, modular refining and plant services. Each idea shows the company-stated facts it rests on, dated reports that help or hurt the case, and a tool to size it with your own numbers."
         actions={<><Link href="/opportunities/tools" className="btn-secondary btn-sm no-underline">Sizing tools</Link><Link href="/opportunities/board" className="btn-primary btn-sm no-underline">My board ({board.length})</Link></>}
       />
+      {sp.welcome && <div className="mb-4"><Notice tone="ok" title="Welcome to RefineryLens">Pick your business size below, open an opportunity, and size it with your own numbers. Your board and scenarios are private to you.</Notice></div>}
       <div className="mb-6">
         <Notice title="Independent analysis, not an offer">
-          These are RefineryLens research notes on possible business models. None is an offer, tender, distributorship or partnership programme of Dangote Petroleum Refinery & Petrochemicals, and RefineryLens is not affiliated with the company. Confirm terms directly with suppliers and regulators. Not financial advice.
+          These are RefineryLens research notes on possible business models. None is an offer, tender, distributorship or partnership programme of Dangote or any Dangote company, and RefineryLens is not affiliated with them. Confirm terms directly with suppliers and regulators. Not financial advice.
         </Notice>
       </div>
 

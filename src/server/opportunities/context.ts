@@ -8,11 +8,11 @@ export async function signalPoints(keys: string[], actor: Actor | null): Promise
   if (!keys.length) return [];
   const rows = await getMarketSignals(keys, actor);
   return rows
-    .filter((r) => r.approved)
+    .filter((r) => r.approved && Number.isFinite(r.value))
     .map((r) => ({ key: r.key, label: SIGNAL_LABELS[r.key] ?? r.label, value: r.value, unit: r.unit, period: r.period, sourceName: r.sourceName, sourceUrl: r.sourceUrl, attribution: r.attribution }));
 }
 
-export async function regionalRefineries() {
-  const rows = await listRefineryAssets({ countries: REGION_COUNTRIES });
+export async function regionalRefineries(actor: Actor | null) {
+  const rows = await listRefineryAssets({ countries: REGION_COUNTRIES, take: 50 }, actor);
   return rows.sort((a, b) => (b.capacityBpd ?? -1) - (a.capacityBpd ?? -1));
 }

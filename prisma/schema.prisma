@@ -761,6 +761,8 @@ model RefineryAsset {
 
   @@unique([provider, externalId])
   @@index([countryCode])
+}
+
 // Business opportunities hub. The opportunity catalogue itself is editorial content in code
 // (src/lib/opportunities); these tables hold each user's private pipeline and saved sizing scenarios.
 enum OpportunityStage {

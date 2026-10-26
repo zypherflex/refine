@@ -2,13 +2,8 @@
 import { useActionState } from "react";
 import { saveBoardAction } from "@/app/actions/opportunities";
 import { FieldError } from "../ui";
+import { STAGES } from "@/lib/opportunities/catalog";
 
-export const STAGES = [
-  ["EXPLORING", "Exploring"],
-  ["VALIDATING", "Validating with quotes"],
-  ["PURSUING", "Pursuing"],
-  ["PARKED", "Parked"],
-] as const;
 
 export function BoardForm({ slug, item }: { slug: string; item: { stage: string; notes: string; nextStep: string } | null }) {
   const [state, action, pending] = useActionState(saveBoardAction, {});

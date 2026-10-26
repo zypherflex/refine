@@ -16,7 +16,7 @@ async function signIn(page: Page, email: string) {
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(PASSWORD);
-  await Promise.all([page.waitForURL(/\/dashboard/), page.getByRole("button", { name: "Sign in" }).click()]);
+  await Promise.all([page.waitForURL(/\/opportunities/), page.getByRole("button", { name: "Sign in" }).click()]);
   sessions.set(email, (await page.context().cookies()).filter((c) => c.name === "rl_session"));
 }
 
@@ -27,7 +27,9 @@ async function selectCompany(page: Page, slug: string) {
 
 test("landing page presents RefineryLens as independent @mobile", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Dangote Refinery, understood");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Business opportunities around Dangote");
+  const text = await page.locator("body").innerText();
+  expect(text).not.toMatch(/dangote (petroleum )?refinery/i);
   await expect(page.getByText(/not affiliated with, endorsed by or sponsored by/).first()).toBeVisible();
   await expect(page.locator("img[src*='dangote' i]")).toHaveCount(0);
 });
@@ -46,7 +48,7 @@ test("investor reads the demo dashboard, with the fiction banner and sourced met
 
 test("Dangote coverage shows honest unavailable states and no unverified market data", async ({ page }) => {
   await signIn(page, "investor@refinerylens.test");
-  await selectCompany(page, "dangote-petroleum-refinery");
+  await selectCompany(page, "dangote");
   await page.goto("/dashboard");
   await expect(page.getByText("Independent research. RefineryLens is not affiliated with")).toBeVisible();
   await expect(page.getByText("No reviewed announcements yet")).toBeVisible();
@@ -178,10 +180,13 @@ test("readers see an open-data series only once its source is approved, with att
     await db.source.delete({ where: { id: source.id } });
     await db.$disconnect();
   }
+});
+
 test("business owner filters opportunities by size, sizes one with labelled examples, and saves it privately @mobile", async ({ page }) => {
   await signIn(page, "investor@refinerylens.test");
   await page.goto("/opportunities");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Business opportunities around the Dangote refinery");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Business opportunities around Dangote");
+  expect(await page.locator("body").innerText()).not.toMatch(/dangote (petroleum )?refinery/i);
   await expect(page.getByText("Independent analysis, not an offer")).toBeVisible();
   await page.getByRole("link", { name: /^Micro/ }).click();
   await expect(page).toHaveURL(/scale=micro/);

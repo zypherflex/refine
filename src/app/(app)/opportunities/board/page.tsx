@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/server/auth";
 import { listBoard, listScenarios } from "@/server/opportunities/board";
-import { opportunityBySlug, segmentLabel } from "@/lib/opportunities/catalog";
-import { STAGES } from "@/components/opportunities/BoardForm";
+import { opportunityBySlug, segmentLabel, STAGES } from "@/lib/opportunities/catalog";
 import { ScenarioList } from "@/components/opportunities/ScenarioList";
 import { removeBoardAction } from "@/app/actions/opportunities";
 import { fmtDateTime } from "@/lib/format";

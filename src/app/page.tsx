@@ -10,7 +10,7 @@ import { OPPORTUNITIES, SCALES, SEGMENTS } from "@/lib/opportunities/catalog";
 
 export const dynamic = "force-dynamic";
 
-const COVERAGE_SLUG = "dangote-petroleum-refinery";
+const COVERAGE_SLUG = "dangote";
 
 const questions = [
   ["What changed?", "Reviewed announcements with plain-language summaries, dated by event and by publication."],
@@ -37,7 +37,7 @@ const pillars = [
 ];
 
 export default async function Home() {
-  if (await getCurrentUser()) redirect("/dashboard");
+  if (await getCurrentUser()) redirect("/opportunities");
   const coverage = await db.company.findUnique({ where: { slug: COVERAGE_SLUG }, select: { name: true, profileFacts: true } }).catch(() => null);
   const facts = companyFacts(coverage?.profileFacts);
   const scale = factsIn(facts, "scale");
@@ -60,13 +60,13 @@ export default async function Home() {
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-brand-300">
               <span aria-hidden className="band-ng h-2 w-4 rounded-sm" />
-              Independent research on Nigeria's refining transformation
+              Independent business intelligence for Nigeria's downstream
             </p>
             <h1 className="mt-6 font-serif text-[2.5rem] font-semibold leading-[1.08] tracking-tight text-white sm:text-6xl">
-              Dangote Refinery, understood. <span className="text-brand-300">Evidence first.</span>
+              Business opportunities around Dangote. <span className="text-brand-300">Evidence first.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-200">
-              Follow a landmark refinery from the Lekki Free Zone to world markets. RefineryLens turns disclosures, filings and news into reviewed, plain-language research, and shows exactly where every figure came from.
+              Find where your business fits, from one tanker or an LPG kiosk to crude cargoes and modular refining. RefineryLens maps the opportunities around Dangote's Lekki complex, shows the sourced facts and dated reports behind each one, and lets you size it with your own numbers.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link href="/register" className="btn bg-brand-500 px-5 py-3 text-base font-semibold text-white shadow-sm hover:bg-brand-400 hover:text-ink-950">
@@ -75,7 +75,7 @@ export default async function Home() {
               <Link href="/login" className="btn border border-white/15 px-5 py-3 text-base text-white hover:bg-white/10">Sign in</Link>
             </div>
             <p className="mt-6 max-w-xl text-xs leading-relaxed text-ink-300">
-              Understand the change. Examine the evidence. Reassess your investment thesis. RefineryLens is independent and is not affiliated with, endorsed by or sponsored by Dangote Petroleum Refinery &amp; Petrochemicals or Dangote Group.
+              Find the opportunity. Examine the evidence. Size it with your own numbers. RefineryLens is independent and is not affiliated with, endorsed by or sponsored by Dangote or any Dangote company. Nothing here is an offer from Dangote.
             </p>
           </div>
 
@@ -185,8 +185,8 @@ export default async function Home() {
           <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
             <div>
               <p className="eyebrow text-brand-300">Coverage</p>
-              <h2 id="coverage" className="mt-2 font-serif text-3xl font-semibold tracking-tight text-white">Dangote first. Africa’s energy companies next.</h2>
-              <p className="mt-4 max-w-xl text-ink-200">Our coverage of Dangote Petroleum Refinery &amp; Petrochemicals is built from its public disclosures and moves through editorial review. The platform is designed to add more refiners and energy companies across Africa and beyond.</p>
+              <h2 id="coverage" className="mt-2 font-serif text-3xl font-semibold tracking-tight text-white">Opportunities around Dangote first. More of Africa’s energy hubs next.</h2>
+              <p className="mt-4 max-w-xl text-ink-200">Every opportunity rests on Dangote’s public disclosures and dated independent reports, moved through editorial review. The platform is designed to add more refining and energy hubs across Africa and beyond.</p>
             </div>
             <div className="flex lg:justify-end">
               <Link href="/register" className="btn bg-brand-500 px-5 py-3 text-base font-semibold text-white hover:bg-brand-400 hover:text-ink-950">Create a free account <ArrowRight size={18} aria-hidden /></Link>

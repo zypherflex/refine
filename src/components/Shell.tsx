@@ -27,6 +27,14 @@ function UserCard({ user }: { user: CurrentUser }) {
 export function Shell({ user, children, companies, current, unread, company }: { user: CurrentUser; children: React.ReactNode; companies: { slug: string; name: string }[]; current: string; unread: number; company: { name: string; isFictional: boolean; coverageStatus: string } }) {
   const groups: NavGroup[] = [
     {
+      label: "Opportunities",
+      items: [
+        { href: "/opportunities", label: "Business opportunities", icon: "opportunities" },
+        { href: "/opportunities/tools", label: "Sizing tools", icon: "tools" },
+        { href: "/opportunities/board", label: "My opportunity board", icon: "board" },
+      ],
+    },
+    {
       label: "Research",
       items: [
         { href: "/dashboard", label: "Overview", icon: "overview" },
@@ -37,14 +45,6 @@ export function Shell({ user, children, companies, current, unread, company }: {
         { href: "/risks", label: "Risk center", icon: "risks" },
         { href: "/market", label: "Market & macro context", icon: "gauge" },
         { href: "/refineries", label: "Global refineries", icon: "globe" },
-      ],
-    },
-    {
-      label: "Opportunities",
-      items: [
-        { href: "/opportunities", label: "Business opportunities", icon: "opportunities" },
-        { href: "/opportunities/tools", label: "Sizing tools", icon: "tools" },
-        { href: "/opportunities/board", label: "My opportunity board", icon: "board" },
       ],
     },
     {
