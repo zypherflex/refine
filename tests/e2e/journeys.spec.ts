@@ -293,3 +293,23 @@ test("trade hub: a buyer enquires about a refinery's offer, the refinery replies
   await page.getByRole("button", { name: "Verify", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Verification requests (0)" })).toBeVisible();
 });
+
+test("gas network: a buyer finds the nearest LPG supply to a state with unmet demand and contacts the seller @mobile", async ({ page }) => {
+  const db = new PrismaClient();
+  await db.hubThread.deleteMany({ where: { starter: { email: "converter@refinerylens.test" }, listingId: null } });
+  await db.$disconnect();
+
+  await signIn(page, "converter@refinerylens.test");
+  await page.goto("/hub/gas");
+  await expect(page.getByRole("heading", { level: 1, name: "Gas network" })).toBeVisible();
+  await page.getByRole("link", { name: "Gaps", exact: true }).click();
+  await page.getByRole("link", { name: /^Bauchi: .*Gap/ }).click();
+  await expect(page.getByText("Buyers want LPG or CNG delivered to Bauchi")).toBeVisible();
+  const nearest = page.getByRole("heading", { name: "Nearest supply in other states" }).locator("..");
+  await expect(nearest.getByText(/≈ \d[\d,]* km away/).first()).toBeVisible();
+  await nearest.getByRole("link", { name: "Sabon Gari kiosk (demo)" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Sabon Gari kiosk (demo)" })).toBeVisible();
+  await page.getByLabel("Your message").fill("Can you supply 12.5 kg cylinders to Bauchi from December?");
+  await Promise.all([page.waitForURL(/\/hub\/inbox\/[a-z0-9]+$/), page.getByRole("button", { name: "Send message" }).click()]);
+  await expect(page.getByText("12.5 kg cylinders to Bauchi")).toBeVisible();
+});

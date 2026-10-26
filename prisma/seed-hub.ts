@@ -9,12 +9,13 @@ const DAY = 86_400_000;
 const until = (days: number) => new Date(Date.now() + days * DAY);
 
 export async function seedHub(db: PrismaClient, mk: (email: string, name: string) => Promise<{ id: string }>, adminId: string) {
-  const [seller, buyer, haulier, refinery, converter] = await Promise.all([
+  const [seller, buyer, haulier, refinery, converter, cngUser] = await Promise.all([
     mk("seller@refinerylens.test", "Sade Seller"),
     mk("buyer@refinerylens.test", "Bello Buyer"),
     mk("haulier@refinerylens.test", "Haruna Haulier"),
     mk("refinery@refinerylens.test", "Rita Refinery"),
     mk("converter@refinerylens.test", "Chidi Converter"),
+    mk("cng@refinerylens.test", "Chioma CNG"),
   ]);
   const verified = { verification: "VERIFIED" as const, verifiedAt: new Date(Date.now() - 20 * DAY), verifiedById: adminId };
 
@@ -29,7 +30,7 @@ export async function seedHub(db: PrismaClient, mk: (email: string, name: string
   const kano = await db.hubBusiness.create({
     data: {
       ownerId: buyer.id, isDemo: true, verification: "PENDING_REVIEW",
-      name: "Kano Gas Kiosks (demo)", roles: ["BUYER"], state: "Kano", city: "Kano",
+      name: "Kano Gas Kiosks (demo)", roles: ["BUYER", "SELLER"], state: "Kano", city: "Kano",
       about: "Fictional chain of six LPG refill kiosks looking for steady bulk supply.",
       registrationNumber: "RC 0000002 (demo)", licences: "LPG retail outlet permits for six sites (demo entries)",
     },
@@ -92,6 +93,37 @@ export async function seedHub(db: PrismaClient, mk: (email: string, name: string
     state: "Ogun", areas: ["Lagos", "Rivers"], details: "Fictional demo listing. Replacing imported resin; need certificates of analysis.", expiresAt: until(29),
   });
 
+  const abujaCng = await db.hubBusiness.create({
+    data: {
+      ownerId: cngUser.id, isDemo: true, ...verified,
+      name: "Abuja CNG Mobility (demo)", roles: ["SELLER"], state: "FCT Abuja", city: "Kubwa",
+      about: "Fictional operator of CNG refuelling stations for buses, taxis and tricycles, supplied by its own compression site.",
+      registrationNumber: "RC 0000006 (demo)", licences: "CNG refuelling station permits (demo entries)",
+    },
+  });
+  await l(kano.id, {
+    kind: "REQUEST", title: "LPG for three new kiosks in Bauchi", products: ["lpg"], quantity: 8, unit: "tonnes", priceNote: "",
+    state: "Bauchi", areas: ["Kano", "Kaduna", "Plateau"], details: "Fictional demo listing. Opening in December; looking for a supplier and a haulier.", expiresAt: until(30),
+  });
+  await l(ogun.id, {
+    kind: "REQUEST", title: "CNG for factory boilers in Sagamu", products: ["cng"], quantity: 15_000, unit: "standard cubic metres", priceNote: "",
+    state: "Ogun", areas: ["Lagos"], details: "Fictional demo listing. Switching two boilers from diesel; need a virtual-pipeline supplier.", expiresAt: until(30),
+  });
+
+  // Gas network sites, as stated by each business. One is deliberately overdue for confirmation.
+  const site = (businessId: string, data: Omit<Parameters<typeof db.gasSite.create>[0]["data"], "businessId" | "business">) => db.gasSite.create({ data: { ...data, businessId } as never });
+  await site(lagoon.id, { name: "Onne LPG terminal (demo)", kind: "TERMINAL", gases: ["lpg_bulk"], state: "Rivers", town: "Onne", storageTonnes: 12_000, delivers: false, hours: "24 hours", notes: "Fictional demo site. Loads bullet trucks for depots and refill plants." });
+  await site(ikeja.id, { name: "Ikeja bulk LPG depot (demo)", kind: "DEPOT", gases: ["lpg_bulk"], state: "Lagos", town: "Ikeja", storageTonnes: 2_500, delivers: true, hours: "Mon–Sat 6:00–20:00" });
+  await site(ikeja.id, { name: "Sagamu refill plant (demo)", kind: "REFILL_PLANT", gases: ["lpg_bulk", "lpg_cylinder"], cylinderSizes: [6, 12.5, 25, 50], state: "Ogun", town: "Sagamu", storageTonnes: 40, delivers: true, hours: "Daily 7:00–19:00" });
+  await site(ikeja.id, { name: "Ibadan cylinder exchange (demo)", kind: "CYLINDER_RETAIL", gases: ["lpg_cylinder"], cylinderSizes: [3, 6, 12.5], state: "Oyo", town: "Ibadan", delivers: false, lastConfirmedAt: new Date(Date.now() - 130 * DAY) });
+  await site(kano.id, { name: "Sabon Gari kiosk (demo)", kind: "CYLINDER_RETAIL", gases: ["lpg_cylinder"], cylinderSizes: [3, 6, 12.5], state: "Kano", town: "Sabon Gari", hours: "Daily 7:00–21:00" });
+  await site(kano.id, { name: "Tarauni kiosk (demo)", kind: "CYLINDER_RETAIL", gases: ["lpg_cylinder"], cylinderSizes: [3, 6, 12.5], state: "Kano", town: "Tarauni", hours: "Daily 7:00–21:00" });
+  await site(kano.id, { name: "Kano skid plant (demo)", kind: "REFILL_PLANT", status: "PLANNED", gases: ["lpg_bulk", "lpg_cylinder"], cylinderSizes: [6, 12.5, 25], state: "Kano", town: "Kumbotso", storageTonnes: 20 });
+  await site(corridor.id, { name: "Kaduna gas truck yard (demo)", kind: "LOGISTICS_BASE", gases: ["lpg_bulk", "lpg_cylinder"], state: "Kaduna", town: "Kaduna South", delivers: true, notes: "Fictional demo site. Three 20-tonne bullet trucks and two cylinder trucks." });
+  await site(abujaCng.id, { name: "Kubwa CNG station (demo)", kind: "CNG_STATION", gases: ["cng"], state: "FCT Abuja", town: "Kubwa", hours: "Daily 6:00–22:00" });
+  await site(abujaCng.id, { name: "Lagos Ikeja CNG station (demo)", kind: "CNG_STATION", gases: ["cng"], state: "Lagos", town: "Ikeja", hours: "Daily 6:00–22:00" });
+  await site(abujaCng.id, { name: "Lokoja compression site (demo)", kind: "CNG_MOTHER", gases: ["cng"], state: "Kogi", town: "Lokoja", delivers: true, notes: "Fictional demo site. Fills cascade trucks for stations and factories." });
+
   // A conversation in progress: Kano asked about Ikeja's LPG and Ikeja replied, which Kano has not read yet.
   const t0 = new Date(Date.now() - 2 * DAY);
   const t1 = new Date(Date.now() - DAY);
@@ -104,5 +136,5 @@ export async function seedHub(db: PrismaClient, mk: (email: string, name: string
       { threadId: thread.id, senderId: seller.id, createdAt: t1, body: "Thanks, Kano Gas. We can do 20 tonnes weekly. Ex-depot is on the listing; Northern Corridor Haulage carries for us to Kano. Shall I ask them for a delivered quote?" },
     ],
   });
-  return { ikeja, kano, corridor, lagoon, ogun };
+  return { ikeja, kano, corridor, lagoon, ogun, abujaCng };
 }

@@ -6,6 +6,7 @@ import { requireRole, requireUser } from "@/server/auth";
 import { requestVerification, saveBusiness } from "@/server/hub/business";
 import { closeListing, createListing, renewListing, updateListing } from "@/server/hub/listings";
 import { reply, sendEnquiry } from "@/server/hub/messages";
+import { confirmSite, createSite, updateSite } from "@/server/hub/gas";
 import { closeReport, decideVerification, reinstateBusiness, reportBusiness, suspendBusiness } from "@/server/hub/moderation";
 import { AppError } from "@/lib/errors";
 
@@ -174,4 +175,37 @@ export async function closeReportAction(form: FormData) {
   const admin = await requireRole("ADMIN");
   await closeReport(admin, text(form, "id")).catch(message);
   revalidatePath("/admin/hub");
+}
+
+export async function saveSiteAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  const id = text(form, "id");
+  const fields = {
+    name: text(form, "name"),
+    kind: text(form, "kind") as never,
+    status: (text(form, "status") || "OPERATING") as never,
+    gases: form.getAll("gases").map(String),
+    cylinderSizes: form.getAll("cylinderSizes").map(Number),
+    state: text(form, "state"),
+    town: text(form, "town"),
+    address: text(form, "address"),
+    storageTonnes: num(form, "storageTonnes"),
+    hours: text(form, "hours"),
+    delivers: form.get("delivers") === "1",
+    notes: text(form, "notes"),
+  };
+  let siteId: string;
+  try {
+    siteId = id ? (await updateSite(user, id, fields)).id : (await createSite(user, fields)).id;
+  } catch (e) {
+    return { error: message(e) };
+  }
+  revalidatePath("/hub", "layout");
+  redirect(`/hub/gas/sites/${siteId}?saved=1`);
+}
+
+export async function confirmSiteAction(form: FormData) {
+  const user = await requireUser();
+  await confirmSite(user, text(form, "id")).catch(message);
+  revalidatePath("/hub", "layout");
 }

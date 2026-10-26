@@ -104,7 +104,7 @@ async function main() {
   console.log("Seeded RefineryLens.");
   console.log(`  Users (password ${DEMO_PASSWORD}): admin@, editor@, analyst@, investor@, other@ refinerylens.test`);
   console.log(`  Companies: ${dangote.name} (website facts awaiting review); ${demo.company.name}`);
-  console.log("  Trade hub (same password): seller@, buyer@, haulier@, refinery@, converter@ refinerylens.test; five demo businesses, eight listings");
+  console.log("  Trade hub (same password): seller@, buyer@, haulier@, refinery@, converter@, cng@ refinerylens.test; six demo businesses, ten listings, eleven gas sites");
 }
 
 main()

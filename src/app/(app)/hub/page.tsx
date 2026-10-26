@@ -57,6 +57,7 @@ export default async function HubPage({ searchParams }: { searchParams: Search }
             {k ? kindLabel(k) : "All listings"}
           </Link>
         ))}
+        <Link href="/hub/gas" className="rounded-full bg-white px-3 py-1.5 text-sm font-medium text-ink-800 no-underline ring-1 ring-inset ring-ink-100 hover:bg-ink-50 hover:no-underline">Gas network map</Link>
         <Link href="/hub/refineries" className="rounded-full bg-white px-3 py-1.5 text-sm font-medium text-ink-800 no-underline ring-1 ring-inset ring-ink-100 hover:bg-ink-50 hover:no-underline">Refineries</Link>
       </nav>
 

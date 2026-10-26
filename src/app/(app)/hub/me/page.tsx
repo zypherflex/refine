@@ -2,6 +2,8 @@ import Link from "next/link";
 import { requireUser } from "@/server/auth";
 import { getMyBusiness } from "@/server/hub/business";
 import { myListings } from "@/server/hub/listings";
+import { mySites } from "@/server/hub/gas";
+import { allowedSiteKinds, isStale, siteKindLabel } from "@/lib/hub/gas";
 import { closeListingAction, renewListingAction } from "@/app/actions/hub";
 import { isProtectedName, isPubliclyVisible, kindLabel } from "@/lib/hub/catalog";
 import { fmtDate } from "@/lib/format";
@@ -14,7 +16,7 @@ export const metadata = { title: "My business" };
 export default async function MyBusinessPage() {
   const user = await requireUser();
   const business = await getMyBusiness(user);
-  const listings = business ? await myListings(user) : [];
+  const [listings, sites] = business ? await Promise.all([myListings(user), mySites(user)]) : [[], []];
   const now = new Date();
   return (
     <>
@@ -46,6 +48,26 @@ export default async function MyBusinessPage() {
               )}
               {business.verificationNote && business.verification !== "SUSPENDED" && <p className="rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-800"><span className="font-medium">Note from RefineryLens:</span> {business.verificationNote}</p>}
               {!isPubliclyVisible(business) && isProtectedName(business.name) && <Notice tone="warn" title="Hidden until verified">Your business name matches a well-known refiner, so your profile and listings stay hidden from other users until RefineryLens verifies you.</Notice>}
+            </section>
+          )}
+          {business && (sites.length > 0 || allowedSiteKinds(business.roles).length > 0) && (
+            <section className="card" aria-labelledby="ms-h">
+              <h2 id="ms-h" className="h-section">My gas sites ({sites.length})</h2>
+              {sites.length === 0 ? (
+                <p className="mt-2 text-sm text-ink-600">Put your depots, refill plants, retail points, CNG stations or truck bases on the <Link href="/hub/gas">gas network map</Link>. <Link href="/hub/gas/sites/new">Add a site</Link>.</p>
+              ) : (
+                <>
+                  <ul className="mt-2 divide-y divide-ink-100 text-sm">
+                    {sites.map((s) => (
+                      <li key={s.id} className="py-2">
+                        <p className="font-medium"><Link href={`/hub/gas/sites/${s.id}`}>{s.name}</Link></p>
+                        <p className="text-xs text-ink-600">{siteKindLabel(s.kind)} · {s.state} · {s.status === "CLOSED" ? "closed" : s.status === "PLANNED" ? "planned" : "operating"}{isStale(s.lastConfirmedAt) ? " · ⚠ needs confirming" : ""}</p>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link href="/hub/gas/sites/new" className="btn-secondary btn-sm mt-2 no-underline">Add a site</Link>
+                </>
+              )}
             </section>
           )}
           {business && (

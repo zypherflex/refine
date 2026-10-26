@@ -866,6 +866,7 @@ model HubBusiness {
   listings HubListing[]
   threads  HubThread[]
   reports  HubReport[]
+  gasSites GasSite[]
 
   @@index([verification])
 }
@@ -959,4 +960,51 @@ model HubReport {
   createdAt  DateTime        @default(now())
 
   @@index([status])
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Gas network: the LPG and CNG supply points businesses operate, shown by state so buyers find the nearest supply
+// and sellers and hauliers see where demand is not met. Details are as stated by the business.
+
+enum GasSiteKind {
+  TERMINAL
+  DEPOT
+  REFILL_PLANT
+  CYLINDER_RETAIL
+  CNG_STATION
+  CNG_MOTHER
+  LOGISTICS_BASE
+}
+
+enum GasSiteStatus {
+  OPERATING
+  PLANNED
+  CLOSED
+}
+
+model GasSite {
+  id              String        @id @default(cuid())
+  businessId      String
+  business        HubBusiness   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name            String
+  kind            GasSiteKind
+  status          GasSiteStatus @default(OPERATING)
+  // lpg_bulk, lpg_cylinder, cng
+  gases           String[]
+  // LPG cylinder sizes handled, in kg.
+  cylinderSizes   Float[]       @default([])
+  state           String
+  town            String        @default("")
+  address         String        @default("")
+  storageTonnes   Float?
+  hours           String        @default("")
+  delivers        Boolean       @default(false)
+  notes           String        @default("")
+  // The owner confirms the details are still right; older entries are flagged as possibly out of date.
+  lastConfirmedAt DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([state, status])
+  @@index([businessId])
 }

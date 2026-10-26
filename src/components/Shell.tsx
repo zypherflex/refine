@@ -39,6 +39,7 @@ export function Shell({ user, children, companies, current, unread, hubUnread, c
       label: "Trade hub",
       items: [
         { href: "/hub", label: "Buy, sell & deliver", icon: "hub" },
+        { href: "/hub/gas", label: "Gas network", icon: "gas" },
         { href: "/hub/refineries", label: "Refineries", icon: "refinery" },
         { href: "/hub/inbox", label: "Hub inbox", icon: "inbox", badge: hubUnread },
         { href: "/hub/me", label: "My business", icon: "business" },
