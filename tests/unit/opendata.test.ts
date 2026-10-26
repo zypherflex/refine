@@ -79,7 +79,7 @@ describe("open-data requests", () => {
     expect(u.searchParams.get("subsectors")).toBe("oil-and-gas-refining");
     expect(u.searchParams.get("offset")).toBe("200");
     expect(u.searchParams.get("countries")).toBe("NGA");
-    expect(new URL(gdeltUrl('"Dangote refinery"')).searchParams.get("mode")).toBe("artlist");
+    expect(new URL(gdeltUrl('"Test Co refinery"')).searchParams.get("mode")).toBe("artlist");
   });
 });
 
