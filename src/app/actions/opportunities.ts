@@ -2,7 +2,8 @@
 import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
 import { requireUser } from "@/server/auth";
-import { deleteScenario, removeBoardItem, saveBoardItem, saveScenario } from "@/server/opportunities/board";
+import { redirect } from "next/navigation";
+import { deleteScenario, removeBoardItem, saveBoardItem, saveProfile, saveScenario, setReadiness } from "@/server/opportunities/board";
 import { AppError } from "@/lib/errors";
 
 export type ActionState = { error?: string | null; ok?: string | null };
@@ -61,4 +62,26 @@ export async function deleteScenarioAction(form: FormData) {
     message(e);
   }
   revalidatePath("/opportunities", "layout");
+}
+
+export async function toggleReadinessAction(form: FormData) {
+  const user = await requireUser();
+  try {
+    await setReadiness(user, String(form.get("slug") ?? ""), String(form.get("question") ?? ""), form.get("done") === "1");
+  } catch (e) {
+    message(e);
+  }
+  revalidatePath("/opportunities", "layout");
+}
+
+export async function saveProfileAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  try {
+    await saveProfile(user, { scale: String(form.get("scale") ?? ""), segments: form.getAll("segments").map(String), assets: form.getAll("assets").map(String) });
+  } catch (e) {
+    if (e instanceof ZodError) return { error: "Choose the size of your business." };
+    return { error: message(e) };
+  }
+  revalidatePath("/opportunities", "layout");
+  redirect("/opportunities?fit=1#for-you");
 }

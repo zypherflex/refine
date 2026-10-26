@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { requireUser } from "@/server/auth";
-import { listBoard } from "@/server/opportunities/board";
+import { getProfile, listBoard, readiness } from "@/server/opportunities/board";
 import { regionalRefineries, signalPoints } from "@/server/opportunities/context";
-import { filterOpportunities, OPPORTUNITIES, SCALES, SEGMENTS, STAGES, scaleLabel, segmentLabel } from "@/lib/opportunities/catalog";
+import { filterOpportunities, OPPORTUNITIES, rankForProfile, SCALES, SEGMENTS, STAGES, scaleLabel, segmentLabel } from "@/lib/opportunities/catalog";
 import { DANGOTE_STATED_CDU_BPD } from "@/lib/opportunities/calculators";
 import { HUB_SIGNALS } from "@/lib/opportunities/signals";
 import { MarketPanel } from "@/components/opportunities/MarketPanel";
@@ -19,7 +19,9 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
   const segment = SEGMENTS.some((s) => s.id === sp.segment) ? sp.segment! : "";
   const q = (sp.q ?? "").slice(0, 80);
   const list = filterOpportunities({ scale, segment, q });
-  const [board, points, refineries] = await Promise.all([listBoard(user), signalPoints(HUB_SIGNALS, user), regionalRefineries(user)]);
+  const [board, points, refineries, profile] = await Promise.all([listBoard(user), signalPoints(HUB_SIGNALS, user), regionalRefineries(user), getProfile(user)]);
+  const matches = profile ? rankForProfile(profile).slice(0, 4) : [];
+  const boardBySlug = new Map(board.map((b) => [b.opportunitySlug, b]));
   const onBoard = new Map(board.map((b) => [b.opportunitySlug, b.stage]));
   const stageLabel = Object.fromEntries(STAGES) as Record<string, string>;
 
@@ -29,7 +31,7 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
         eyebrow="Opportunities"
         title="Business opportunities around Dangote"
         subtitle="Where businesses of every size could plug into Dangote's Lekki complex, which the company states has 700,000 bpd of refining and 830 KTPA of polypropylene capacity: fuel distribution, gas, logistics, polypropylene, crude supply, modular refining and plant services. Each idea shows the company-stated facts it rests on, dated reports that help or hurt the case, and a tool to size it with your own numbers."
-        actions={<><Link href="/opportunities/tools" className="btn-secondary btn-sm no-underline">Sizing tools</Link><Link href="/opportunities/board" className="btn-primary btn-sm no-underline">My board ({board.length})</Link></>}
+        actions={<><Link href="/opportunities/fit" className="btn-secondary btn-sm no-underline">{profile ? "Update my fit" : "Find my fit"}</Link><Link href="/opportunities/tools" className="btn-secondary btn-sm no-underline">Sizing tools</Link><Link href="/opportunities/board" className="btn-primary btn-sm no-underline">My board ({board.length})</Link></>}
       />
       {sp.welcome && <div className="mb-4"><Notice tone="ok" title="Welcome to RefineryLens">Pick your business size below, open an opportunity, and size it with your own numbers. Your board and scenarios are private to you.</Notice></div>}
       <div className="mb-6">
@@ -37,6 +39,34 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
           These are RefineryLens research notes on possible business models. None is an offer, tender, distributorship or partnership programme of Dangote or any Dangote company, and RefineryLens is not affiliated with them. Confirm terms directly with suppliers and regulators. Not financial advice.
         </Notice>
       </div>
+
+      <section aria-labelledby="for-you-h" id="for-you" className="mb-8">
+        <h2 id="for-you-h" className="h-section">Recommended for you</h2>
+        {profile ? (
+          <>
+            <p className="muted">Based on your answers: {scaleLabel(profile.scale).toLowerCase()} business{profile.segments.length ? `, interested in ${profile.segments.map((s) => segmentLabel(s).toLowerCase()).join(", ")}` : ""}. <Link href="/opportunities/fit">Change</Link></p>
+            <ol className="mt-3 grid gap-3 md:grid-cols-2">
+              {matches.map((m, i) => {
+                const b = boardBySlug.get(m.opportunity.slug);
+                const r = b ? readiness(m.opportunity.slug, b.checked) : null;
+                return (
+                  <li key={m.opportunity.slug} className="rounded-xl border border-brand-600/30 bg-white p-4 shadow-card">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-800">Match {i + 1}</p>
+                    <h3 className="mt-0.5 font-semibold"><Link href={`/opportunities/${m.opportunity.slug}`}>{m.opportunity.title}</Link></h3>
+                    <ul className="mt-2 space-y-0.5 text-xs text-ink-700">{m.reasons.map((r2) => <li key={r2}>✓ {r2}</li>)}</ul>
+                    {r && <p className="mt-2 text-xs text-ink-600">On your board · {r.done} of {r.total} readiness questions answered</p>}
+                  </li>
+                );
+              })}
+            </ol>
+          </>
+        ) : (
+          <div className="mt-2 flex flex-col gap-3 rounded-xl border border-dashed border-brand-600/40 bg-brand-50/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-ink-800">Answer three quick questions about your business and RefineryLens will rank the opportunities that fit, and say why.</p>
+            <Link href="/opportunities/fit" className="btn-primary btn-sm shrink-0 no-underline">Find my fit</Link>
+          </div>
+        )}
+      </section>
 
       <section aria-labelledby="scale-h" className="mb-8">
         <h2 id="scale-h" className="h-section">Start from your size</h2>

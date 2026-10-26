@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { AppError, NotFoundError } from "@/lib/errors";
 import type { Actor } from "@/lib/permissions";
-import { opportunityBySlug } from "@/lib/opportunities/catalog";
+import { ASSETS, opportunityBySlug, SCALES, SEGMENTS } from "@/lib/opportunities/catalog";
 import { CALCULATORS, isCalculatorId } from "@/lib/opportunities/calculators";
 import { audit } from "../audit";
 
@@ -75,4 +75,44 @@ export async function listScenarios(actor: Actor, filter: { calculatorId?: strin
 export async function deleteScenario(actor: Actor, id: string) {
   const { count } = await db.opportunityScenario.deleteMany({ where: { id, userId: actor.id } });
   if (!count) throw new NotFoundError("Scenario not found");
+}
+
+/** Ticks or unticks one readiness question. Only the opportunity's own questions can be ticked. */
+export async function setReadiness(actor: Actor, slug: string, question: string, done: boolean) {
+  const opp = opportunityBySlug(slug);
+  if (!opp || !opp.validate.includes(question)) throw new NotFoundError("Question not found");
+  const item = await boardItem(actor, slug);
+  const current = new Set(item?.checked ?? []);
+  if (done) current.add(question);
+  else current.delete(question);
+  const checked = opp.validate.filter((q) => current.has(q));
+  return db.opportunityBoardItem.upsert({
+    where: { userId_opportunitySlug: { userId: actor.id, opportunitySlug: slug } },
+    update: { checked },
+    create: { userId: actor.id, opportunitySlug: slug, checked },
+  });
+}
+
+/** Ticked questions that still exist in the catalogue, and the share of the list they cover. */
+export function readiness(slug: string, checked: string[]) {
+  const opp = opportunityBySlug(slug);
+  const total = opp?.validate.length ?? 0;
+  const done = opp ? opp.validate.filter((q) => checked.includes(q)).length : 0;
+  return { done, total, pct: total ? Math.round((done / total) * 100) : 0 };
+}
+
+export const profileInput = z.object({
+  scale: z.enum(SCALES.map((s) => s.id) as [string, ...string[]]),
+  segments: z.array(z.enum(SEGMENTS.map((s) => s.id) as [string, ...string[]])).max(SEGMENTS.length).default([]),
+  assets: z.array(z.enum(ASSETS.map((a) => a.id) as [string, ...string[]])).max(ASSETS.length).default([]),
+});
+
+export async function getProfile(actor: Actor) {
+  return db.businessProfile.findUnique({ where: { userId: actor.id } });
+}
+
+export async function saveProfile(actor: Actor, raw: z.input<typeof profileInput>) {
+  const input = profileInput.parse(raw);
+  const data = { scale: input.scale, segments: [...new Set(input.segments)], assets: [...new Set(input.assets)] };
+  return db.businessProfile.upsert({ where: { userId: actor.id }, update: data, create: { userId: actor.id, ...data } });
 }

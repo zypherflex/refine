@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireUser } from "@/server/auth";
-import { listBoard, listScenarios } from "@/server/opportunities/board";
+import { listBoard, listScenarios, readiness } from "@/server/opportunities/board";
 import { opportunityBySlug, segmentLabel, STAGES } from "@/lib/opportunities/catalog";
 import { ScenarioList } from "@/components/opportunities/ScenarioList";
 import { removeBoardAction } from "@/app/actions/opportunities";
@@ -34,6 +34,15 @@ export default async function BoardPage() {
                         <p className="text-[11px] text-ink-500">{segmentLabel(o.segment)}</p>
                         <p className="font-medium"><Link href={`/opportunities/${o.slug}`}>{o.title}</Link></p>
                         {i.nextStep && <p className="mt-1 text-xs"><span className="font-medium">Next:</span> {i.nextStep}</p>}
+                        {(() => {
+                          const r = readiness(o.slug, i.checked);
+                          return (
+                            <div className="mt-2">
+                              <div className="h-1.5 overflow-hidden rounded-full bg-ink-100" role="progressbar" aria-valuenow={r.pct} aria-valuemin={0} aria-valuemax={100} aria-label={`Readiness for ${o.title}`}><div className="h-full bg-brand-600" style={{ width: `${r.pct}%` }} /></div>
+                              <p className="mt-0.5 text-[11px] text-ink-600">{r.done} of {r.total} readiness questions answered</p>
+                            </div>
+                          );
+                        })()}
                         <p className="mt-1 text-[11px] text-ink-500">Updated {fmtDateTime(i.updatedAt)}</p>
                         <form action={removeBoardAction} className="mt-1"><input type="hidden" name="slug" value={o.slug} /><button className="text-xs text-ink-600 hover:text-risk-800">Remove</button></form>
                       </li>

@@ -1,6 +1,6 @@
 "use client";
 import { useActionState, useMemo, useState } from "react";
-import { CALCULATORS, exampleInputs, type CalculatorId, type Field } from "@/lib/opportunities/calculators";
+import { CALCULATORS, exampleInputs, sensitivity, type CalculatorId, type Field } from "@/lib/opportunities/calculators";
 import type { SignalPoint } from "@/lib/opportunities/signals";
 import { saveScenarioAction } from "@/app/actions/opportunities";
 import { FieldError } from "../ui";
@@ -22,6 +22,7 @@ export function SizingTool({ calculatorId, unit, opportunitySlug, signals, initi
 
   const numbers = useMemo(() => Object.fromEntries(fields.map((f) => [f.key, values[f.key]?.trim() === "" ? null : Number(values[f.key])])), [fields, values]);
   const result = calc.compute(numbers, { unit });
+  const sens = result.ok ? sensitivity(calculatorId, numbers, { unit }) : null;
   const anyExample = Object.values(origin).some((o) => o === "example");
   const prefillable = fields.filter((f) => f.signal && bySignal.has(f.signal.key));
 
@@ -100,6 +101,23 @@ export function SizingTool({ calculatorId, unit, opportunitySlug, signals, initi
                 ))}
               </dl>
               <ul className="mt-3 list-disc space-y-1 pl-4 text-xs text-ink-700">{result.notes.map((n) => <li key={n}>{n}</li>)}</ul>
+              {sens && sens.rows.length > 0 && (
+                <div className="mt-4 border-t border-ink-100 pt-3">
+                  <p className="text-xs font-semibold text-ink-900">What if? {sens.base.label} with one input 10% lower or higher</p>
+                  <table className="mt-2 w-full text-xs" data-testid="sensitivity">
+                    <thead><tr className="text-left text-ink-500"><th scope="col" className="font-medium">Input</th><th scope="col" className="text-right font-medium">−10%</th><th scope="col" className="text-right font-medium">+10%</th></tr></thead>
+                    <tbody>
+                      {sens.rows.map((r) => (
+                        <tr key={r.key} className="border-t border-ink-100">
+                          <th scope="row" className="py-1 pr-2 text-left font-normal text-ink-700">{r.label}</th>
+                          {[r.low, r.high].map((v, i) => <td key={i} className={`num whitespace-nowrap py-1 pl-3 text-right ${v !== null && v < 0 ? "text-risk-800" : ""}`}>{v === null ? "n/a" : v.toLocaleString("en-GB", { maximumFractionDigits: Math.abs(v) >= 100 ? 0 : 2 })}</td>)}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="mt-1 text-[11px] text-ink-500">In {sens.base.unit}. Each row moves one input and keeps the rest; n/a means the moved value breaks a limit.</p>
+                </div>
+              )}
             </>
           ) : (
             <p className="mt-1 text-sm"><span className="font-medium">Not calculated yet.</span> {result.reason}</p>

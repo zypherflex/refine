@@ -10,6 +10,7 @@ import { MarketPanel } from "@/components/opportunities/MarketPanel";
 import { BoardForm } from "@/components/opportunities/BoardForm";
 import { ContextList, SourceLine } from "@/components/opportunities/ContextList";
 import { ScenarioList } from "@/components/opportunities/ScenarioList";
+import { Readiness } from "@/components/opportunities/Readiness";
 import { PageHeader, Pill, Unavailable } from "@/components/ui";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -63,7 +64,8 @@ export default async function OpportunityPage({ params }: { params: Promise<{ sl
           )}
           <section className="card" aria-labelledby="val-h">
             <h2 id="val-h" className="h-section">Questions to answer before you commit</h2>
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">{o.validate.map((v) => <li key={v}>{v}</li>)}</ul>
+            <p className="muted mb-3">Tick each one when you have a written answer. Your progress is private and shows on your board.</p>
+            <Readiness slug={o.slug} questions={o.validate} checked={item?.checked ?? []} />
             <h3 className="mt-4 font-semibold text-ink-950">Risks</h3>
             <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">{o.risks.map((v) => <li key={v}>{v}</li>)}</ul>
             <h3 className="mt-4 font-semibold text-ink-950">Licences and registrations to check</h3>
@@ -76,6 +78,22 @@ export default async function OpportunityPage({ params }: { params: Promise<{ sl
             <h2 id="board-h" className="h-section">My opportunity board</h2>
             <p className="muted mb-3">Private to you. Track where you are with this idea.</p>
             <BoardForm slug={o.slug} item={item} />
+          </section>
+          <section className="card" aria-labelledby="brief-h">
+            <h2 id="brief-h" className="h-section">One-page brief</h2>
+            <p className="muted mb-3">A PDF of this opportunity with its sources, your readiness answers and, if you choose one, a saved scenario. Useful for partners or your bank.</p>
+            <form method="get" action={`/api/opportunities/${o.slug}/brief`} className="space-y-2">
+              {scenarios.length > 0 && (
+                <div>
+                  <label htmlFor="brief-scenario" className="label">Include scenario</label>
+                  <select id="brief-scenario" name="scenario" className="input" defaultValue={scenarios[0].id}>
+                    <option value="">No scenario</option>
+                    {scenarios.map((sc) => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
+                  </select>
+                </div>
+              )}
+              <button className="btn-secondary btn-sm">Download brief (PDF)</button>
+            </form>
           </section>
         </aside>
       </div>

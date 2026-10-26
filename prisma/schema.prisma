@@ -54,6 +54,7 @@ model User {
   auditLogs     AuditLog[]
   opportunities OpportunityBoardItem[]
   scenarios     OpportunityScenario[]
+  businessProfile BusinessProfile?
 }
 
 model Session {
@@ -780,6 +781,8 @@ model OpportunityBoardItem {
   stage           OpportunityStage @default(EXPLORING)
   notes           String           @default("")
   nextStep        String           @default("")
+  // Readiness questions the user has ticked, stored by their text so catalogue edits never tick the wrong one.
+  checked         String[]         @default([])
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
@@ -798,4 +801,15 @@ model OpportunityScenario {
   createdAt       DateTime @default(now())
 
   @@index([userId, calculatorId])
+}
+
+// What a user tells "Find my fit" about their business. Used only to rank opportunities for that user.
+model BusinessProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scale     String
+  segments  String[] @default([])
+  assets    String[] @default([])
+  updatedAt DateTime @updatedAt
 }
