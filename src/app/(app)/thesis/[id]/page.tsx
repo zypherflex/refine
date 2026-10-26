@@ -7,7 +7,7 @@ import { fmtDate, fmtDateTime, fmtNumber } from "@/lib/format";
 import { topicLabel } from "@/lib/labels";
 import { EmptyState, Explainer, FictionTag, Notice, PageHeader, Pill, ProvenanceBadge } from "@/components/ui";
 
-const stanceStyle: Record<string, string> = { SUPPORTS: "bg-teal-100 text-teal-800", CHALLENGES: "bg-risk-100 text-risk-800", UNCLEAR: "bg-navy-100 text-navy-800" };
+const stanceStyle: Record<string, string> = { SUPPORTS: "bg-brand-100 text-brand-800", CHALLENGES: "bg-risk-100 text-risk-800", UNCLEAR: "bg-ink-100 text-ink-800" };
 const stanceLabel: Record<string, string> = { SUPPORTS: "May support", CHALLENGES: "May challenge", UNCLEAR: "Unclear" };
 
 export default async function ThesisPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> }) {
@@ -29,7 +29,7 @@ export default async function ThesisPage({ params, searchParams }: { params: Pro
         subtitle={<>{t.company.name} · version {t.version} · updated {fmtDate(t.updatedAt)} · <span className="font-medium">Private to you</span></>}
         actions={<><Link href={`/thesis/${t.id}/edit`} className="btn-primary">Edit thesis</Link><Link href={`/assistant?q=${encodeURIComponent("Which disclosures challenge my saved thesis?")}`} className="btn-secondary">Ask what challenges it</Link></>}
       />
-      {t.company.isFictional && <div className="mb-4"><FictionTag /> <span className="text-xs text-navy-700">This thesis is about the fictional demo company.</span></div>}
+      {t.company.isFictional && <div className="mb-4"><FictionTag /> <span className="text-xs text-ink-700">This thesis is about the fictional demo company.</span></div>}
       {overdue && <div className="mb-4"><Notice tone="warn" title="Review date passed">You planned to review this thesis by {fmtDate(t.reviewDate)}.</Notice></div>}
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -38,11 +38,11 @@ export default async function ThesisPage({ params, searchParams }: { params: Pro
             <h2 className="h-section">Rationale</h2>
             <p className="mt-1 whitespace-pre-line text-sm">{t.rationale}</p>
             {t.reassessmentConditions && (<><h3 className="mt-4 text-sm font-semibold">I will reassess if…</h3><p className="mt-1 whitespace-pre-line text-sm">{t.reassessmentConditions}</p></>)}
-            <p className="mt-3 text-xs text-navy-700">Review date: {fmtDate(t.reviewDate)}</p>
+            <p className="mt-3 text-xs text-ink-700">Review date: {fmtDate(t.reviewDate)}</p>
           </section>
 
           <section id="suggestions" className="card" aria-labelledby="sugg-h">
-            <h2 id="sugg-h" className="h-section">Evidence to review <span className="text-sm font-normal text-navy-700">({pending.length})</span></h2>
+            <h2 id="sugg-h" className="h-section">Evidence to review <span className="text-sm font-normal text-ink-700">({pending.length})</span></h2>
             <p className="hint">New or corrected disclosures that overlap with your assumptions. Decide what each means; nothing is applied automatically.</p>
             {pending.length === 0 ? <p className="muted mt-3">Nothing waiting for review.</p> : (
               <ul className="mt-3 space-y-4">
@@ -50,14 +50,14 @@ export default async function ThesisPage({ params, searchParams }: { params: Pro
                   <li key={e.id} className="rounded-md border border-amber-600/40 bg-amber-50/40 p-3">
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-navy-700">Your original assumption</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-ink-700">Your original assumption</p>
                         <p className="mt-0.5 text-sm">“{e.assumption?.statement ?? "Whole thesis"}”</p>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-navy-700">New evidence</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-ink-700">New evidence</p>
                         {e.announcement && (
                           <p className="mt-0.5 text-sm"><Link href={`/announcements/${e.announcement.id}`} className="font-medium">{e.announcement.headline}</Link>{" "}
-                            <span className="text-xs text-navy-700">({fmtDate(e.announcement.sourcePublishedAt)})</span>
+                            <span className="text-xs text-ink-700">({fmtDate(e.announcement.sourcePublishedAt)})</span>
                             {e.announcement.status !== "PUBLISHED" && <Pill className="ml-1 bg-risk-100 text-risk-800">{e.announcement.status.toLowerCase()}</Pill>}
                           </p>
                         )}
@@ -74,7 +74,7 @@ export default async function ThesisPage({ params, searchParams }: { params: Pro
                       <button name="decision" value="SUPPORTS" className="btn-secondary">May support</button>
                       <button name="decision" value="CHALLENGES" className="btn-secondary">May challenge</button>
                       <button name="decision" value="UNCLEAR" className="btn-secondary">Unclear</button>
-                      <button name="decision" value="DISMISS" className="btn btn-sm text-navy-700">Not relevant</button>
+                      <button name="decision" value="DISMISS" className="btn btn-sm text-ink-700">Not relevant</button>
                     </form>
                   </li>
                 ))}
@@ -90,14 +90,14 @@ export default async function ThesisPage({ params, searchParams }: { params: Pro
                 return (
                   <li key={a.id}>
                     <p className="font-medium">{a.statement}</p>
-                    <p className="text-xs text-navy-700">Tracks: {a.topics.map((x) => topicLabel[x] ?? x).join(", ") || "no topics (no automatic suggestions)"}</p>
-                    {ev.length === 0 ? <p className="mt-1 text-sm text-navy-700">No evidence recorded yet.</p> : (
+                    <p className="text-xs text-ink-700">Tracks: {a.topics.map((x) => topicLabel[x] ?? x).join(", ") || "no topics (no automatic suggestions)"}</p>
+                    {ev.length === 0 ? <p className="mt-1 text-sm text-ink-700">No evidence recorded yet.</p> : (
                       <ul className="mt-2 space-y-1">
                         {ev.map((e) => (
                           <li key={e.id} className="flex flex-wrap items-baseline gap-2 text-sm">
                             <Pill className={stanceStyle[e.stance]}>{stanceLabel[e.stance]}</Pill>
                             {e.announcement ? <Link href={`/announcements/${e.announcement.id}`}>{e.announcement.headline}</Link> : <span>Note</span>}
-                            {e.note && <span className="text-navy-700">— {e.note}</span>}
+                            {e.note && <span className="text-ink-700">— {e.note}</span>}
                           </li>
                         ))}
                       </ul>
@@ -107,7 +107,7 @@ export default async function ThesisPage({ params, searchParams }: { params: Pro
               })}
             </ul>
             {accepted.some((e) => !e.assumptionId) && (
-              <div className="mt-4 border-t border-navy-50 pt-3 text-sm">
+              <div className="mt-4 border-t border-ink-50 pt-3 text-sm">
                 <p className="font-medium">Evidence for the whole thesis</p>
                 {accepted.filter((e) => !e.assumptionId).map((e) => <p key={e.id}><Pill className={stanceStyle[e.stance]}>{stanceLabel[e.stance]}</Pill> {e.announcement?.headline} {e.note}</p>)}
               </div>
@@ -123,11 +123,11 @@ export default async function ThesisPage({ params, searchParams }: { params: Pro
                 {thresholds.map(({ indicator, metric, value, threshold, state }) => (
                   <li key={indicator.id} className="text-sm">
                     <p className="font-medium">{indicator.label}</p>
-                    <p className="text-xs text-navy-700">Alert if {indicator.operator === "BELOW" ? "below" : "above"} {threshold === null ? "(no threshold)" : `${fmtNumber(threshold)} ${indicator.unit}`}</p>
+                    <p className="text-xs text-ink-700">Alert if {indicator.operator === "BELOW" ? "below" : "above"} {threshold === null ? "(no threshold)" : `${fmtNumber(threshold)} ${indicator.unit}`}</p>
                     {state === "NO_DATA" ? (
-                      <p className="mt-1 rounded bg-navy-50 px-2 py-1 text-xs">Not publicly disclosed, so this cannot be checked.</p>
+                      <p className="mt-1 rounded bg-ink-50 px-2 py-1 text-xs">Not publicly disclosed, so this cannot be checked.</p>
                     ) : (
-                      <p className={`mt-1 rounded px-2 py-1 text-xs ${state === "BREACHED" ? "bg-risk-50 text-risk-800" : "bg-teal-50 text-teal-800"}`}>
+                      <p className={`mt-1 rounded px-2 py-1 text-xs ${state === "BREACHED" ? "bg-risk-50 text-risk-800" : "bg-brand-50 text-brand-800"}`}>
                         Latest: {fmtNumber(value!)} {indicator.unit} ({metric?.periodLabel}{metric?.valueType !== "REPORTED" ? `, ${metric?.valueType.toLowerCase()}` : ""}). {state === "BREACHED" ? "Past your threshold." : state === "OK" ? "Within your threshold." : ""}
                       </p>
                     )}
@@ -144,7 +144,7 @@ export default async function ThesisPage({ params, searchParams }: { params: Pro
                 return (
                   <li key={v.id}>
                     <p><span className="font-medium">Version {v.version}</span> · {fmtDateTime(v.createdAt)}</p>
-                    <p className="text-xs text-navy-700">{v.note}</p>
+                    <p className="text-xs text-ink-700">{v.note}</p>
                     <Explainer title="Show this version">
                       <p className="font-medium">{s.title}</p>
                       <p>{s.rationale}</p>
@@ -159,7 +159,7 @@ export default async function ThesisPage({ params, searchParams }: { params: Pro
             <summary className="font-medium text-risk-700">Delete this thesis</summary>
             <form action={deleteThesisAction} className="mt-2 space-y-2">
               <input type="hidden" name="id" value={t.id} />
-              <p className="text-navy-700">This permanently deletes the thesis, its assumptions, evidence decisions and every saved version. It cannot be undone.</p>
+              <p className="text-ink-700">This permanently deletes the thesis, its assumptions, evidence decisions and every saved version. It cannot be undone.</p>
               <button className="btn-danger btn-sm">Yes, delete permanently</button>
             </form>
           </details>

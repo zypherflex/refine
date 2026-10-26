@@ -29,7 +29,7 @@ export async function sendDueAlertEmails(now = new Date(), mailer: Mailer | null
     const urgent = list.some((a) => a.kind === "CORRECTION" || a.kind === "RETRACTION");
     const subject = list.length === 1 ? list[0]!.title : `${list.length} RefineryLens alerts${urgent ? ", including a correction or retraction" : ""}`;
     const text = [`Hello ${user.name},`, "", ...list.flatMap((a) => [`• ${a.title}`, `  ${a.body}`, `  ${base}${a.link}`, ""]), FOOTER].join("\n");
-    const html = `<p>Hello ${esc(user.name)},</p>${list.map((a) => `<p><a href="${esc(base + a.link)}"><strong>${esc(a.title)}</strong></a><br>${esc(a.body)}</p>`).join("")}<p style="color:#5d7393;font-size:12px">${esc(FOOTER)}</p>`;
+    const html = `<p>Hello ${esc(user.name)},</p>${list.map((a) => `<p><a href="${esc(base + a.link)}"><strong>${esc(a.title)}</strong></a><br>${esc(a.body)}</p>`).join("")}<p style="color:#5a7a69;font-size:12px">${esc(FOOTER)}</p>`;
     try {
       await mailer.send({ to: user.email, subject, text, html });
     } catch (e) {

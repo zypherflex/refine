@@ -10,7 +10,7 @@ function Result({ s }: { s: EdState }) {
   return (
     <>
       <FieldError message={s.error} />
-      {s.ok && <p className="mt-2 rounded-md bg-teal-50 px-3 py-2 text-sm text-teal-800" role="status">{s.ok}</p>}
+      {s.ok && <p className="mt-2 rounded-md bg-brand-50 px-3 py-2 text-sm text-brand-800" role="status">{s.ok}</p>}
     </>
   );
 }
@@ -118,11 +118,11 @@ export function MetricReviewForm({ m }: { m: { id: string; label: string; value:
   const [state, action, pending] = useActionState(metricAction, {});
   const [pState, pAction, pPending] = useActionState(metricAction, {});
   return (
-    <div className="rounded-md border border-navy-100 p-3">
+    <div className="rounded-md border border-ink-100 p-3">
       <form action={action} className="grid gap-2 sm:grid-cols-4">
         <input type="hidden" name="id" value={m.id} />
         <input type="hidden" name="op" value="correct" />
-        <p className="font-medium sm:col-span-4">{m.label} <span className="text-xs text-navy-700">({m.status.toLowerCase()})</span></p>
+        <p className="font-medium sm:col-span-4">{m.label} <span className="text-xs text-ink-700">({m.status.toLowerCase()})</span></p>
         <div><label className="label" htmlFor={`v-${m.id}`}>Value</label><input id={`v-${m.id}`} name="value" type="number" step="any" defaultValue={m.value} className="input" /></div>
         <div><label className="label" htmlFor={`cur-${m.id}`}>Currency</label><input id={`cur-${m.id}`} name="currency" defaultValue={m.currency} className="input" /></div>
         <div><label className="label" htmlFor={`sc-${m.id}`}>Scale</label><select id={`sc-${m.id}`} name="scale" defaultValue={m.scale} className="input"><option value="units">units</option><option value="thousands">thousands</option><option value="millions">millions</option><option value="billions">billions</option></select></div>

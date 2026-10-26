@@ -11,6 +11,8 @@ import type { PrismaClient } from "@prisma/client";
 const RETRIEVED = new Date("2026-10-25T16:30:00Z");
 const SITE = "https://refinery.dangote.com";
 
+const fact = (label: string, value: string, path: string, extra: Record<string, unknown> = {}) => ({ label, value, sourceUrl: SITE + path, retrievedAt: RETRIEVED.toISOString(), ...extra });
+
 export async function seedDangote(db: PrismaClient, editorId: string) {
   const company = await db.company.create({
     data: {
@@ -25,19 +27,28 @@ export async function seedDangote(db: PrismaClient, editorId: string) {
       coverageNote:
         "Coverage is being prepared from the company's public website. Drafted items are awaiting editor review. The company states that financial information will be made available to qualified institutional investors through its formal capital markets process, so no financial results are shown.",
       isFictional: false,
+      // `group` places a fact on the profile; `figure`/`unit` make it a headline tile; `claim` marks promotional or
+      // comparative statements that RefineryLens cannot verify (rankings, "global" reach) and must label as such.
       profileFacts: [
-        { label: "Location", value: "Lekki Free Trade Zone, Ibeju Lekki, Lagos, Nigeria", sourceUrl: `${SITE}/about-us/`, retrievedAt: RETRIEVED.toISOString() },
-        { label: "Business model", value: "Described by the company as a “merchant refining business”", sourceUrl: `${SITE}/about-us/`, retrievedAt: RETRIEVED.toISOString() },
-        { label: "Stated crude distillation (CDU) capacity", value: "700,000 barrels per day", sourceUrl: `${SITE}/facilities/`, retrievedAt: RETRIEVED.toISOString() },
-        { label: "Stated expansion pathway", value: "1.4 million barrels per day (no timeline published)", sourceUrl: `${SITE}/about-us/`, retrievedAt: RETRIEVED.toISOString() },
-        { label: "Nelson Complexity Index (stated)", value: "11.5", sourceUrl: `${SITE}/facilities/`, retrievedAt: RETRIEVED.toISOString() },
-        { label: "Fuel products (stated)", value: "Gasoline (PMS), diesel (AGO), Jet A-1 and LPG; transport fuels stated to meet Euro V specifications, ≤10 ppm sulphur where applicable, MMT-free", sourceUrl: `${SITE}/products/`, retrievedAt: RETRIEVED.toISOString() },
-        { label: "Polypropylene (stated)", value: "830 KTPA total (Train I 500 KTPA, Train II 330 KTPA), INEOS technology, 12 homopolymer grades", sourceUrl: `${SITE}/facilities/`, retrievedAt: RETRIEVED.toISOString() },
-        { label: "Marine access (stated)", value: "3 km deepwater jetty with multi-berth operations", sourceUrl: `${SITE}/facilities/`, retrievedAt: RETRIEVED.toISOString() },
-        { label: "Power (stated)", value: "Independent on-site generation; capacity not published", sourceUrl: `${SITE}/facilities/`, retrievedAt: RETRIEVED.toISOString() },
-        { label: "Chief Executive Officer / Managing Director (stated)", value: "David Bird", sourceUrl: `${SITE}/about-us/#governance`, retrievedAt: RETRIEVED.toISOString() },
-        { label: "Chairman (stated)", value: "Aliko Dangote, GCON", sourceUrl: `${SITE}/about-us/#governance`, retrievedAt: RETRIEVED.toISOString() },
-        { label: "Group relationship (stated)", value: "Presented as part of Dangote Group; the legal shareholding structure is not stated on the website", sourceUrl: `${SITE}/about-us/`, retrievedAt: RETRIEVED.toISOString() },
+        fact("Stated crude distillation (CDU) capacity", "700,000 barrels per day", "/facilities/", { group: "scale", figure: "700,000", unit: "barrels per day, stated CDU capacity" }),
+        fact("Stated expansion pathway", "1.4 million barrels per day (no timeline published)", "/about-us/", { group: "scale", figure: "1.4 million", unit: "bpd stated expansion pathway, no timeline" }),
+        fact("Nelson Complexity Index (stated)", "11.5", "/facilities/", { group: "scale", figure: "11.5", unit: "Nelson Complexity Index, stated" }),
+        fact("Polypropylene (stated)", "830 KTPA total (Train I 500 KTPA, Train II 330 KTPA), INEOS technology, 12 homopolymer grades; the home page says “12 premium grades today, scaling up to 155”", "/facilities/", { group: "scale", figure: "830", unit: "KTPA polypropylene, stated" }),
+        fact("Marine access (stated)", "3 km deepwater jetty with multi-berth operations", "/facilities/", { group: "facility" }),
+        fact("Location", "Lekki Free Trade Zone, Ibeju Lekki, Lagos, Nigeria", "/about-us/", { group: "facility" }),
+        fact("Business model", "Described by the company as a “merchant refining business”", "/about-us/", { group: "facility" }),
+        fact("Fuel products (stated)", "Gasoline (PMS), diesel (AGO), Jet A-1 and LPG; transport fuels stated to meet Euro V specifications, ≤10 ppm sulphur where applicable, MMT-free", "/products/", { group: "facility" }),
+        fact("Power (stated)", "Independent on-site generation; capacity not published", "/facilities/", { group: "facility" }),
+        fact("Size claim (about page)", "“the largest single-train refinery in the world”, with “a current CDU capacity of 700,000 barrels per day”", "/about-us/", { group: "global", claim: true }),
+        fact("Size claim (home page)", "“1.4 million barrels per day – Africa's largest single-train refinery”, a figure the about page describes as an expansion pathway", "/", { group: "global", claim: true }),
+        fact("Positioning (stated)", "“a world-scale refining and petrochemicals facility” and “among the world's youngest, most modern and energy-efficient refineries”", "/about-us/", { group: "global", claim: true }),
+        fact("Markets served (stated)", "“Africa – Europe – Global”; products intended for “domestic and international markets”. No export volumes or destination breakdown is published", "/", { group: "global", claim: true }),
+        fact("Export ambition (stated)", "An “export-driven refining hub for Africa” intended to “enable Nigeria's transition to a net exporter of refined petroleum products” and reduce import dependency", "/about-us/", { group: "global", claim: true }),
+        fact("Employment (stated)", "“Tens of thousands of direct and indirect jobs created in Nigeria and beyond”; no figure published", "/", { group: "global", claim: true }),
+        fact("Group footprint (stated, group level)", "“The Group currently has a presence in 17 African countries”. This describes Dangote Group, not the refinery", "/about-us/", { group: "global", claim: true }),
+        fact("Chief Executive Officer / Managing Director (stated)", "David Bird", "/about-us/#governance", { group: "governance" }),
+        fact("Chairman (stated)", "Aliko Dangote, GCON", "/about-us/#governance", { group: "governance" }),
+        fact("Group relationship (stated)", "Presented as part of Dangote Group; the legal shareholding structure is not stated on the website", "/about-us/", { group: "governance" }),
       ],
       legalEntities: {
         create: [
@@ -295,6 +306,22 @@ export async function seedDangote(db: PrismaClient, editorId: string) {
         create: [
           { claim: "The refinery is “processing 700,000 barrels a day”.", sourceLabel: "Home page (undated)", sourceDate: RETRIEVED, provenance: "COMPANY_DISCLOSED" },
           { claim: "“Current CDU capacity 700,000 bpd.”", sourceLabel: "Operations & Infrastructure page (undated)", sourceDate: RETRIEVED, provenance: "COMPANY_DISCLOSED" },
+        ],
+      },
+    },
+  });
+
+  await db.sourceConflict.create({
+    data: {
+      companyId: company.id,
+      topic: "How the refinery's size is described",
+      description: "The home page attaches a size ranking to the 1.4 million bpd expansion figure, while the about page attaches a world ranking to a refinery with 700,000 bpd current CDU capacity. RefineryLens reports both as company claims and has not verified either ranking.",
+      status: "DRAFT",
+      flaggedById: editorId,
+      claims: {
+        create: [
+          { claim: "“1.4 million barrels per day – Africa's largest single-train refinery.”", sourceLabel: "Home page (undated)", sourceDate: RETRIEVED, provenance: "COMPANY_DISCLOSED" },
+          { claim: "“The largest single-train refinery in the world” with “a current CDU capacity of 700,000 barrels per day”.", sourceLabel: "About Us page (undated)", sourceDate: RETRIEVED, provenance: "COMPANY_DISCLOSED" },
         ],
       },
     },

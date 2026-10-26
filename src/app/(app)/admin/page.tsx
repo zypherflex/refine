@@ -35,7 +35,7 @@ export default async function AdminPage() {
               <tbody>
                 {users.map((u) => (
                   <tr key={u.id}>
-                    <td><p className="font-medium">{u.name}</p><p className="text-xs text-navy-700">{u.email}</p></td>
+                    <td><p className="font-medium">{u.name}</p><p className="text-xs text-ink-700">{u.email}</p></td>
                     <td>
                       <form action={changeRoleAction} className="flex gap-1"><input type="hidden" name="userId" value={u.id} />
                         <select name="role" defaultValue={u.role} className="input py-1" aria-label={`Role for ${u.name}`} disabled={u.id === admin.id}>{["USER", "ANALYST", "EDITOR", "ADMIN"].map((r) => <option key={r}>{r}</option>)}</select>
@@ -58,7 +58,7 @@ export default async function AdminPage() {
         <aside className="space-y-6">
           <section className="card">
             <h2 className="h-section">Integrations</h2>
-            <ul className="mt-2 space-y-1 text-sm">{integrations.map(([n, ok]) => <li key={n} className="flex justify-between gap-2"><span>{n}</span><Pill className={ok ? "bg-teal-100 text-teal-800" : "bg-navy-100 text-navy-800"}>{ok ? "Working" : "Not configured"}</Pill></li>)}</ul>
+            <ul className="mt-2 space-y-1 text-sm">{integrations.map(([n, ok]) => <li key={n} className="flex justify-between gap-2"><span>{n}</span><Pill className={ok ? "bg-brand-100 text-brand-800" : "bg-ink-100 text-ink-800"}>{ok ? "Working" : "Not configured"}</Pill></li>)}</ul>
           </section>
           <section className="card">
             <h2 className="h-section">Background jobs</h2>

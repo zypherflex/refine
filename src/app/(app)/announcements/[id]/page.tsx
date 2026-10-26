@@ -29,7 +29,7 @@ export default async function AnnouncementPage({ params }: { params: Promise<{ i
         <ProvenanceBadge p={a.provenance} />
         <StatusBadge s={a.status} />
         {a.isFictional && <FictionTag />}
-        {a.aiGenerated && <span className="text-xs text-navy-700">Summary drafted with AI, reviewed by an editor</span>}
+        {a.aiGenerated && <span className="text-xs text-ink-700">Summary drafted with AI, reviewed by an editor</span>}
       </div>
       <h1 className="h-page mt-3 max-w-3xl">{a.headline}</h1>
       {a.status === "RETRACTED" && <div className="mt-3"><Notice tone="risk" title={`Retracted ${fmtDate(a.retractedAt)}`}>{a.retractionReason}</Notice></div>}
@@ -38,22 +38,22 @@ export default async function AnnouncementPage({ params }: { params: Promise<{ i
       {a.supersedes && <p className="mt-2 text-sm">This item replaces an earlier version: <Link href={`/announcements/${a.supersedes.id}`}>{a.supersedes.headline}</Link></p>}
 
       <section className="card mt-4 space-y-4">
-        <div><h2 className="text-sm font-semibold uppercase tracking-wide text-navy-700">Summary</h2><p className="mt-1">{a.summary}</p></div>
-        {a.whatChanged && <div><h2 className="text-sm font-semibold uppercase tracking-wide text-navy-700">What changed</h2><p className="mt-1">{a.whatChanged}</p></div>}
-        <div><h2 className="text-sm font-semibold uppercase tracking-wide text-teal-800">Why it could matter to investors</h2><p className="mt-1">{a.whyItMatters}</p><p className="hint">Interpretation, not a disclosed fact or a recommendation.</p></div>
+        <div><h2 className="text-sm font-semibold uppercase tracking-wide text-ink-700">Summary</h2><p className="mt-1">{a.summary}</p></div>
+        {a.whatChanged && <div><h2 className="text-sm font-semibold uppercase tracking-wide text-ink-700">What changed</h2><p className="mt-1">{a.whatChanged}</p></div>}
+        <div><h2 className="text-sm font-semibold uppercase tracking-wide text-brand-800">Why it could matter to investors</h2><p className="mt-1">{a.whyItMatters}</p><p className="hint">Interpretation, not a disclosed fact or a recommendation.</p></div>
         <div><h2 className="text-sm font-semibold uppercase tracking-wide text-amber-800">Important uncertainties</h2><p className="mt-1">{a.uncertainties}</p></div>
-        {a.alternativeExplanations && <div><h2 className="text-sm font-semibold uppercase tracking-wide text-navy-700">Alternative explanations</h2><p className="mt-1">{a.alternativeExplanations}</p></div>}
-        {a.openQuestions && <div><h2 className="text-sm font-semibold uppercase tracking-wide text-navy-700">Questions to investigate next</h2><p className="mt-1">{a.openQuestions}</p></div>}
-        {a.analysis && <div><h2 className="text-sm font-semibold uppercase tracking-wide text-navy-700">Analysis</h2><p className="mt-1">{a.analysis}</p></div>}
+        {a.alternativeExplanations && <div><h2 className="text-sm font-semibold uppercase tracking-wide text-ink-700">Alternative explanations</h2><p className="mt-1">{a.alternativeExplanations}</p></div>}
+        {a.openQuestions && <div><h2 className="text-sm font-semibold uppercase tracking-wide text-ink-700">Questions to investigate next</h2><p className="mt-1">{a.openQuestions}</p></div>}
+        {a.analysis && <div><h2 className="text-sm font-semibold uppercase tracking-wide text-ink-700">Analysis</h2><p className="mt-1">{a.analysis}</p></div>}
       </section>
 
       <section className="card mt-4">
         <h2 className="h-section">Supporting evidence</h2>
         <ul className="mt-2 space-y-3">
           {a.excerpts.map((e) => (
-            <li key={e.id} className="border-l-4 border-teal-600 pl-3 text-sm">
+            <li key={e.id} className="border-l-4 border-brand-600 pl-3 text-sm">
               <blockquote className="italic">“{e.quote}”</blockquote>
-              {e.document ? <SourceLink href={`/documents/${e.document.id}?page=${e.page ?? 1}`}>{e.document.title}{e.page ? `, page ${e.page}` : ""}</SourceLink> : <span className="text-xs text-navy-700">Excerpt from the original source (no stored document)</span>}
+              {e.document ? <SourceLink href={`/documents/${e.document.id}?page=${e.page ?? 1}`}>{e.document.title}{e.page ? `, page ${e.page}` : ""}</SourceLink> : <span className="text-xs text-ink-700">Excerpt from the original source (no stored document)</span>}
             </li>
           ))}
         </ul>
@@ -65,19 +65,19 @@ export default async function AnnouncementPage({ params }: { params: Promise<{ i
       <section className="card mt-4 text-sm">
         <h2 className="h-section">Source record</h2>
         <dl className="mt-2 grid gap-x-6 gap-y-2 sm:grid-cols-2">
-          <div><dt className="text-xs text-navy-700">Company</dt><dd>{a.company.name}</dd></div>
-          <div><dt className="text-xs text-navy-700">Legal entity</dt><dd>{a.legalEntity?.name ?? "Not specified"}</dd></div>
-          <div className="sm:col-span-2"><dt className="text-xs text-navy-700">Original title</dt><dd>{a.originalTitle}</dd></div>
-          <div><dt className="text-xs text-navy-700">Publisher</dt><dd>{a.publisher}</dd></div>
-          <div><dt className="text-xs text-navy-700">Original URL</dt><dd className="break-all"><SourceLink href={a.sourceUrl}>{a.sourceUrl}</SourceLink></dd></div>
-          <div><dt className="text-xs text-navy-700">Source publication date</dt><dd>{fmtDate(a.sourcePublishedAt)}</dd></div>
-          <div><dt className="text-xs text-navy-700">Event date</dt><dd>{fmtDate(a.eventDate)}</dd></div>
-          <div><dt className="text-xs text-navy-700">Retrieved</dt><dd>{fmtDateTime(a.retrievedAt)}</dd></div>
-          <div><dt className="text-xs text-navy-700">Document type and version</dt><dd>{documentTypeLabel[a.documentType]}, version {a.sourceVersion}</dd></div>
-          <div><dt className="text-xs text-navy-700">Review</dt><dd>{reviewer ? `Reviewed by ${reviewer.name}, ${fmtDate(a.reviewedAt)}` : "Not yet reviewed"}</dd></div>
-          <div><dt className="text-xs text-navy-700">Published on RefineryLens</dt><dd>{fmtDateTime(a.publishedAt)}</dd></div>
-          <div><dt className="text-xs text-navy-700">Topics</dt><dd>{a.topics.map((t) => topicLabel[t] ?? t).join(", ")}</dd></div>
-          <div><dt className="text-xs text-navy-700">Revision</dt><dd>{a.revision}</dd></div>
+          <div><dt className="text-xs text-ink-700">Company</dt><dd>{a.company.name}</dd></div>
+          <div><dt className="text-xs text-ink-700">Legal entity</dt><dd>{a.legalEntity?.name ?? "Not specified"}</dd></div>
+          <div className="sm:col-span-2"><dt className="text-xs text-ink-700">Original title</dt><dd>{a.originalTitle}</dd></div>
+          <div><dt className="text-xs text-ink-700">Publisher</dt><dd>{a.publisher}</dd></div>
+          <div><dt className="text-xs text-ink-700">Original URL</dt><dd className="break-all"><SourceLink href={a.sourceUrl}>{a.sourceUrl}</SourceLink></dd></div>
+          <div><dt className="text-xs text-ink-700">Source publication date</dt><dd>{fmtDate(a.sourcePublishedAt)}</dd></div>
+          <div><dt className="text-xs text-ink-700">Event date</dt><dd>{fmtDate(a.eventDate)}</dd></div>
+          <div><dt className="text-xs text-ink-700">Retrieved</dt><dd>{fmtDateTime(a.retrievedAt)}</dd></div>
+          <div><dt className="text-xs text-ink-700">Document type and version</dt><dd>{documentTypeLabel[a.documentType]}, version {a.sourceVersion}</dd></div>
+          <div><dt className="text-xs text-ink-700">Review</dt><dd>{reviewer ? `Reviewed by ${reviewer.name}, ${fmtDate(a.reviewedAt)}` : "Not yet reviewed"}</dd></div>
+          <div><dt className="text-xs text-ink-700">Published on RefineryLens</dt><dd>{fmtDateTime(a.publishedAt)}</dd></div>
+          <div><dt className="text-xs text-ink-700">Topics</dt><dd>{a.topics.map((t) => topicLabel[t] ?? t).join(", ")}</dd></div>
+          <div><dt className="text-xs text-ink-700">Revision</dt><dd>{a.revision}</dd></div>
         </dl>
         <Explainer title="What the provenance label means">
           <p>Provenance labels describe who published the information: the company, a regulator or exchange, an independent reporter, an analyst estimate, a user assumption, or unverified. They are not guarantees that the information is accurate.</p>
@@ -102,7 +102,7 @@ export default async function AnnouncementPage({ params }: { params: Promise<{ i
           </ol>
         )}
         {a.reviews.length > 0 && can.viewEditorial(user) && (
-          <div className="mt-4 border-t border-navy-50 pt-3 text-sm">
+          <div className="mt-4 border-t border-ink-50 pt-3 text-sm">
             <p className="font-medium">Editorial reviews (staff only)</p>
             <ul className="mt-1 space-y-1">{a.reviews.map((r) => <li key={r.id}>{fmtDateTime(r.createdAt)}: {r.decision} by {r.reviewer.name}{r.notes && ` — ${r.notes}`}</li>)}</ul>
           </div>

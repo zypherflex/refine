@@ -123,7 +123,7 @@ The admin screen shows the live status of each integration.
 | Layer | Choice |
 | --- | --- |
 | Framework | Next.js 15 (App Router, React Server Components, server actions), React 19, TypeScript |
-| Styling | Tailwind CSS 3 with a custom brand palette; Inter and Source Serif 4 self-hosted via Fontsource; Lucide icons |
+| Styling | Tailwind CSS 3 with a green-and-white brand palette (`ink` neutrals, `brand` green), a green-white-green band and an adire-inspired pattern; Inter and Source Serif 4 self-hosted via Fontsource; Lucide icons. Times are shown in West Africa Time (Lagos) |
 | Charts | Recharts, always with an accessible table alternative |
 | Database | PostgreSQL via Prisma 6; migrations in `prisma/migrations` |
 | Auth | Custom, see above. Chosen over an auth library to keep sessions server-side and auditable with no third-party dependency |

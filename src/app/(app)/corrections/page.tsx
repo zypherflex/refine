@@ -6,7 +6,7 @@ import { EmptyState, Explainer, FictionTag, PageHeader, Pill } from "@/component
 
 export const metadata = { title: "Corrections log" };
 
-const kindStyle: Record<string, string> = { CORRECTION: "bg-amber-100 text-amber-800", RETRACTION: "bg-risk-100 text-risk-800", SUPERSESSION: "bg-navy-100 text-navy-800", EXTRACTION_FIX: "bg-navy-100 text-navy-800" };
+const kindStyle: Record<string, string> = { CORRECTION: "bg-amber-100 text-amber-800", RETRACTION: "bg-risk-100 text-risk-800", SUPERSESSION: "bg-ink-100 text-ink-800", EXTRACTION_FIX: "bg-ink-100 text-ink-800" };
 
 export default async function CorrectionsPage() {
   await requireUser();
@@ -18,7 +18,7 @@ export default async function CorrectionsPage() {
         <ol className="space-y-3">
           {log.map((c) => (
             <li key={c.id} className="card">
-              <div className="flex flex-wrap items-center gap-2"><Pill className={kindStyle[c.kind] ?? ""}>{c.kind.toLowerCase().replace("_", " ")}</Pill><span className="text-xs text-navy-700">{fmtDateTime(c.createdAt)}</span>{(c.announcement?.isFictional || c.metric?.isFictional) && <FictionTag />}</div>
+              <div className="flex flex-wrap items-center gap-2"><Pill className={kindStyle[c.kind] ?? ""}>{c.kind.toLowerCase().replace("_", " ")}</Pill><span className="text-xs text-ink-700">{fmtDateTime(c.createdAt)}</span>{(c.announcement?.isFictional || c.metric?.isFictional) && <FictionTag />}</div>
               <p className="mt-1 font-medium">{c.announcement ? <Link href={`/announcements/${c.announcement.id}`}>{c.announcement.headline}</Link> : c.metric ? `${c.metric.label} (${c.metric.periodLabel})` : c.entityType}</p>
               <p className="mt-1 text-sm">{c.summary}</p>
               {c.before && <Explainer title="Show previous values">{Object.entries(c.before as Record<string, unknown>).map(([k, v]) => <p key={k}><strong>{k}</strong> was: {String(v)}</p>)}</Explainer>}

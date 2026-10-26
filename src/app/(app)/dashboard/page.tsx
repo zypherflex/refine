@@ -11,6 +11,8 @@ import { riskCategoryLabel } from "@/lib/labels";
 import { can } from "@/lib/permissions";
 import { AnnouncementCard } from "@/components/AnnouncementCard";
 import { MetricTile, TileFrame } from "@/components/MetricTile";
+import { ScaleTiles } from "@/components/CompanyFacts";
+import { companyFacts, factsIn } from "@/lib/company-facts";
 import { EmptyState, LevelBadge, Notice, PageHeader, Pill } from "@/components/ui";
 
 export const metadata = { title: "Overview" };
@@ -44,6 +46,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const nd = debt && cash ? netDebt(toCalcInput(debt), toCalcInput(cash)) : null;
   const allKeys = [...FINANCIAL_KEYS, ...OPERATIONAL_KEYS];
   const missing = allKeys.filter(([k]) => !metrics.some((m) => m.key === k && m.disclosureStatus === "DISCLOSED"));
+  const scaleFacts = factsIn(companyFacts(company.profileFacts), "scale");
   const stale = fresh.latest ? daysBetween(fresh.latest, new Date()) > 45 : false;
 
   return (
@@ -55,12 +58,22 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         title={company.name}
         subtitle={
           <span className="flex flex-wrap items-center gap-2">
-            <Pill className={company.coverageStatus === "ACTIVE" ? "bg-teal-100 text-teal-800" : "bg-amber-100 text-amber-800"}>{coverageLabel[company.coverageStatus]}</Pill>
+            <Pill className={company.coverageStatus === "ACTIVE" ? "bg-brand-100 text-brand-800" : "bg-amber-100 text-amber-800"}>{coverageLabel[company.coverageStatus]}</Pill>
             <span>{company.coverageNote}</span>
           </span>
         }
         actions={<Link href="/assistant" className="btn-primary">Ask the research assistant</Link>}
       />
+
+      {scaleFacts.length > 0 && (
+        <section aria-labelledby="scale-h" className="mb-6">
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 id="scale-h" className="h-section">Scale at a glance</h2>
+            <span className="text-xs text-ink-600">As stated by the company, not yet verified by an editor. <Link href="/company">Profile and global positioning</Link></span>
+          </div>
+          <ScaleTiles facts={scaleFacts} />
+        </section>
+      )}
 
       <section aria-label="Data freshness" className="mb-6 grid gap-2 sm:grid-cols-2">
         <Notice tone={stale || !fresh.latest ? "warn" : "info"} title="Data freshness">
@@ -90,8 +103,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           <ul className="mt-2 space-y-2">
             {published.slice(0, 3).map((a) => (
               <li key={a.id} className="card flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-5">
-                <span className="num w-28 shrink-0 text-xs font-semibold uppercase tracking-wider text-teal-700">{fmtDate(a.sourcePublishedAt)}</span>
-                <span className="text-sm"><Link href={`/announcements/${a.id}`} className="font-medium text-navy-950">{a.headline}.</Link> {a.whatChanged}</span>
+                <span className="num w-28 shrink-0 text-xs font-semibold uppercase tracking-wider text-brand-700">{fmtDate(a.sourcePublishedAt)}</span>
+                <span className="text-sm"><Link href={`/announcements/${a.id}`} className="font-medium text-ink-950">{a.headline}.</Link> {a.whatChanged}</span>
               </li>
             ))}
           </ul>
@@ -101,7 +114,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       <section aria-labelledby="metrics" className="mb-8">
         <div className="flex items-baseline justify-between">
           <h2 id="metrics" className="h-section">Available metrics</h2>
-          <span className="text-xs text-navy-700">Latest reviewed figure per metric. Group and refinery figures are kept separate.</span>
+          <span className="text-xs text-ink-700">Latest reviewed figure per metric. Group and refinery figures are kept separate.</span>
         </div>
         <div className="mt-3 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-4">
           <MetricTile label="Revenue (group)" m={rev} href="/financials" />
@@ -109,8 +122,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           <MetricTile label="Operating cash flow (group)" m={ocf} href="/financials" />
           {nd && nd.ok ? (
             <TileFrame label="Net debt (group, calculated)">
-              <p className="num mt-2 text-2xl font-semibold tracking-tight text-navy-950">{fmtNumber(nd.value)} <span className="text-sm font-medium tracking-normal text-navy-600">{nd.unit}</span></p>
-              <p className="mt-1 text-xs text-navy-600">{debt!.periodLabel} · {nd.formula}</p>
+              <p className="num mt-2 text-2xl font-semibold tracking-tight text-ink-950">{fmtNumber(nd.value)} <span className="text-sm font-medium tracking-normal text-ink-600">{nd.unit}</span></p>
+              <p className="mt-1 text-xs text-ink-600">{debt!.periodLabel} · {nd.formula}</p>
             </TileFrame>
           ) : (
             <MetricTile label="Net debt (group)" m={null} href="/financials" />
@@ -140,7 +153,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               ) : (
                 suggestions.map((s) => (
                   <Link key={s.id} href={`/thesis/${s.thesisId}#suggestions`} className="card-link text-sm">
-                    <p className="text-xs text-navy-700">{s.thesis.title}</p>
+                    <p className="text-xs text-ink-700">{s.thesis.title}</p>
                     <p className="mt-1 font-medium">{s.announcement?.headline}</p>
                     <p className="mt-1 text-xs">Your assumption: “{s.assumption?.statement}”</p>
                   </Link>
@@ -157,7 +170,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               {risks.length === 0 && <EmptyState title="No reviewed risk entries yet" />}
               {risks.map((r) => (
                 <div key={r.id} className="card">
-                  <p className="text-xs text-navy-700">{riskCategoryLabel[r.category]} · updated {fmtDate(r.updatedAt)}</p>
+                  <p className="text-xs text-ink-700">{riskCategoryLabel[r.category]} · updated {fmtDate(r.updatedAt)}</p>
                   <p className="mt-1 text-sm font-medium">{r.title}</p>
                   <div className="mt-2 flex flex-wrap gap-1"><LevelBadge kind="Impact if it happens" level={r.severity} /><LevelBadge kind="Confidence it will happen" level={r.confidence} /></div>
                 </div>

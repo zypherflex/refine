@@ -27,8 +27,8 @@ async function selectCompany(page: Page, slug: string) {
 
 test("landing page presents RefineryLens as independent @mobile", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Understand the change");
-  await expect(page.getByText("not affiliated with, endorsed by or sponsored by")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Dangote Refinery, understood");
+  await expect(page.getByText(/not affiliated with, endorsed by or sponsored by/).first()).toBeVisible();
   await expect(page.locator("img[src*='dangote' i]")).toHaveCount(0);
 });
 
