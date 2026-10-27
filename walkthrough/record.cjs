@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- a CommonJS script run directly with node */
 // Records a captioned walkthrough of RefineryLens against a running, seeded app on localhost:3000.
 // Usage: node walkthrough/record.cjs <outDir> [durations.json]
 // Writes a .webm and timeline.json (when each narration line starts, in ms from the start of the video).
 // With durations.json from narrate.py, each line stays on screen until it has been spoken; mix.sh adds the voice.
+// Start the app with a geocoder configured (GEOCODER, NOMINATIM_EMAIL, NOMINATIM_URL) so the live map can place the
+// drop-off and show distance and arrival time.
 const fs = require("fs");
 const path = require("path");
 // PLAYWRIGHT_MODULE lets this use a Playwright install other than the project's (one with a matching browser and ffmpeg).
@@ -13,7 +16,10 @@ const durations = process.argv[3] ? JSON.parse(fs.readFileSync(process.argv[3], 
 
 (async () => {
   const browser = await chromium.launch();
+  // Location permission is granted up front so the driver page can share a (simulated) position.
   const context = await browser.newContext({
+    geolocation: { latitude: 6.585, longitude: 3.353 },
+    permissions: ["geolocation"],
     viewport: { width: 1280, height: 720 },
     recordVideo: { dir: out, size: { width: 1280, height: 720 } },
     acceptDownloads: true,
@@ -61,7 +67,7 @@ const durations = process.argv[3] ? JSON.parse(fs.readFileSync(process.argv[3], 
     await go("/login");
     await page.getByLabel("Email").fill(email);
     await page.getByLabel("Password").fill("RefineryLens-demo-2026");
-    await Promise.all([page.waitForURL(/\/hub/), page.getByRole("button", { name: "Sign in" }).click()]);
+    await Promise.all([page.waitForURL(/\/(hub|today)/), page.getByRole("button", { name: "Sign in" }).click()]);
   }
   async function step(name, fn) {
     try {
@@ -71,182 +77,146 @@ const durations = process.argv[3] ? JSON.parse(fs.readFileSync(process.argv[3], 
     }
   }
 
+  let orderPath = "";
+  let driverLink = "";
+
   await step("landing", async () => {
     await go("/");
     await caption("intro", 3500);
-    await scroll(900, 8, 350);
-    await caption("sourced", 2800);
+    await page.locator("#everyday-h").scrollIntoViewIfNeeded();
+    await wait(400);
+    await caption("everydayband", 1800);
+  });
+
+  await step("today", async () => {
+    await go("/today?state=Lagos");
+    await caption("today", 2600);
+    await scroll(450, 5, 320);
+    await caption("median", 3000);
+    await scroll(300, 3, 320);
+  });
+
+  await step("stations", async () => {
+    await go("/stations?state=Lagos");
+    await caption("stations", 2600);
+    await scroll(500, 5, 320);
+    await page.getByRole("link", { name: /Ikorodu Road Filling Station/ }).click();
+    await page.waitForLoadState("networkidle");
+    await wait(600);
+    await page.getByRole("heading", { name: "Problems reported in the last 30 days" }).scrollIntoViewIfNeeded();
+    await caption("problems", 3000);
   });
 
   await step("login", async () => {
+    await context.clearCookies();
     await go("/login");
-    await caption("login", 1800);
-    await page.getByLabel("Email").pressSequentially("investor@refinerylens.test", { delay: 35 });
+    await caption("login", 1500);
+    await page.getByLabel("Email").pressSequentially("tunde@refinerylens.test", { delay: 35 });
     await page.getByLabel("Password").pressSequentially("RefineryLens-demo-2026", { delay: 25 });
-    await Promise.all([page.waitForURL(/\/hub/), page.getByRole("button", { name: "Sign in" }).click()]);
+    await Promise.all([page.waitForURL(/\/today/), page.getByRole("button", { name: "Sign in" }).click()]);
     await page.waitForLoadState("networkidle");
+    await scroll(250, 2, 300);
+    await caption("reminder", 2600);
   });
 
-  await step("hub", async () => {
-    await caption("hub", 3200);
-    await scroll(1200, 10, 300);
-    await caption("filter", 1800);
-    await go("/opportunities");
-    await page.getByRole("link", { name: /^Micro/ }).click();
-    await page.waitForLoadState("networkidle");
+  await step("my gas", async () => {
+    await go("/my-gas");
+    await caption("mygas", 2400);
+    await scroll(350, 4, 320);
+  });
+
+  await step("order", async () => {
+    await go("/order?state=Lagos");
+    await caption("order", 2400);
+    await scroll(250, 3, 300);
+    await page.getByLabel(/Surulere Gas Point/).check();
+    await wait(400);
+    await page.getByLabel("Area *").pressSequentially("Surulere", { delay: 40 });
+    await page.getByLabel("Delivery address and landmark *").pressSequentially("14 Demo Close, off Bode Thomas St", { delay: 30 });
+    await page.getByRole("button", { name: /Place order/ }).scrollIntoViewIfNeeded();
     await wait(800);
-    await scroll(700, 6, 300);
-    await caption("micro", 2600);
+    await Promise.all([page.waitForURL(/\/orders\/[a-z0-9]+/), page.getByRole("button", { name: /Place order/ }).click()]);
+    await page.waitForLoadState("networkidle");
+    orderPath = new URL(page.url()).pathname;
+    await caption("placed", 1800);
   });
 
-  await step("fit", async () => {
-    await go("/opportunities/fit");
-    await caption("fit", 2600);
-    await page.getByLabel(/^Micro/).check();
-    await wait(500);
-    await page.getByLabel("LPG and CNG").check();
-    await wait(500);
-    await page.getByLabel("Tanker trucks or a delivery fleet").check();
+  await step("seller accepts", async () => {
+    await signIn("surulere@refinerylens.test");
+    await go("/hub/orders");
+    const card = page.locator("li.card").filter({ has: page.locator(`a[href="${orderPath}"]`) });
+    await card.scrollIntoViewIfNeeded();
+    await caption("seller", 2600);
+    await card.getByRole("button", { name: "Accept" }).click();
+    await card.getByText(/agreed/).waitFor();
+    await wait(800);
+    await caption("driverlink", 1200);
+    await card.getByText(/Track the driver live/).click();
+    await card.getByLabel("Driver's name").pressSequentially("Musa", { delay: 50 });
+    await card.getByLabel(/Driver's phone/).pressSequentially("08030001111", { delay: 30 });
+    await card.getByRole("button", { name: "Create driver link" }).click();
+    driverLink = await card.getByLabel("Driver link").inputValue();
+    await card.getByRole("link", { name: /Send by WhatsApp/ }).scrollIntoViewIfNeeded();
+    await wait(1800);
+  });
+
+  // The rider's phone: positions from Ikeja towards Surulere, sent every 10 seconds as the driver page would.
+  const route = Array.from({ length: 14 }, (_, i) => ({ lat: 6.585 - i * 0.0062, lon: 3.353 + Math.sin(i / 2) * 0.004 }));
+  let leg = 0;
+  let pinger = null;
+  const sendNext = async () => {
+    const p = route[Math.min(leg++, route.length - 1)];
+    await page.request.post(`${driverLink}`.replace("/drive/", "/api/drive/") + "/ping", { data: { lat: p.lat, lon: p.lon, accuracy: 10, speed: 7, heading: 180 } }).catch(() => undefined);
+  };
+
+  await step("driver", async () => {
+    await page.goto(driverLink, { waitUntil: "networkidle" });
+    await caption("driver", 2600);
+    await page.getByRole("button", { name: "Start sharing my location" }).click();
+    await page.getByText("Sharing your location").waitFor();
+    await wait(2500);
+    leg = 1;
+    pinger = setInterval(sendNext, 10_500);
+  });
+
+  await step("follow", async () => {
+    await signIn("tunde@refinerylens.test");
+    await go(orderPath);
+    await page.getByRole("heading", { name: "Live tracking" }).waitFor();
+    await caption("follow", 4000);
+    await page.locator("#track-h").evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 80));
+    await wait(22_000);
+    clearInterval(pinger);
+  });
+
+  await step("cng", async () => {
+    await go("/cng-savings");
+    await caption("cng", 1500);
+    await page.getByLabel("Conversion quote, ₦ (optional)").pressSequentially("650000", { delay: 60 });
     await wait(600);
-    await page.getByRole("button", { name: "Show my matches" }).click();
-    await page.waitForURL(/fit=1/);
-    await page.waitForLoadState("networkidle");
-    await page.locator("#for-you").scrollIntoViewIfNeeded();
-    await caption("matches", 3400);
-    await scroll(600, 6, 350);
+    await scroll(400, 4, 320);
   });
 
-  await step("opportunity", async () => {
-    await go("/opportunities/lpg-retail");
-    await caption("opp", 2600);
-    await scroll(700, 7, 350);
-    await caption("evidence", 3200);
-    await scroll(700, 7, 350);
-    const tick = page.getByRole("button", { name: /^Tick: / }).first();
-    await tick.scrollIntoViewIfNeeded();
-    await caption("ready", 2200);
-    await tick.click();
-    await wait(1400);
-    const fill = page.getByRole("button", { name: "Fill blanks with example numbers" });
-    await fill.scrollIntoViewIfNeeded();
-    await caption("sizing", 2600);
-    await fill.click();
-    await wait(1200);
-    await scroll(500, 5, 350);
-    await caption("formulas", 2600);
-    await page.getByTestId("sensitivity").scrollIntoViewIfNeeded();
-    await caption("whatif", 3400);
-    const save = page.getByLabel("Save as a private scenario");
-    await save.scrollIntoViewIfNeeded();
-    await caption("board", 800);
-    await save.pressSequentially("Lekki LPG kiosk", { delay: 40 });
-    await page.getByRole("button", { name: "Save scenario" }).click();
-    await wait(1200);
-    await page.getByLabel("Stage").selectOption("VALIDATING");
-    await page.getByLabel("Next step").pressSequentially("Ask two bulk suppliers for quotes", { delay: 30 });
-    await page.getByRole("button", { name: /Add to my board|Update board/ }).click();
-    await wait(1500);
-    const brief = page.getByRole("button", { name: "Download brief (PDF)" });
-    await brief.scrollIntoViewIfNeeded();
-    await caption("brief", 2400);
-    const [dl] = await Promise.all([page.waitForEvent("download"), brief.click()]);
-    await dl.saveAs(`${out}/brief.pdf`);
-    await wait(1200);
-  });
-
-  await step("board", async () => {
-    await go("/opportunities/board");
-    await caption("boardpage", 3400);
-    await scroll(500, 5, 350);
-  });
-
-  await step("dashboard", async () => {
-    await go("/dashboard");
-    const sw = page.locator("#company-switch");
-    if (await sw.count()) {
-      await Promise.all([page.waitForLoadState("networkidle"), sw.selectOption("demo-lagoon-coast")]).catch(() => {});
-      await wait(800);
-    }
-    await caption("research", 3400);
-    await scroll(900, 8, 350);
-    await caption("metrics", 2600);
-  });
-
-  await step("assistant", async () => {
-    await go("/assistant");
-    await caption("assistant", 2400);
-    await page.getByLabel("Your question").pressSequentially("Why did operating cash flow lag net profit in H1 2026?", { delay: 25 });
-    await page.getByRole("button", { name: "Ask" }).click();
-    await page.getByRole("heading", { name: "Direct answer" }).waitFor({ timeout: 20000 });
-    await wait(800);
-    await caption("answer", 3000);
-    await scroll(700, 7, 350);
-  });
-
-  await step("market", async () => {
-    await go("/market");
-    await caption("market", 3200);
-    await scroll(600, 6, 350);
-  });
-
-  await step("trade hub", async () => {
-    await caption("tradeintro", 1500);
-    await signIn("converter@refinerylens.test");
+  await step("business", async () => {
     await go("/hub");
-    await caption("trade", 3000);
-    await scroll(900, 8, 350);
-    await page.getByLabel("Product").selectOption("pp");
-    await caption("tradefilter", 1200);
-    await Promise.all([page.waitForURL(/product=pp/), page.getByRole("button", { name: "Show" }).click()]);
-    await page.waitForLoadState("networkidle");
-    await wait(1200);
-  });
-
-  await step("trade listing", async () => {
-    await page.getByRole("link", { name: "Polypropylene resin, injection and raffia grades" }).click();
-    await page.waitForLoadState("networkidle");
-    await caption("tradelisting", 3000);
-    await scroll(500, 5, 350);
-    const box = page.getByLabel("Your message");
-    await box.scrollIntoViewIfNeeded();
-    await caption("tradeenquire", 800);
-    await box.pressSequentially("We need 40 tonnes of raffia grade a month in Sagamu. Can you quote delivered?", { delay: 30 });
-    await Promise.all([page.waitForURL(/\/hub\/inbox\/.+/), page.getByRole("button", { name: "Send message" }).click()]);
-    await page.waitForLoadState("networkidle");
-    await wait(1500);
-  });
-
-  await step("trade refineries", async () => {
-    await go("/hub/refineries");
-    await caption("traderefineries", 3000);
-    await scroll(400, 4, 350);
-  });
-
-  await step("trade reply", async () => {
-    await signIn("refinery@refinerylens.test");
-    await go("/hub/inbox");
-    await caption("tradereply", 2000);
-    await page.locator("main").getByRole("link", { name: /Ogun Resin Converters/ }).click();
-    await page.waitForLoadState("networkidle");
-    await wait(800);
-    await page.getByLabel("Reply").pressSequentially("Yes, 40 tonnes monthly works. Quote by Friday.", { delay: 30 });
-    await page.getByRole("button", { name: "Send", exact: true }).click();
-    await page.getByText("Quote by Friday").waitFor();
-    await wait(1500);
-  });
-
-  await step("trade verify", async () => {
-    await signIn("admin@refinerylens.test");
-    await go("/admin/hub");
-    await caption("tradeverify", 2500);
-    await page.getByRole("button", { name: "Verify", exact: true }).click();
-    await page.getByRole("heading", { name: "Verification requests (0)" }).waitFor();
-    await wait(1500);
+    await caption("business", 2200);
+    await go("/hub/prices?item=lpg_retail_kg");
+    await page.locator("#board-h").scrollIntoViewIfNeeded();
+    await caption("board", 2600);
+    await go("/hub/gas?state=Kano");
+    await caption("gasmap", 2600);
+    await scroll(600, 6, 320);
+    await go("/hub/jobs");
+    await caption("jobs", 2600);
+    await scroll(400, 4, 320);
+    await go("/opportunities");
+    await caption("opps", 2600);
+    await scroll(600, 6, 320);
   });
 
   await step("end", async () => {
-    await go("/hub");
-    await caption("outro", 4000);
+    await go("/today");
+    await caption("outro", 3500);
   });
 
   if (Date.now() < speakingUntil) await wait(speakingUntil - Date.now());

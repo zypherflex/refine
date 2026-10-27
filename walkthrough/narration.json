@@ -1,157 +1,112 @@
 [
   {
     "id": "intro",
-    "caption": "RefineryLens: independent business intelligence on opportunities around Dangote",
-    "say": "This is RefineryLens: independent business intelligence on the opportunities around Dangote, for businesses of every size."
+    "caption": "RefineryLens: fuel and gas prices, cooking gas and deliveries for every Nigerian",
+    "say": "This is RefineryLens. It helps every Nigerian know what fuel and cooking gas really cost, never run out of gas, and get it delivered. And it gives the businesses behind them a trade hub of their own."
   },
   {
-    "id": "sourced",
-    "caption": "Every figure carries its source, period and provenance label",
-    "say": "Every figure carries its source, its period, and a label saying where it came from. Missing data is shown as missing."
+    "id": "everydayband",
+    "caption": "Free for households, drivers and keke riders",
+    "say": "For households, drivers and keke riders, it's free."
+  },
+  {
+    "id": "today",
+    "caption": "Today's prices in your state, no sign-in needed",
+    "say": "Today's prices need no sign-in. Pick a state and see what people paid for petrol, diesel, kerosene, cooking gas and CNG in the last three days."
+  },
+  {
+    "id": "median",
+    "caption": "Each price is the middle of at least three people's reports",
+    "say": "Each figure is the middle of what at least three different people reported, so one wrong report can't mislead you. What sellers charged sits alongside for comparison."
+  },
+  {
+    "id": "stations",
+    "caption": "Stations and gas shops: who is selling, queues and the latest prices",
+    "say": "Stations and gas shops show who is selling right now, how long the queue is, and the latest prices."
+  },
+  {
+    "id": "problems",
+    "caption": "People warn each other about short measure and overcharging",
+    "say": "People can warn each other about short measure or overcharging. Repeated problems show on the station's page, with where to complain formally."
   },
   {
     "id": "login",
-    "caption": "Sign in with a demo account (investor, Pro plan)",
-    "say": "Let's sign in with the demo investor account."
+    "caption": "Sign in as a demo household in Lagos",
+    "say": "Let's sign in as a household in Lagos."
   },
   {
-    "id": "hub",
-    "caption": "The business opportunities hub: 14 ways to plug into the Lekki complex",
-    "say": "The opportunities hub maps fourteen ways for a business to plug into the Lekki complex, from fuel retail and haulage to plastics, aviation fuel and plant services."
+    "id": "reminder",
+    "caption": "A reminder before the cooking gas runs out",
+    "say": "Straight away, a reminder: the kitchen gas is likely to run out in a few days."
   },
   {
-    "id": "filter",
-    "caption": "Filter by business size, from micro to enterprise",
-    "say": "You can filter by business size."
+    "id": "mygas",
+    "caption": "The gas tracker learns how long a cylinder lasts from each refill",
+    "say": "The gas tracker learns how long a cylinder lasts from each refill, and sends the reminder by alert, push, SMS or WhatsApp."
   },
   {
-    "id": "micro",
-    "caption": "Only opportunities a micro business can realistically pursue remain",
-    "say": "Choosing micro leaves only the opportunities a very small business can realistically pursue."
+    "id": "order",
+    "caption": "Order a refill from verified sellers. Pay on delivery",
+    "say": "Ordering a refill takes a minute. Only sellers RefineryLens has verified appear, with their price per kilo, deliveries and ratings. You pay the rider when the gas arrives, never in advance."
   },
   {
-    "id": "fit",
-    "caption": "Find my fit: describe your business, get ranked matches",
-    "say": "Find my fit asks three quick questions: your size, your interests, and the assets you already have."
+    "id": "placed",
+    "caption": "The seller is alerted at once",
+    "say": "The seller is told at once."
   },
   {
-    "id": "matches",
-    "caption": "Each match explains why it is listed, including assets you already have",
-    "say": "The matches are ranked, and each one explains why it's listed. Here, the tanker trucks we already own count in our favour."
+    "id": "seller",
+    "caption": "The seller accepts with the final price",
+    "say": "On the seller's side, the order is waiting under home gas orders. They accept it with the final price, and the customer is told what to pay."
   },
   {
-    "id": "opp",
-    "caption": "An opportunity page: LPG cylinder refilling and retail",
-    "say": "Let's open LPG cylinder refilling and retail."
+    "id": "driverlink",
+    "caption": "Live tracking: the seller sends the rider a private link by WhatsApp or SMS",
+    "say": "Now live tracking. The seller creates a private link for the rider and sends it by WhatsApp or SMS."
   },
   {
-    "id": "evidence",
-    "caption": "Company-stated facts, dated independent reports, questions and licences to check",
-    "say": "Each opportunity shows the company-stated facts it rests on, dated independent reports that help or hurt the case, and the licences you'd need to check."
+    "id": "driver",
+    "caption": "The rider opens the link on any phone, no account needed, and taps Start sharing",
+    "say": "The rider opens it on any phone, with no account, sees the address and the amount to collect, and taps start sharing."
   },
   {
-    "id": "ready",
-    "caption": "Readiness checklist: tick off what you have already answered",
-    "say": "The readiness checklist tracks the questions you've already answered."
+    "id": "follow",
+    "caption": "The customer follows the rider live, with distance and arrival time (map images need internet, unavailable in this recording)",
+    "say": "The customer now follows the rider live, with the distance, a rough arrival time and a button to call. Sharing stops by itself when the delivery is done, and positions are deleted after a week."
   },
   {
-    "id": "sizing",
-    "caption": "The sizing tool: enter your own numbers, or start from labelled examples",
-    "say": "The sizing tool takes your own numbers, or you can start from clearly labelled examples."
+    "id": "cng",
+    "caption": "Should you convert to CNG? Your monthly saving, worked out",
+    "say": "And for drivers thinking about CNG, the calculator shows a month on petrol against CNG, and how fast a conversion pays for itself."
   },
   {
-    "id": "formulas",
-    "caption": "Formulas stay visible, so every result can be checked",
-    "say": "The formulas stay visible, so every result can be checked by hand."
-  },
-  {
-    "id": "whatif",
-    "caption": "What-if table: each key input moved ±10% to show what matters most",
-    "say": "The what-if table moves each key input up and down by ten percent, so you can see which assumption matters most."
+    "id": "business",
+    "caption": "For businesses: the trade hub",
+    "say": "For the businesses that buy, sell and move fuel and gas, there's the trade hub."
   },
   {
     "id": "board",
-    "caption": "Save a private scenario and track the opportunity on your board",
-    "say": "Save the scenario privately, and add the opportunity to your board with a stage and a next step."
+    "caption": "Wholesale price board by state, medians across at least three sellers",
+    "say": "The price board shows what sellers charged in each state, without exposing any one seller's price."
   },
   {
-    "id": "brief",
-    "caption": "Download a one-page PDF brief with sources, readiness answers and the scenario",
-    "say": "And download a one-page PDF brief, with the sources, your readiness answers, and your scenario."
+    "id": "gasmap",
+    "caption": "The gas network: terminals, depots, refill plants and CNG stations by state",
+    "say": "The gas network maps terminals, depots, refill plants and CNG stations in every state, and the nearest supply when a state has none."
   },
   {
-    "id": "boardpage",
-    "caption": "My opportunity board: stage, next step, readiness progress and saved scenarios",
-    "say": "Your board brings it together: stage, next step, readiness progress and saved scenarios."
+    "id": "jobs",
+    "caption": "Delivery jobs: post a load, compare haulier quotes, track the truck",
+    "say": "Businesses post loads, compare quotes from hauliers, and track the truck the same way, with the same driver links."
   },
   {
-    "id": "research",
-    "caption": "Behind it: the evidence-first research layer (shown here on a fictional demo company)",
-    "say": "Behind all this sits the evidence-first research layer, shown here on a clearly labelled fictional demo company."
-  },
-  {
-    "id": "metrics",
-    "caption": "Sourced metrics, what changed, conflicts kept visible",
-    "say": "It tracks what changed, with sourced metrics, and when sources disagree, the conflict stays visible."
-  },
-  {
-    "id": "assistant",
-    "caption": "The research assistant answers only from cited evidence",
-    "say": "The research assistant answers only from cited evidence."
-  },
-  {
-    "id": "answer",
-    "caption": "A direct answer, with every claim linked to its source",
-    "say": "You get a direct answer, with every claim linked back to its source."
-  },
-  {
-    "id": "market",
-    "caption": "Market and macro context, labelled as non-company data, with honest gaps",
-    "say": "Market and macro context is labelled as non-company data, and gaps are shown honestly."
-  },
-  {
-    "id": "tradeintro",
-    "caption": "The trade hub: sellers, buyers, delivery partners and refineries",
-    "say": "Now the trade hub, where sellers, buyers, delivery partners and refineries find each other. Let's sign in as a demo plastics maker that buys polypropylene."
-  },
-  {
-    "id": "trade",
-    "caption": "Offers, buy requests and delivery capacity, each with its business's verification status",
-    "say": "The hub lists offers to sell, requests to buy, and delivery capacity from hauliers. Every business shows whether RefineryLens has checked its registration and licences."
-  },
-  {
-    "id": "tradefilter",
-    "caption": "Filter by product, location, or verified businesses only",
-    "say": "Filter by product and location. Here, polypropylene resin."
-  },
-  {
-    "id": "tradelisting",
-    "caption": "A refinery's offer, with matching buyers and hauliers alongside",
-    "say": "This verified refinery is offering resin. Matching buy requests and delivery capacity appear alongside, and there's a clear warning never to pay an unverified business in advance."
-  },
-  {
-    "id": "tradeenquire",
-    "caption": "Enquire straight from the listing, into a private inbox",
-    "say": "Send an enquiry straight from the listing. It lands in a private inbox that only the two businesses can read."
-  },
-  {
-    "id": "traderefineries",
-    "caption": "Refineries run their own verified accounts",
-    "say": "Refineries run their own accounts. Well-known refiners' names stay hidden until RefineryLens has verified them, so nobody can pose as Dangote."
-  },
-  {
-    "id": "tradereply",
-    "caption": "Signed in as the refinery: the enquiry is waiting in the hub inbox",
-    "say": "Signed in as the refinery, the enquiry is waiting in the hub inbox, ready for a reply."
-  },
-  {
-    "id": "tradeverify",
-    "caption": "Administrators verify businesses and handle reports, but cannot read messages",
-    "say": "Administrators check registration and licence details before verifying a business, and handle reports, but they can't read anyone's messages."
+    "id": "opps",
+    "caption": "Researched opportunities around the Lekki complex, sized with your own numbers",
+    "say": "And for growing businesses, researched opportunities around the Lekki complex, each with its sources and a sizing tool that shows its formulas."
   },
   {
     "id": "outro",
-    "caption": "RefineryLens: find the opportunity, examine the evidence, size it, and find partners to make it happen",
-    "say": "RefineryLens. Find the opportunity, examine the evidence, size it with your own numbers, and find the partners to make it happen."
+    "caption": "RefineryLens: know the price, never run out, and get it delivered. On the web, Google Play and the App Store",
+    "say": "RefineryLens. Know the price, never run out, and get it delivered. On the web, Google Play and the App Store."
   }
 ]

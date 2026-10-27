@@ -56,6 +56,8 @@ export function LiveMap({ kind, id, waitingText }: { kind: "gas-order" | "job"; 
         const ll: [number, number] = [view.last.lat, view.last.lon];
         if (!st.driver) st.driver = L.circleMarker(ll, { radius: 10, color: "#ffffff", fillColor: view.live ? "#087c47" : "#8a94a6", fillOpacity: 1, weight: 3 }).bindTooltip(view.driverName ?? "Driver").addTo(st.m);
         else st.driver.setLatLng(ll).setStyle({ fillColor: view.live ? "#087c47" : "#8a94a6" });
+        // Keep the driver in view as they move; the person can still pan and zoom freely in between.
+        if (st.fitted && !st.m.getBounds().pad(-0.1).contains(ll)) st.m.panTo(ll);
       }
       if (!st.fitted) {
         const pts: [number, number][] = [...(view.last ? [[view.last.lat, view.last.lon] as [number, number]] : []), ...(view.dest ? [[view.dest.lat, view.dest.lon] as [number, number]] : [])];
