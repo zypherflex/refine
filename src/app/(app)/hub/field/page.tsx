@@ -11,7 +11,7 @@ export const metadata = { title: "Field visits" };
 
 const STATUS: Record<string, [string, string]> = {
   ASSIGNED: ["To visit", "bg-ink-100 text-ink-800"],
-  SUBMITTED: ["Waiting for review", "bg-amber-100 text-amber-800"],
+  SUBMITTED: ["Waiting for review", "bg-ink-800 text-white"],
   ACCEPTED: ["Accepted", "bg-brand-100 text-brand-800"],
   REJECTED: ["Not accepted", "bg-red-100 text-red-800"],
   CANCELLED: ["Cancelled", "bg-ink-100 text-ink-600"],

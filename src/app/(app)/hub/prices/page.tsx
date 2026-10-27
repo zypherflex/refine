@@ -25,7 +25,7 @@ export default async function PricesPage({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <PageHeader eyebrow={t("hub.eyebrow")} title={t("prices.title")} subtitle={t("prices.subtitle", { days: PRICE_WINDOW_DAYS, min: MIN_SELLERS_FOR_MEDIAN })} actions={<Link href="/hub/alerts" className="btn-primary btn-sm no-underline">{t("prices.alertsCta")}</Link>} />
+      <PageHeader eyebrow={t("hub.eyebrow")} title={t("prices.title")} subtitle={t("prices.subtitle", { days: PRICE_WINDOW_DAYS, min: MIN_SELLERS_FOR_MEDIAN })} actions={<div className="flex flex-wrap gap-2"><Link href={`/hub/prices/history${product ? `?product=${product}` : ""}${state ? `${product ? "&" : "?"}state=${state}` : ""}`} className="btn-secondary btn-sm no-underline">{t("prices.historyCta")}</Link><Link href="/hub/alerts" className="btn-primary btn-sm no-underline">{t("prices.alertsCta")}</Link></div>} />
       <div className="mb-6"><Notice title={t("prices.fairTitle")}>{t("prices.rules")}</Notice></div>
 
       <form method="get" role="search" aria-label="Filter prices" className="mb-5 grid gap-3 rounded-xl border border-ink-100 bg-ink-50 p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">

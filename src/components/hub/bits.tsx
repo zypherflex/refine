@@ -87,3 +87,12 @@ export const day = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", 
 export const isoDay = (d: Date) => d.toISOString().slice(0, 10);
 export const JOB_STATUS: Record<string, string> = { OPEN: "Taking quotes", AWARDED: "Booked", DELIVERED: "Delivered, confirmed by both", CANCELLED: "Cancelled" };
 export const AGREEMENT_STATUS: Record<string, string> = { PROPOSED: "Waiting for acceptance", ACTIVE: "Active", DECLINED: "Declined", ENDED: "Ended" };
+
+/** Finance request status labels, shared by the business and lender screens. */
+export const FINANCE_STATUS: Record<string, [string, string]> = {
+  SHARED: ["Shared, waiting for the lender", "bg-ink-100 text-ink-800"],
+  IN_REVIEW: ["Lender is reviewing", "bg-ink-800 text-white"],
+  OFFERED: ["Lender wants to make an offer", "bg-brand-100 text-brand-800"],
+  DECLINED: ["Declined", "bg-red-100 text-red-800"],
+  WITHDRAWN: ["Withdrawn", "bg-ink-100 text-ink-600"],
+};

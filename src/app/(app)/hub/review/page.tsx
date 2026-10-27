@@ -6,7 +6,9 @@ import { productLabel, roleLabel, stateName, STATES_BY_NAME } from "@/lib/hub/ca
 import { activePlan, isProtectedName } from "@/lib/hub/rules";
 import { can } from "@/lib/permissions";
 import { programmeOverview, PROGRAMME_STATES } from "@/server/hub/field";
-import { assignVisitAction, decideVisitAction, markPaidAction, promoteListingAction, resolveReportAction, reviewBusinessAction, setBusinessPlanAction, setFieldAgentAction } from "@/app/actions/hub";
+import { priceDataSubscribers } from "@/server/hub/priceindex";
+import { listPartners } from "@/server/hub/finance";
+import { assignVisitAction, decideVisitAction, markPaidAction, promoteListingAction, resolveReportAction, reviewBusinessAction, setBusinessPlanAction, setFieldAgentAction, setPriceDataAction, createPartnerAction, setPartnerActiveAction, setPartnerStaffAction } from "@/app/actions/hub";
 import { EmptyState, Notice, PageHeader, Pill, SectionHeader } from "@/components/ui";
 import { HubForm } from "@/components/hub/HubForm";
 import { BusinessName, day, naira, qty } from "@/components/hub/bits";
@@ -45,6 +47,7 @@ export default async function ReviewPage() {
     programmeOverview(user),
     isAdmin ? db.hubBusiness.findMany({ where: { verification: "VERIFIED" }, orderBy: { name: "asc" }, take: 100 }) : Promise.resolve([]),
   ]);
+  const [subscribers, partners] = isAdmin ? await Promise.all([priceDataSubscribers(), listPartners(false)]) : [[], []];
   const openVisit = new Map(field.open.map((v) => [v.businessId, v]));
   return (
     <>
@@ -151,6 +154,49 @@ export default async function ReviewPage() {
               })}
             </ul>
           ) : <p className="muted">No verified businesses yet.</p>}
+        </section>
+      )}
+
+      {isAdmin && (
+        <section className="mb-10" aria-labelledby="pricedata-h">
+          <SectionHeader id="pricedata-h" title="Price data subscribers" note="History, CSV and API access. Set after payment is agreed offline; 0 months turns it off and revokes keys." />
+          {subscribers.length > 0 && (
+            <ul className="mb-3 space-y-1 text-sm">{subscribers.map((s) => <li key={s.id}>{s.name} · {s.email} · {s.priceDataUntil && s.priceDataUntil > new Date() ? `until ${day(s.priceDataUntil)}` : "ended"}</li>)}</ul>
+          )}
+          <HubForm action={setPriceDataAction} submit="Save access" className="card flex flex-wrap items-end gap-2">
+            <div><label className="label" htmlFor="pd-email">Account email</label><input id="pd-email" name="email" type="email" className="input" required /></div>
+            <div><label className="label" htmlFor="pd-months">Months</label><select id="pd-months" name="months" className="input w-auto" defaultValue="12">{[0, 1, 3, 6, 12, 24].map((m) => <option key={m} value={m}>{m === 0 ? "Turn off" : `${m} mo`}</option>)}</select></div>
+          </HubForm>
+        </section>
+      )}
+
+      {isAdmin && (
+        <section className="mb-10" aria-labelledby="lenders-h">
+          <SectionHeader id="lenders-h" title="Finance pilot lenders" note="Only licensed lenders. RefineryLens shares records with consent; it never lends or holds money." />
+          <ul className="mb-4 space-y-3">
+            {partners.map((p) => (
+              <li key={p.id} className="card text-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-semibold">{p.name} {!p.active && <Pill className="bg-ink-100 text-ink-700">Paused</Pill>}</p>
+                  <HubForm action={setPartnerActiveAction} submit={p.active ? "Pause" : "Resume"} buttonClass="btn-secondary btn-sm" inline><input type="hidden" name="partnerId" value={p.id} /><input type="hidden" name="active" value={p.active ? "0" : "1"} /></HubForm>
+                </div>
+                <p className="text-ink-700">{p.states.length ? p.states.map(stateName).join(", ") : "All states"} · staff: {p.staff.map((s) => s.email).join(", ") || "none yet"}</p>
+                <HubForm action={setPartnerStaffAction} submit="Add staff" buttonClass="btn-secondary btn-sm" className="mt-2 flex flex-wrap items-end gap-2">
+                  <input type="hidden" name="partnerId" value={p.id} /><input type="hidden" name="add" value="1" />
+                  <div><label className="label" htmlFor={`ps-${p.id}`}>Staff account email</label><input id={`ps-${p.id}`} name="email" type="email" className="input" required /></div>
+                </HubForm>
+              </li>
+            ))}
+          </ul>
+          <HubForm action={createPartnerAction} submit="Add lender" className="card space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div><label className="label" htmlFor="lp-name">Lender name</label><input id="lp-name" name="name" className="input" required minLength={3} /></div>
+              <div><label className="label" htmlFor="lp-desc">What they finance</label><input id="lp-desc" name="description" className="input" maxLength={600} /></div>
+            </div>
+            <fieldset><legend className="label">States they lend in (none ticked means all)</legend>
+              <div className="grid grid-cols-2 gap-1 text-sm sm:grid-cols-4">{STATES_BY_NAME.map((s) => <label key={s.id} className="flex items-center gap-2"><input type="checkbox" name="states" value={s.id} /> {s.name}</label>)}</div>
+            </fieldset>
+          </HubForm>
         </section>
       )}
 

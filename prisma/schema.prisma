@@ -44,24 +44,29 @@ model User {
   emailAlerts    Boolean       @default(false)
   createdAt      DateTime      @default(now())
 
-  sessions        Session[]
-  theses          Thesis[]
-  documents       Document[]              @relation("DocumentOwner")
-  watchlists      Watchlist[]
-  alerts          Alert[]
-  conversations   Conversation[]
-  reviews         EditorialReview[]
-  auditLogs       AuditLog[]
-  opportunities   OpportunityBoardItem[]
-  scenarios       OpportunityScenario[]
-  businessProfile BusinessProfile?
-  hubBusiness     HubBusiness?            @relation("HubBusinessOwner")
-  planInterests   PlanInterest[]
-  priceAlert      PriceAlertSubscription?
+  sessions         Session[]
+  theses           Thesis[]
+  documents        Document[]              @relation("DocumentOwner")
+  watchlists       Watchlist[]
+  alerts           Alert[]
+  conversations    Conversation[]
+  reviews          EditorialReview[]
+  auditLogs        AuditLog[]
+  opportunities    OpportunityBoardItem[]
+  scenarios        OpportunityScenario[]
+  businessProfile  BusinessProfile?
+  hubBusiness      HubBusiness?            @relation("HubBusinessOwner")
+  planInterests    PlanInterest[]
+  priceAlert       PriceAlertSubscription?
   // Field verification programme: agents visit businesses and record what they saw.
-  fieldAgent      Boolean                 @default(false)
-  agentAreas      String[]                @default([])
-  fieldVisits     FieldVisit[]            @relation("VisitAgent")
+  fieldAgent       Boolean                 @default(false)
+  agentAreas       String[]                @default([])
+  fieldVisits      FieldVisit[]            @relation("VisitAgent")
+  // Price intelligence subscription, set by an administrator while online payment is off.
+  priceDataUntil   DateTime?
+  apiKeys          ApiKey[]
+  financePartnerId String?
+  financePartner   FinancePartner?         @relation(fields: [financePartnerId], references: [id], onDelete: SetNull)
 }
 
 model Session {
@@ -870,6 +875,10 @@ model HubBusiness {
   enquiriesSent    HubEnquiry[]      @relation("EnquiryFrom")
   enquiriesIn      HubEnquiry[]      @relation("EnquiryTo")
   fieldVisits      FieldVisit[]
+  financeRequests  FinanceRequest[]
+  cylindersOwned   Cylinder[]        @relation("CylinderOwner")
+  cylindersHeld    Cylinder[]        @relation("CylinderHolder")
+  cylinderEvents   CylinderEvent[]   @relation("CylinderEventBy")
 
   @@index([state])
   @@index([verification])
@@ -1146,4 +1155,109 @@ model FieldVisit {
 
   @@index([agentId, status])
   @@index([businessId])
+}
+
+/**
+ * API keys for price intelligence subscribers. Only a SHA-256 hash is stored; the key is shown once.
+ */
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  prefix     String
+  hash       String    @unique
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+
+  @@index([userId])
+}
+
+/**
+ * A licensed lender in the inventory finance pilot. RefineryLens shares records with consent; the lender lends.
+ */
+model FinancePartner {
+  id          String           @id @default(cuid())
+  name        String
+  description String           @default("")
+  states      String[]         @default([])
+  products    String[]         @default([])
+  active      Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  staff       User[]
+  requests    FinanceRequest[]
+}
+
+enum FinanceStatus {
+  SHARED
+  IN_REVIEW
+  OFFERED
+  DECLINED
+  WITHDRAWN
+}
+
+model FinanceRequest {
+  id          String         @id @default(cuid())
+  businessId  String
+  business    HubBusiness    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  partnerId   String
+  partner     FinancePartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  amountNgn   Int
+  purpose     String
+  product     String
+  notes       String         @default("")
+  status      FinanceStatus  @default(SHARED)
+  consentAt   DateTime
+  shareUntil  DateTime
+  partnerNote String         @default("")
+  decidedAt   DateTime?
+  withdrawnAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([partnerId, status])
+  @@index([businessId])
+}
+
+enum CylinderStatus {
+  ACTIVE
+  CONDEMNED
+}
+
+/**
+ * An LPG cylinder in the recirculation model: owned by a marketer, held by whoever has it now.
+ */
+model Cylinder {
+  id             String          @id @default(cuid())
+  serial         String          @unique
+  ownerId        String
+  owner          HubBusiness     @relation("CylinderOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  holderId       String
+  holder         HubBusiness     @relation("CylinderHolder", fields: [holderId], references: [id], onDelete: Cascade)
+  sizeKg         Float
+  manufacturedOn DateTime?       @db.Date
+  lastTestOn     DateTime        @db.Date
+  nextTestDue    DateTime        @db.Date
+  status         CylinderStatus  @default(ACTIVE)
+  lastFilledAt   DateTime?
+  createdAt      DateTime        @default(now())
+  events         CylinderEvent[]
+
+  @@index([ownerId])
+  @@index([holderId])
+}
+
+model CylinderEvent {
+  id         String      @id @default(cuid())
+  cylinderId String
+  cylinder   Cylinder    @relation(fields: [cylinderId], references: [id], onDelete: Cascade)
+  kind       String // REGISTERED | FILLED | DISPATCHED | RETURNED | TESTED | CONDEMNED
+  byId       String
+  by         HubBusiness @relation("CylinderEventBy", fields: [byId], references: [id], onDelete: Cascade)
+  toId       String?
+  note       String      @default("")
+  at         DateTime    @default(now())
+
+  @@index([cylinderId, at])
 }

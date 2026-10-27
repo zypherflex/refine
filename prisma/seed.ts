@@ -22,6 +22,7 @@ async function main() {
   const editor = await mk("editor@refinerylens.test", "Eze Editor", "EDITOR", "TEAM", org.id);
   const analyst = await mk("analyst@refinerylens.test", "Ama Analyst", "ANALYST", "TEAM", org.id);
   const investor = await mk("investor@refinerylens.test", "Ivy Investor", "USER", "PRO");
+  await db.user.update({ where: { id: investor.id }, data: { priceDataUntil: new Date(Date.now() + 365 * 86_400_000) } });
   const other = await mk("other@refinerylens.test", "Obi Other", "USER", "FREE");
 
   const dangote = await seedDangote(db, editor.id);
@@ -102,7 +103,7 @@ async function main() {
   await db.job.updateMany({ where: { type: "document.extract", status: "QUEUED" }, data: { status: "DONE", finishedAt: new Date() } });
 
   console.log("Seeded RefineryLens.");
-  console.log(`  Users (password ${DEMO_PASSWORD}): admin@, editor@, analyst@, investor@, other@, trader@, haulier@, agent@ refinerylens.test`);
+  console.log(`  Users (password ${DEMO_PASSWORD}): admin@, editor@, analyst@, investor@, other@, trader@, haulier@, agent@, lender@ refinerylens.test`);
   console.log("  Trade hub: 16 sample businesses with prices, gas sites, delivery jobs and supply agreements");
   console.log(`  Companies: ${dangote.name} (website facts awaiting review); ${demo.company.name}`);
 }

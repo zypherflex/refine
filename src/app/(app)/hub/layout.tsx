@@ -17,7 +17,10 @@ export default async function HubLayout({ children }: { children: React.ReactNod
     { href: "/hub/supply", label: t("tab.supply") },
     { href: "/hub/alerts", label: t("tab.alerts") },
     { href: "/hub/my", label: t("tab.my") },
+    { href: "/hub/finance", label: t("tab.finance") },
+    { href: "/hub/cylinders", label: t("tab.cylinders") },
     ...(user.fieldAgent ? [{ href: "/hub/field", label: t("tab.field") }] : []),
+    ...(user.financePartnerId ? [{ href: "/hub/lender", label: t("tab.lender") }] : []),
   ];
   return (
     <>
