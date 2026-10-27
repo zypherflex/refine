@@ -11,6 +11,9 @@ import { reportBusiness, requestVerification, resolveReport, reviewBusiness, sav
 import { createApiKey, revokeApiKey, setPriceDataAccess } from "@/server/hub/priceindex";
 import { createPartner, lenderDecide, requestFinance, setPartnerActive, setPartnerStaff, withdrawFinance } from "@/server/hub/finance";
 import { recordCylinders, registerCylinders } from "@/server/hub/cylinders";
+import { addRecord, removeRecord, renewRecord, setInVendorPack } from "@/server/hub/compliance";
+import { addThreshold, removeThreshold } from "@/server/hub/thresholds";
+import { rateLimit } from "@/server/rate-limit";
 import { assignVisit, decideVisit, markPaid, setFieldAgent, submitVisit } from "@/server/hub/field";
 import { closeListing, createListing, sendEnquiry, setPromoted } from "@/server/hub/market";
 import { reportPrice } from "@/server/hub/prices";
@@ -286,4 +289,47 @@ export async function recordCylindersAction(_: HubState, f: FormData) {
   } catch (e) {
     return { error: message(e) };
   }
+}
+
+const dateOrNull = (f: FormData, k: string) => (str(f, k) ? new Date(str(f, k)) : null);
+
+async function fileOf(f: FormData) {
+  const file = f.get("file");
+  if (!(file instanceof File) || file.size === 0) return null;
+  return { name: file.name, data: Buffer.from(await file.arrayBuffer()) };
+}
+
+export async function addComplianceAction(_: HubState, f: FormData) {
+  return run(async (u) => {
+    if (!rateLimit(`vault:${u.id}`, 40, 60 * 60_000)) throw new AppError("Upload limit reached. Try again in an hour.");
+    await addRecord(u, {
+      kind: str(f, "kind"), title: str(f, "title"), number: str(f, "number"), issuer: str(f, "issuer"),
+      issuedOn: dateOrNull(f, "issuedOn"), expiresOn: dateOrNull(f, "expiresOn"), inVendorPack: f.get("inVendorPack") === "on",
+    }, await fileOf(f));
+  }, "Saved to your vault.");
+}
+
+export async function renewComplianceAction(_: HubState, f: FormData) {
+  return run(async (u) => {
+    if (!rateLimit(`vault:${u.id}`, 40, 60 * 60_000)) throw new AppError("Upload limit reached. Try again in an hour.");
+    const expires = dateOrNull(f, "expiresOn");
+    if (!expires) throw new AppError("Enter the new expiry date.");
+    await renewRecord(u, { id: str(f, "id"), issuedOn: dateOrNull(f, "issuedOn"), expiresOn: expires, number: str(f, "number") || undefined }, await fileOf(f));
+  }, "Renewal saved. Reminders will start again before the new date.");
+}
+
+export async function setInVendorPackAction(_: HubState, f: FormData) {
+  return run((u) => setInVendorPack(u, str(f, "id"), str(f, "include") === "1"), "Saved.");
+}
+
+export async function removeComplianceAction(_: HubState, f: FormData) {
+  return run((u) => removeRecord(u, str(f, "id")), "Removed.");
+}
+
+export async function addThresholdAction(_: HubState, f: FormData) {
+  return run((u) => addThreshold(u, { product: str(f, "product"), state: str(f, "state"), direction: str(f, "direction") as never, priceNgn: Number(str(f, "priceNgn").replace(/[^0-9]/g, "")) }), "Alert added.");
+}
+
+export async function removeThresholdAction(_: HubState, f: FormData) {
+  return run((u) => removeThreshold(u, str(f, "id")), "Alert removed.");
 }
