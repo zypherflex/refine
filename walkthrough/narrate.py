@@ -1,6 +1,6 @@
 """Synthesises walkthrough/narration.json into one WAV per line plus durations.json, using Kokoro (offline TTS).
 
-Usage: python narrate.py <kokoro-v1.0.onnx> <voices-v1.0.bin> <outDir>
+Usage: python narrate.py <kokoro-v1.0.onnx> <voices-v1.0.bin> <outDir> [narration.json]
 Model files: https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0
 """
 import json
@@ -12,7 +12,9 @@ from kokoro_onnx import Kokoro
 
 model, voices, out = sys.argv[1], sys.argv[2], pathlib.Path(sys.argv[3])
 out.mkdir(parents=True, exist_ok=True)
-lines = json.loads((pathlib.Path(__file__).parent / "narration.json").read_text())
+# An optional fourth argument names another narration file, e.g. admin-narration.json.
+script = pathlib.Path(sys.argv[4]) if len(sys.argv) > 4 else pathlib.Path(__file__).parent / "narration.json"
+lines = json.loads(script.read_text())
 kokoro = Kokoro(model, voices)
 durations = {}
 for line in lines:
