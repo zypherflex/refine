@@ -73,6 +73,8 @@ Both stores need a working sign-in to review the app. Create two reviewer accoun
 >
 > Location is requested only on the driver page (opened from a driver link a business sends), when the driver taps "Start sharing my location". To see it: sign in as the business reviewer, open Home gas orders, accept an order, create a driver link and open it. The customer then sees the driver on a live map on the order page.
 >
+> User-generated content (Guideline 1.2): every public station report has "Flag this report", and every station has "Something wrong with this place?". A report flagged by three different people is hidden until reviewed. Administrators review flags under Administration → Station reports, can hide or restore content, and can stop an account from reporting. Station reports are published without names, and business messages are private between the two businesses, with reporting and suspension on the trade hub.
+>
 > Push notifications are requested only when the user taps "Turn on notifications" under Account & plan.
 >
 > No digital goods are sold in the app. Paid plans exist only on the website and the app shows no prices or purchase links for them.

@@ -7,7 +7,7 @@ import { naira, priceItem } from "@/lib/hub/prices";
 import { EVERYDAY_LABEL, itemsSoldAt, outletKindLabel, problemLabel, queueLabel } from "@/lib/everyday";
 import { fmtDateTime } from "@/lib/format";
 import { Notice, PageHeader } from "@/components/ui";
-import { ReportForm } from "@/components/everyday/forms";
+import { FlagForm, ReportForm } from "@/components/everyday/forms";
 import { ShareButton } from "@/components/native/ShareButton";
 
 export const dynamic = "force-dynamic";
@@ -62,6 +62,7 @@ export default async function StationPage({ params, searchParams }: { params: Pr
                     <span className="font-medium">{r.kind === "PRICE" ? `${EVERYDAY_LABEL[r.item as keyof typeof EVERYDAY_LABEL]}: ${naira(r.priceNaira!)}` : r.kind === "AVAILABILITY" ? `${EVERYDAY_LABEL[r.item as keyof typeof EVERYDAY_LABEL]}: ${r.available ? `selling${r.queue ? `, ${queueLabel(r.queue).toLowerCase()}` : ""}` : "not selling"}` : problemLabel(r.problem)}</span>
                     {r.note && <span className="text-ink-700"> · “{r.note}”</span>}
                     <span className="block text-xs text-ink-500">{fmtDateTime(r.createdAt)}</span>
+                    {user && r.userId !== user.id && <FlagForm target="REPORT" id={r.id} outletId={o.id} label="Flag this report" />}
                   </li>
                 ))}
               </ul>
@@ -76,6 +77,7 @@ export default async function StationPage({ params, searchParams }: { params: Pr
           ) : (
             <p className="mt-2 text-sm text-ink-700"><Link href={`/login?next=/stations/${o.id}`}>Sign in</Link> or <Link href={`/register?next=/stations/${o.id}`}>join free</Link> to report. Reports are tied to an account so one person cannot flood a station with fake prices; your name is never shown.</p>
           )}
+          {user && <div className="mt-4 border-t border-ink-100 pt-3"><FlagForm target="OUTLET" id={o.id} outletId={o.id} label="Something wrong with this place?" /></div>}
         </aside>
       </div>
     </>

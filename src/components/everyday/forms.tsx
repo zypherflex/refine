@@ -1,12 +1,12 @@
 "use client";
 import { useActionState, useMemo, useState } from "react";
 import {
-  addCylinderAction, addOutletAction, advanceOrderAction, cancelOrderAction, logRefillAction, placeOrderAction, rateOrderAction, reportOutletAction,
+  addCylinderAction, addOutletAction, advanceOrderAction, cancelOrderAction, flagContentAction, logRefillAction, placeOrderAction, rateOrderAction, reportOutletAction,
   saveHomeDeliveryAction,
 } from "@/app/actions/everyday";
 import { NIGERIAN_STATES } from "@/lib/hub/catalog";
 import { naira, priceItem } from "@/lib/hub/prices";
-import { cngSavings, EVERYDAY_LABEL, HOME_CYLINDER_SIZES, OUTLET_KINDS, PROBLEMS, QUEUES, VEHICLES, type EverydayItem } from "@/lib/everyday";
+import { cngSavings, EVERYDAY_LABEL, HOME_CYLINDER_SIZES, OUTLET_FLAG_REASONS, OUTLET_KINDS, PROBLEMS, QUEUES, REPORT_FLAG_REASONS, VEHICLES, type EverydayItem } from "@/lib/everyday";
 import { FieldError } from "../ui";
 
 type State = { error?: string | null; ok?: string | null };
@@ -293,5 +293,28 @@ export function CngCalculator({ petrol, cng }: { petrol: number | null; cng: num
         )}
       </div>
     </div>
+  );
+}
+
+/** Flags a station report or the place itself for an administrator to review. */
+export function FlagForm({ target, id, outletId, label }: { target: "REPORT" | "OUTLET"; id: string; outletId: string; label: string }) {
+  const [state, action, pending] = useActionState(flagContentAction, {});
+  const reasons = target === "REPORT" ? REPORT_FLAG_REASONS : OUTLET_FLAG_REASONS;
+  if (state.ok) return <p className="text-xs text-brand-800" role="status">{state.ok}</p>;
+  return (
+    <details className="text-xs">
+      <summary className="cursor-pointer text-ink-500 hover:text-ink-800">{label}</summary>
+      <form action={action} className="mt-2 flex flex-wrap items-end gap-2">
+        <input type="hidden" name="target" value={target} />
+        <input type="hidden" name="id" value={id} />
+        <input type="hidden" name="outletId" value={outletId} />
+        <label className="sr-only" htmlFor={`fr-${id}`}>Reason</label>
+        <select id={`fr-${id}`} name="reason" className="input w-auto py-1 text-xs">{reasons.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}</select>
+        <label className="sr-only" htmlFor={`fn-${id}`}>Note</label>
+        <input id={`fn-${id}`} name="note" maxLength={300} placeholder="Details (optional)" className="input w-48 py-1 text-xs" />
+        <button className="btn-secondary btn-sm" disabled={pending}>Send</button>
+        <div className="w-full"><FieldError message={state.error} /></div>
+      </form>
+    </details>
   );
 }

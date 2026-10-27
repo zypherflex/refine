@@ -490,3 +490,27 @@ test("tracking: an old or made-up driver link explains itself", async ({ page })
   await page.goto("/drive/not-a-real-link-0000000000000000");
   await expect(page.getByRole("heading", { name: "This link does not work" })).toBeVisible();
 });
+
+test("moderation: a person flags a station report and an administrator reviews it @mobile", async ({ page }, testInfo) => {
+  // Each project flags as a different person, since a person can flag an item only once while it is open.
+  const flagger = testInfo.project.name === "mobile" ? "joy@refinerylens.test" : "halima@refinerylens.test";
+  const note = `Checked the pump myself (${testInfo.project.name})`;
+  await signIn(page, flagger);
+  await page.goto("/stations?state=Lagos");
+  await page.getByRole("link", { name: /Ikorodu Road Filling Station/ }).click();
+  const item = page.locator("li").filter({ hasText: "₦20 above the pump display" });
+  await item.getByText("Flag this report").click();
+  await item.getByLabel("Reason").selectOption("WRONG");
+  await item.getByLabel("Note").fill(note);
+  await item.getByRole("button", { name: "Send" }).click();
+  await expect(item.getByText("Thanks. An administrator will review it.")).toBeVisible();
+
+  await signIn(page, "admin@refinerylens.test");
+  await page.goto("/admin");
+  await page.getByRole("link", { name: /Station reports \(\d+\)/ }).click();
+  const card = page.locator("li.card").filter({ hasText: note });
+  await expect(card).toContainText("₦20 above the pump display");
+  await expect(card.getByRole("button", { name: "Stop this person reporting" })).toBeVisible();
+  await card.getByRole("button", { name: "Dismiss flags" }).click();
+  await expect(page.locator("li.card").filter({ hasText: note })).toHaveCount(0);
+});

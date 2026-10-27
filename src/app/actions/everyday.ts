@@ -2,13 +2,14 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ZodError } from "zod";
-import { requireUser } from "@/server/auth";
+import { requireRole, requireUser } from "@/server/auth";
 import { db } from "@/lib/db";
 import { AppError } from "@/lib/errors";
 import { NIGERIAN_STATES } from "@/lib/hub/catalog";
 import { addOutlet, reportOutlet } from "@/server/everyday/outlets";
 import { advanceOrder, cancelOrder, placeOrder, rateOrder, saveHomeDelivery } from "@/server/everyday/orders";
 import { addCylinder, deleteCylinder, logRefill, setReminder } from "@/server/everyday/cylinders";
+import { flagContent, resolveFlags, setReportingBlocked, type Resolution } from "@/server/everyday/moderation";
 
 export type ActionState = { error?: string | null; ok?: string | null };
 
@@ -167,4 +168,27 @@ export async function deleteCylinderAction(form: FormData) {
   const user = await requireUser();
   await deleteCylinder(user, text(form, "cylinderId"));
   revalidatePath("/my-gas");
+}
+
+export async function flagContentAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  try {
+    await flagContent(user, { target: text(form, "target") as "REPORT", id: text(form, "id"), reason: text(form, "reason"), note: text(form, "note") });
+  } catch (e) {
+    return { error: message(e) };
+  }
+  revalidatePath(`/stations/${text(form, "outletId")}`);
+  return { ok: "Thanks. An administrator will review it." };
+}
+
+export async function resolveFlagsAction(form: FormData) {
+  const admin = await requireRole("ADMIN");
+  await resolveFlags(admin, text(form, "target") as "REPORT" | "OUTLET", text(form, "id"), text(form, "resolution") as Resolution);
+  revalidatePath("/admin/everyday");
+}
+
+export async function setReportingBlockedAction(form: FormData) {
+  const admin = await requireRole("ADMIN");
+  await setReportingBlocked(admin, text(form, "userId"), text(form, "blocked") === "yes");
+  revalidatePath("/admin/everyday");
 }

@@ -22,8 +22,14 @@ export const outletInput = z.object({
   address: z.string().trim().max(200).default(""),
 });
 
+async function requireCanReport(actor: Actor) {
+  const u = await db.user.findUnique({ where: { id: actor.id }, select: { reportingBlocked: true } });
+  if (u?.reportingBlocked) throw new ForbiddenError("Your account can no longer add places or send reports. Contact support if you think this is a mistake.");
+}
+
 /** People add the stations and gas shops they use. Near-duplicates in the same area are refused. */
 export async function addOutlet(actor: Actor, raw: z.input<typeof outletInput>) {
+  await requireCanReport(actor);
   const input = outletInput.parse(raw);
   const today = await db.outlet.count({ where: { addedById: actor.id, createdAt: { gte: new Date(Date.now() - 86_400_000) } } });
   if (today >= 10) throw new AppError("You have added 10 places today. Try again tomorrow.");
@@ -55,6 +61,7 @@ async function statePrice(item: string, s: string, now = new Date()) {
 export async function reportOutlet(actor: Actor, outletId: string, raw: z.input<typeof reportInput>) {
   const outlet = await db.outlet.findUnique({ where: { id: outletId } });
   if (!outlet || outlet.hidden) throw new NotFoundError("Place not found");
+  await requireCanReport(actor);
   const input = reportInput.parse(raw);
   const since = new Date(Date.now() - 86_400_000);
   if ((await db.outletReport.count({ where: { userId: actor.id, createdAt: { gte: since } } })) >= DAILY_REPORT_LIMIT) {

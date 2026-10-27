@@ -169,3 +169,24 @@ export const ORDER_STATUS: Record<GasOrderStatus, { label: string; tone: string 
   DECLINED: { label: "Declined", tone: "bg-ink-100 text-ink-700" },
   CANCELLED: { label: "Cancelled", tone: "bg-ink-100 text-ink-700" },
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// Flagging station reports and places
+
+/** Different people whose open flags hide a report until an administrator reviews it. */
+export const AUTO_HIDE_FLAGS = 3;
+
+export const REPORT_FLAG_REASONS = [
+  { id: "WRONG", label: "Wrong or made up" },
+  { id: "ABUSIVE", label: "Abusive, or names a private person" },
+  { id: "SPAM", label: "Spam or advertising" },
+] as const;
+
+export const OUTLET_FLAG_REASONS = [
+  { id: "CLOSED", label: "Closed for good" },
+  { id: "DUPLICATE", label: "Listed twice" },
+  { id: "NOT_REAL", label: "Does not exist" },
+  { id: "WRONG_DETAILS", label: "Wrong name, area or address" },
+] as const;
+
+export const flagReasonLabel = (id: string) => [...REPORT_FLAG_REASONS, ...OUTLET_FLAG_REASONS].find((r) => r.id === id)?.label ?? id;

@@ -32,27 +32,29 @@ model Organization {
 }
 
 model User {
-  id             String        @id @default(cuid())
-  email          String        @unique
-  name           String
-  passwordHash   String
-  role           Role          @default(USER)
-  plan           Plan          @default(FREE)
-  organizationId String?
-  organization   Organization? @relation(fields: [organizationId], references: [id])
+  id               String        @id @default(cuid())
+  email            String        @unique
+  name             String
+  passwordHash     String
+  role             Role          @default(USER)
+  plan             Plan          @default(FREE)
+  organizationId   String?
+  organization     Organization? @relation(fields: [organizationId], references: [id])
   // Opt-in to email copies of alerts. Only offered when an email provider is configured.
-  emailAlerts    Boolean       @default(false)
+  emailAlerts      Boolean       @default(false)
   // Phone in international format (e.g. +2348012345678) for SMS or WhatsApp copies of alerts and the price digest.
-  phone          String?
-  textAlerts     Boolean       @default(false)
-  priceDigest    Boolean       @default(false)
+  phone            String?
+  textAlerts       Boolean       @default(false)
+  priceDigest      Boolean       @default(false)
   // State whose prices the morning digest covers.
-  digestState    String?
+  digestState      String?
   // Household users land on the everyday pages (prices, stations, gas orders); businesses on the trade hub.
-  audience       Audience      @default(BUSINESS)
+  audience         Audience      @default(BUSINESS)
   // State shown first on the everyday pages.
-  homeState      String?
-  createdAt      DateTime      @default(now())
+  homeState        String?
+  // Set by an administrator: the person can no longer add places or report at stations.
+  reportingBlocked Boolean       @default(false)
+  createdAt        DateTime      @default(now())
 
   sessions        Session[]
   theses          Thesis[]
@@ -75,6 +77,7 @@ model User {
   outletsAdded    Outlet[]
   gasOrders       GasOrder[]
   cylinders       GasCylinder[]
+  contentFlags    ContentFlag[]
 }
 
 enum Audience {
@@ -1251,24 +1254,25 @@ enum OutletKind {
 }
 
 model Outlet {
-  id        String         @id @default(cuid())
-  name      String
+  id           String         @id @default(cuid())
+  name         String
   // Brand on the forecourt, e.g. NNPC, MRS, Conoil, or an independent.
-  brand     String         @default("")
-  kind      OutletKind
-  state     String
+  brand        String         @default("")
+  kind         OutletKind
+  state        String
   // Neighbourhood or LGA, e.g. Surulere or Wuse 2.
-  area      String
-  address   String         @default("")
-  lat       Float?
-  lon       Float?
-  addedById String?
-  addedBy   User?          @relation(fields: [addedById], references: [id], onDelete: SetNull)
+  area         String
+  address      String         @default("")
+  lat          Float?
+  lon          Float?
+  addedById    String?
+  addedBy      User?          @relation(fields: [addedById], references: [id], onDelete: SetNull)
   // Hidden by an administrator (duplicate, closed or not real).
-  hidden    Boolean        @default(false)
-  isDemo    Boolean        @default(false)
-  createdAt DateTime       @default(now())
-  reports   OutletReport[]
+  hidden       Boolean        @default(false)
+  isDemo       Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  reports      OutletReport[]
+  contentFlags ContentFlag[]
 
   @@index([state, kind])
 }
@@ -1298,6 +1302,7 @@ model OutletReport {
   note       String           @default("")
   hidden     Boolean          @default(false)
   createdAt  DateTime         @default(now())
+  flags      ContentFlag[]
 
   @@index([outletId, createdAt])
   @@index([kind, item, createdAt])
@@ -1429,4 +1434,33 @@ model TripPing {
   recordedAt DateTime   @default(now())
 
   @@index([tripId, recordedAt])
+}
+
+// People flag station reports and places that are wrong or abusive; administrators review them. A report flagged by
+// several different people is hidden until reviewed. Places are only hidden by an administrator.
+enum FlagStatus {
+  OPEN
+  ACTIONED
+  DISMISSED
+}
+
+model ContentFlag {
+  id           String        @id @default(cuid())
+  // Exactly one of outletId (the place itself) or reportId (one report at it).
+  outletId     String?
+  outlet       Outlet?       @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  reportId     String?
+  report       OutletReport? @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  userId       String?
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  reason       String
+  note         String        @default("")
+  status       FlagStatus    @default(OPEN)
+  resolvedAt   DateTime?
+  resolvedById String?
+  createdAt    DateTime      @default(now())
+
+  @@index([status, createdAt])
+  @@index([reportId])
+  @@index([outletId])
 }
