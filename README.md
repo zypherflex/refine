@@ -6,6 +6,8 @@ RefineryLens turns company disclosures, filings and news into reviewed, plain-la
 
 The **business opportunities hub** maps 14 ways for businesses from micro to enterprise scale to plug into Dangote's Lekki complex: fuel retail and depots, tanker haulage, CNG and LPG, polypropylene conversion and resin distribution, Jet A-1, regional export, crude supply, modular refining, marine logistics and plant services. Each opportunity shows the company-stated facts it rests on, dated independent reports that help or hurt the case, questions to answer and licences to check, plus a sizing tool with visible formulas. Users keep a private opportunity board and saved scenarios. **Find my fit** asks for business size, areas of interest and assets the business already has, then ranks matching opportunities and shows why each is listed. Each opportunity has a **readiness checklist** (progress shows on the board), every sizing tool shows a **what-if table** (each key input moved ±10%), and users can download a **one-page PDF brief** with sources, readiness answers and a saved scenario. Behind it sits the evidence-first research layer (announcements, metrics, conflicts, theses, assistant), built from Dangote's public website.
 
+The **trade hub** (`/hub`) makes RefineryLens the trust and price layer of Nigerian energy trade: a directory of sellers, buyers, hauliers and refineries with **verification** by staff reviewers, reports and suspension; offers and requests with messages; a **price board** of seller-stated prices by state (medians only, across at least three sellers, with dates); a **gas network map** of LPG, CNG and pipeline-gas supply, delivery and demand by state, with gaps highlighted; **delivery jobs** (post a load, collect quotes, accept one, confirm delivery on both sides); and **recurring supply agreements** whose deliveries count only when both sides confirm them. **Plans and pricing** (`/plans`) lists the revenue lines that can start now (users register interest; no payment is taken) and marks escrow, trade finance and insurance as coming soon through licensed partners. RefineryLens never trades fuel, holds money or sets prices.
+
 Product copy says "Dangote", never "Dangote refinery" or the company's full refinery name; that is a standing product decision. The only exception is the hidden news search query in `prisma/seed-dangote.ts`. RefineryLens is not affiliated with, endorsed by or sponsored by Dangote or any Dangote company, the opportunities are analysis rather than offers, and nothing in it is investment or financial advice.
 
 ---
@@ -78,7 +80,11 @@ All demo accounts use the password **`RefineryLens-demo-2026`**.
 | `other@refinerylens.test` | Investor (Free plan) | A second investor, for checking that private files and theses are isolated |
 | `analyst@refinerylens.test` | Analyst | Drafting announcements and metrics in the editorial desk |
 | `editor@refinerylens.test` | Editor | Reviewing, publishing, correcting and retracting; approving sources and resolving conflicts |
+| `trader@refinerylens.test` | Trade hub seller and buyer | Ikeja Gas Hub (sample, verified): price reports, listings, gas sites, a recurring supply to the Lekki kiosks, a proposal waiting for acceptance |
+| `haulier@refinerylens.test` | Trade hub haulier | Eko Bobtail Logistics (sample, verified): quotes on delivery jobs and a delivered, confirmed job |
 | `admin@refinerylens.test` | Administrator | Users, roles, plans, jobs, audit log and integration status (but **not** users' private files) |
+
+The trade hub is seeded with 15 **sample businesses** (`prisma/seed-hub.ts`), all invented and labelled "Sample business" wherever they appear, with prices and dates relative to the seed time. Their owners sign in as `sample-<key>@sample.refinerylens.test` with the same password. Editors review hub businesses at **Hub review** (`/hub/review`).
 
 ### Two companies, deliberately different
 
@@ -145,7 +151,7 @@ Other features reuse the cached data through `src/server/opendata/index.ts`: `ge
 | Layer | Choice |
 | --- | --- |
 | Framework | Next.js 15 (App Router, React Server Components, server actions), React 19, TypeScript |
-| Styling | Tailwind CSS 3 with a green-and-white brand palette (`ink` neutrals, `brand` green), a green-white-green band and an adire-inspired pattern; Inter and Source Serif 4 self-hosted via Fontsource; Lucide icons. Times are shown in West Africa Time (Lagos) |
+| Styling | Tailwind CSS 3. Atlantic navy carries the structure (`ink`: #0B1530 sidebar and headings, Navy 800 #182A5A data marks, Mist #F3F5FC panels and table headers), Naija green #087C47 marks actions, verified businesses and links (`brand`), Signal amber #B7791F is for warnings only, white is the page; a thin green-white-green line is the single flag reference. Inter, Source Serif 4 and JetBrains Mono (for numbers) self-hosted via Fontsource; Lucide icons. Times are shown in West Africa Time (Lagos) |
 | Charts | Recharts, always with an accessible table alternative |
 | Database | PostgreSQL via Prisma 6; migrations in `prisma/migrations` |
 | Auth | Custom, see above. Chosen over an auth library to keep sessions server-side and auditable with no third-party dependency |
@@ -171,7 +177,7 @@ Uploads enqueue a `document.extract` job. By default the web process drains the 
 
 ## Screens
 
-Landing, sign-in and registration (signing in opens the opportunities hub); **Business opportunities** explorer with size and area filters, opportunity detail pages, **Sizing tools** (resale margin and payback, tanker haulage, polypropylene converter, import parity, modular refinery margin) and **My opportunity board** (private pipeline and saved scenarios); **Overview** dashboard; **Company profile**; **Announcements and news** with detail pages; **Financial reports**; **Operational indicators**; **Risk center**; **Market & macro context** (benchmarks, crack spread, Nigerian macro data); **Global refineries** (directory with West Africa filter); **My investment thesis** (list, create, edit, detail with versions and evidence review); **Research assistant** with saved conversations; **Watchlist and alerts**; **Source library** and document viewer; **Corrections log**; **Account and plan**; **Editorial desk** (announcements, documents, news leads, sources, conflicts); **Administration**.
+Landing, sign-in and registration (signing in opens the opportunities hub); **Trade hub** (overview, directory, business pages, offers and requests, price board, gas network map, delivery jobs and job pages, recurring supply and agreement pages, my business, hub review for editors); **Plans and pricing**; **Business opportunities** explorer with size and area filters, opportunity detail pages, **Sizing tools** (resale margin and payback, tanker haulage, polypropylene converter, import parity, modular refinery margin) and **My opportunity board** (private pipeline and saved scenarios); **Overview** dashboard; **Company profile**; **Announcements and news** with detail pages; **Financial reports**; **Operational indicators**; **Risk center**; **Market & macro context** (benchmarks, crack spread, Nigerian macro data); **Global refineries** (directory with West Africa filter); **My investment thesis** (list, create, edit, detail with versions and evidence review); **Research assistant** with saved conversations; **Watchlist and alerts**; **Source library** and document viewer; **Corrections log**; **Account and plan**; **Editorial desk** (announcements, documents, news leads, sources, conflicts); **Administration**.
 
 All screens are responsive from phone to desktop widths, keyboard navigable with visible focus and a skip link, and use semantic headings and labels.
 
@@ -188,6 +194,7 @@ These are enforced in code and covered by tests:
 - Corrections and retractions are logged publicly and alert watchers immediately.
 - Evidence suggestions never edit a user's thesis; the user accepts or dismisses them.
 - No share prices, tickers or offer deadlines are shown unless an editor has verified them against a primary source.
+- **Trade hub guardrails** (`src/lib/hub/rules.ts`). Price board: past prices only (never future or planned), charged within 30 days, sellers confirm each is a price actually charged, typo bounds per product, each seller counts once, medians published only from three or more sellers in the last 14 days, and no individual seller's price or range is ever shown; copy warns against using the board or messages to coordinate prices. Fraud: unverified businesses are labelled "Not verified" and never look official; names of well-known refiners and majors are shown as "Name hidden until verified"; changing a verified business's name, CAC or licence numbers removes the badge; suspension hides the business, its listings, prices and sites at once; advance-payment warnings appear on every trading screen. Data quality: listings expire after 30 days; gas sites are flagged after 60 days without reconfirmation and drop off after 180. Records: delivery jobs and supply deliveries count only once both sides confirm. Promoted listings are always labelled. Supply agreements and quotes are private to the parties.
 - Opportunities are RefineryLens analysis, never presented as Dangote offers. Their anchors are company-stated facts with page links; their context notes are dated reports with provenance labels. The catalogue states no opportunity sizes; sizing tools start empty, label example numbers as placeholders, prefill market data only from approved open-data series with attribution, and refuse inconsistent inputs. Saved scenarios store inputs only and are recalculated on display.
 
 ---
@@ -206,7 +213,9 @@ npm run test:e2e
 PLAYWRIGHT_CHROMIUM_PATH=/path/to/chromium npm run test:e2e
 ```
 
-Current results: **59 unit and integration tests** and **10 browser tests** (desktop and mobile) passing. They cover calculations and comparability, upload validation and extraction, permissions, the publication and correction workflow (including an editor publishing and correcting in the browser, and the update reaching a reader's thesis), alerts, email delivery and digests, S3 storage, private-file isolation (database, assistant and HTTP), assistant citations and insufficient-evidence handling, honest unavailable states for Dangote, and no horizontal scrolling on mobile.
+GitHub Actions (`.github/workflows/ci.yml`) runs all of this on every pull request and push to `main`: typecheck, lint, unit and integration tests against PostgreSQL 16, then a seeded production build and the browser tests.
+
+Current results: **115 unit and integration tests** and **24 browser tests** (desktop and mobile) passing. They cover calculations and comparability, upload validation and extraction, permissions, the publication and correction workflow (including an editor publishing and correcting in the browser, and the update reaching a reader's thesis), alerts, email delivery and digests, S3 storage, private-file isolation (database, assistant and HTTP), assistant citations and insufficient-evidence handling, honest unavailable states for Dangote, and no horizontal scrolling on mobile.
 
 ---
 

@@ -46,9 +46,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-white">
       <div className="relative overflow-hidden bg-ink-950 text-white">
-        <div aria-hidden className="band-ng h-1.5 w-full" />
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_85%_10%,rgba(47,191,120,0.28),transparent_60%),radial-gradient(40%_60%_at_0%_100%,rgba(123,219,167,0.12),transparent_70%)]" />
-        <div aria-hidden className="bg-adire pointer-events-none absolute inset-0 opacity-[0.05] [mask-image:radial-gradient(80%_70%_at_70%_30%,#000,transparent)]" />
+        <div aria-hidden className="band-ng h-[3px] w-full" />
         <header className="relative mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-8">
           <Logo light />
           <nav className="flex items-center gap-2 text-sm">
@@ -59,7 +57,6 @@ export default async function Home() {
         <main className="relative mx-auto grid max-w-6xl gap-12 px-4 pb-16 pt-10 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:pb-20 lg:pt-16">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-brand-300">
-              <span aria-hidden className="band-ng h-2 w-4 rounded-sm" />
               Independent business intelligence for Nigeria's downstream
             </p>
             <h1 className="mt-6 font-serif text-[2.5rem] font-semibold leading-[1.08] tracking-tight text-white sm:text-6xl">
@@ -81,7 +78,6 @@ export default async function Home() {
 
           {sizeClaims.length === 2 ? (
             <figure aria-label="Example: two company statements about size, shown side by side" className="relative">
-              <div className="absolute -inset-4 rounded-3xl bg-brand-400/10 blur-2xl" aria-hidden />
               <div className="relative rounded-2xl border border-white/10 bg-white p-5 text-ink-900 shadow-2xl sm:p-6">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[11px] font-medium">Company-disclosed</span>
@@ -111,6 +107,27 @@ export default async function Home() {
         )}
       </div>
 
+      <section aria-labelledby="hub-h" className="border-b border-ink-100 bg-ink-50">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-8">
+          <p className="eyebrow">Trade hub</p>
+          <h2 id="hub-h" className="mt-2 max-w-3xl font-serif text-3xl font-semibold tracking-tight">Nigeria&apos;s first stop for oil and gas trade.</h2>
+          <p className="mt-3 max-w-2xl text-ink-600">Small businesses and industrial buyers find fuel and gas, check who they are dealing with and book delivery. RefineryLens never sells fuel, holds money or sets prices.</p>
+          <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ["Verified", "Know who you are dealing with before money moves. Reviewers check registration, licences and phone."],
+              ["Priced", "What LPG, diesel, petrol and CNG really cost today, by state: medians of seller-stated prices, with dates."],
+              ["Delivered", "Post a load, collect quotes, accept one, and confirm delivery on both sides. Track recurring supply."],
+              ["Financed", "Coming with licensed partners: confirmed delivery records as the basis for escrow and stock finance."],
+            ].map(([t, d]) => (
+              <li key={t} className="rounded-2xl border border-ink-100 bg-white p-5">
+                <h3 className="font-semibold text-ink-950">{t}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-ink-600">{d}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
       <section aria-labelledby="ng" className="border-b border-ink-100">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-8">
           <p className="eyebrow">Lekki to world markets</p>
@@ -118,7 +135,7 @@ export default async function Home() {
           <ul className="mt-10 grid gap-5 sm:grid-cols-2">
             {nigeriaQuestions.map(([t, d]) => (
               <li key={t} className="relative overflow-hidden rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
-                <span aria-hidden className="absolute inset-x-0 top-0 h-1 bg-brand-600" />
+                <span aria-hidden className="absolute inset-x-0 top-0 h-1 bg-ink-800" />
                 <h3 className="font-semibold">{t}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-ink-600">{d}</p>
               </li>
@@ -181,7 +198,6 @@ export default async function Home() {
 
       <section aria-labelledby="coverage" className="mx-auto max-w-6xl px-4 pb-20 sm:px-8">
         <div className="relative overflow-hidden rounded-2xl bg-ink-950 p-8 text-white sm:p-12">
-          <div aria-hidden className="bg-adire pointer-events-none absolute inset-0 opacity-[0.05]" />
           <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
             <div>
               <p className="eyebrow text-brand-300">Coverage</p>

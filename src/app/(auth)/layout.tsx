@@ -5,9 +5,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="grid min-h-screen bg-white lg:grid-cols-[1fr_1.05fr]">
       <aside className="relative hidden overflow-hidden bg-ink-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_100%_0%,rgba(47,191,120,0.30),transparent_60%)]" />
-        <div aria-hidden className="bg-adire pointer-events-none absolute inset-0 opacity-[0.05]" />
-        <div aria-hidden className="band-ng absolute inset-x-0 top-0 h-1.5" />
+        <div aria-hidden className="band-ng absolute inset-x-0 top-0 h-[3px]" />
         <Link href="/" className="relative no-underline hover:no-underline"><Logo light /></Link>
         <blockquote className="relative max-w-md">
           <p className="font-serif text-3xl font-semibold leading-snug tracking-tight">“Show me what changed, what supports it, and what we still don’t know.”</p>
