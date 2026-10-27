@@ -9,6 +9,7 @@ import { HOME_CYLINDER_SIZES } from "@/lib/everyday";
 import { audit } from "../audit";
 import { createAlert } from "../services/alerts";
 import { requireMyBusiness } from "../hub/business";
+import { endTripFor } from "../tracking";
 
 const state = z.string().refine((s) => (NIGERIAN_STATES as readonly string[]).includes(s), "Choose a Nigerian state");
 
@@ -102,7 +103,7 @@ export async function myOrders(actor: Actor) {
 
 export async function sellerOrders(actor: Actor) {
   const b = await requireMyBusiness(actor);
-  return db.gasOrder.findMany({ where: { businessId: b.id }, orderBy: [{ createdAt: "desc" }], take: 100, include: { user: { select: { name: true } } } });
+  return db.gasOrder.findMany({ where: { businessId: b.id }, orderBy: [{ createdAt: "desc" }], take: 100, include: { user: { select: { name: true } }, trip: { select: { status: true } } } });
 }
 
 const STEP: Record<string, { from: GasOrderStatus[]; to: GasOrderStatus; title: string }> = {
@@ -127,6 +128,7 @@ export async function advanceOrder(actor: Actor, id: string, step: keyof typeof 
   }
   if (step === "deliver") data.deliveredAt = new Date();
   const updated = await db.gasOrder.update({ where: { id }, data });
+  if (step === "deliver" || step === "decline") await endTripFor({ kind: "GAS_ORDER", id });
   const body =
     step === "accept" ? `${o.business.name} will deliver. Pay ${naira(data.priceNaira!)} on delivery.`
     : step === "decline" ? `${o.business.name} cannot deliver this order${data.sellerNote ? `: ${data.sellerNote}` : "."} Try another seller.`
@@ -143,6 +145,7 @@ export async function cancelOrder(actor: Actor, id: string) {
   if (o.userId !== actor.id) throw new ForbiddenError();
   if (!["PLACED", "ACCEPTED"].includes(o.status)) throw new AppError("This order can no longer be cancelled here. Call the seller.");
   await db.gasOrder.update({ where: { id }, data: { status: "CANCELLED" } });
+  await endTripFor({ kind: "GAS_ORDER", id });
   await createAlert({ userId: o.business.ownerId, kind: "GAS_ORDER", title: "A gas order was cancelled", body: `${o.cylinders} × ${o.cylinderKg} kg to ${o.area}.`, link: "/hub/orders", dedupeKey: `order:cancel:${o.id}` });
   await audit(actor.id, "gas_order.cancel", "GasOrder", id);
 }

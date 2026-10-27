@@ -8,6 +8,8 @@ import { fmtDate, fmtDateTime } from "@/lib/format";
 import { QuoteForm } from "@/components/hub/opsForms";
 import { DemoTag, SafetyNote, VerificationBadge } from "@/components/hub/parts";
 import { Notice, PageHeader, Pill } from "@/components/ui";
+import { DriverLinkForm } from "@/components/tracking/DriverLinkForm";
+import { LiveMap } from "@/components/tracking/LiveMap";
 
 export const metadata = { title: "Delivery job" };
 
@@ -51,8 +53,12 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
               {((isPoster && !job.posterConfirmedAt) || (isCarrier && !job.carrierConfirmedAt)) && (
                 <form action={confirmJobAction}><input type="hidden" name="jobId" value={job.id} /><button className="btn-primary btn-sm">{isPoster ? "Confirm the load arrived" : "Confirm I delivered the load"}</button></form>
               )}
+              {isCarrier && <DriverLinkForm kind="DELIVERY_JOB" id={job.id} hasLink={!!job.trip} compact={!!job.trip} />}
               <p className="text-xs text-ink-600">Message each other from the <Link href={`/hub/businesses/${isPoster ? accepted.carrier.id : job.poster.id}`}>business profile</Link> to arrange pickup.</p>
             </section>
+          )}
+          {(job.status === "AWARDED" || (job.status === "DELIVERED" && job.trip)) && (isPoster || isCarrier) && (
+            <LiveMap kind="job" id={job.id} waitingText={isCarrier ? "Create a driver link above and send it to your driver to show the truck here." : "When the carrier's driver starts sharing their location, you will see the truck here."} />
           )}
           {job.status === "DELIVERED" && <Notice tone="ok" title="Delivered">Both sides confirmed this delivery. It counts towards the carrier&apos;s record.</Notice>}
           {job.status === "CANCELLED" && <Notice title="Cancelled">The business cancelled this job.</Notice>}

@@ -8,6 +8,7 @@ import { sendDueAlertPushes } from "../src/server/services/alert-push";
 import { getPushSender } from "../src/server/connect/push";
 import { getMailer } from "../src/server/email";
 import { sendRefillReminders } from "../src/server/everyday/cylinders";
+import { tidyTrips } from "../src/server/tracking";
 import { scheduleIngestionIfDue } from "../src/server/opendata/ingest";
 
 const EMAIL_INTERVAL_MS = 60_000;
@@ -27,6 +28,7 @@ async function loop() {
       lastEmail = Date.now();
       // Refill reminders become alerts first, so the email, push and text passes below deliver them straight away.
       await sendRefillReminders().catch((e) => console.error("refill reminder error", e));
+      await tidyTrips().catch((e) => console.error("trip tidy error", e));
       await sendDueAlertEmails().catch((e) => console.error("alert email error", e));
       if (getPushSender()) await sendDueAlertPushes().catch((e) => console.error("push error", e));
       if (getTextSender()) {

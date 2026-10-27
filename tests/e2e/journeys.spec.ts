@@ -452,3 +452,41 @@ test("everyday: a household reports a queue, logs a refill, orders gas and the s
   await expect(page.getByText("₦16,800")).toBeVisible();
   await expect(page.getByText("Accepted (now)")).toBeVisible();
 });
+
+test("tracking: the seller sends a driver link, the driver shares GPS, and the customer follows on the map @mobile", async ({ page, browser }) => {
+  await signIn(page, "seller@refinerylens.test");
+  await page.goto("/hub/orders");
+  const card = page.locator("li.card").filter({ hasText: "for Tunde Household" }).filter({ hasText: "6 kg" });
+  const orderPath = await card.locator('a[href^="/orders/"]').first().getAttribute("href");
+  await card.getByText(/Driver link|Track the driver live/).click();
+  await card.getByLabel("Driver's name").fill("Ade Rider");
+  await card.getByLabel(/Driver's phone/).fill("08030001111");
+  await card.getByRole("button", { name: "Create driver link" }).click();
+  const link = await card.getByLabel("Driver link").inputValue();
+  expect(link).toMatch(/\/drive\/[A-Za-z0-9_-]+$/);
+  await expect(card.getByRole("link", { name: /Send by WhatsApp/ })).toHaveAttribute("href", /wa\.me/);
+
+  // The driver opens the link on their own phone, with no account, and shares their position.
+  const phone = await browser.newContext({ geolocation: { latitude: 6.55, longitude: 3.355 }, permissions: ["geolocation"] });
+  const driver = await phone.newPage();
+  await driver.goto(link);
+  await expect(driver.getByRole("heading", { name: "Hello Ade Rider" })).toBeVisible();
+  await expect(driver.getByText(/Adeniran|Demo Close/)).toBeVisible();
+  await driver.getByRole("button", { name: "Start sharing my location" }).click();
+  await expect(driver.getByText("Sharing your location")).toBeVisible();
+  await expect(driver.getByText(/Last sent/)).toBeVisible();
+  await phone.close();
+
+  await signIn(page, "tunde@refinerylens.test");
+  await page.goto(orderPath!);
+  await expect(page.getByRole("heading", { name: "Live tracking" })).toBeVisible();
+  await expect(page.getByText(/Ade Rider is on the way, [\d.]+ km away/)).toBeVisible();
+  await expect(page.getByRole("link", { name: "Call Ade Rider" })).toHaveAttribute("href", "tel:08030001111");
+  await expect(page.getByRole("img", { name: /Map showing the driver's position/ })).toBeVisible();
+});
+
+test("tracking: an old or made-up driver link explains itself", async ({ page }) => {
+  await page.context().clearCookies();
+  await page.goto("/drive/not-a-real-link-0000000000000000");
+  await expect(page.getByRole("heading", { name: "This link does not work" })).toBeVisible();
+});

@@ -903,6 +903,7 @@ model HubBusiness {
   buyerAgreements  SupplyAgreement[] @relation("AgreementBuyer")
   sellerAgreements SupplyAgreement[] @relation("AgreementSeller")
   gasOrders        GasOrder[]
+  driverTrips      DriverTrip[]
 
   // Home delivery of LPG refills to households. Only verified sellers receive orders.
   homeDelivery     Boolean  @default(false)
@@ -1118,6 +1119,7 @@ model DeliveryJob {
   updatedAt          DateTime          @updatedAt
 
   quotes DeliveryQuote[]
+  trip   DriverTrip?
 
   @@index([status, pickupDate])
 }
@@ -1335,6 +1337,7 @@ model GasOrder {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   deliveredAt   DateTime?
+  trip          DriverTrip?
 
   @@index([userId, createdAt])
   @@index([businessId, status])
@@ -1367,4 +1370,63 @@ model CylinderRefill {
   createdAt  DateTime    @default(now())
 
   @@index([cylinderId, filledAt])
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Live driver tracking. The seller (gas orders) or carrier (delivery jobs) sends its driver a private link; the
+// driver opens it on any phone and shares their position while the page is open. The customer or job poster sees a
+// live map. Sharing stops when the delivery ends, and positions are deleted a week after the trip ends.
+
+enum TripStatus {
+  WAITING
+  LIVE
+  ENDED
+}
+
+model DriverTrip {
+  id            String       @id @default(cuid())
+  gasOrderId    String?      @unique
+  gasOrder      GasOrder?    @relation(fields: [gasOrderId], references: [id], onDelete: Cascade)
+  deliveryJobId String?      @unique
+  deliveryJob   DeliveryJob? @relation(fields: [deliveryJobId], references: [id], onDelete: Cascade)
+  // The business whose driver it is: the seller of a gas order or the carrier of a delivery job.
+  businessId    String
+  business      HubBusiness  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  driverName    String
+  driverPhone   String       @default("")
+  // Only a hash of the driver link's secret is stored. A new link replaces the old one.
+  tokenHash     String       @unique
+  status        TripStatus   @default(WAITING)
+  startedAt     DateTime?
+  endedAt       DateTime?
+  lastLat       Float?
+  lastLon       Float?
+  lastAccuracy  Float?
+  lastSpeed     Float?
+  lastAt        DateTime?
+  // Where the load is going, when it could be placed on the map. Approximate.
+  destLat       Float?
+  destLon       Float?
+  destLabel     String       @default("")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  pings         TripPing[]
+
+  @@index([status, endedAt])
+}
+
+model TripPing {
+  id         String     @id @default(cuid())
+  tripId     String
+  trip       DriverTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  lat        Float
+  lon        Float
+  // Metres, as the phone reports it.
+  accuracy   Float?
+  // Metres per second and degrees from north, when the phone reports them.
+  speed      Float?
+  heading    Float?
+  recordedAt DateTime   @default(now())
+
+  @@index([tripId, recordedAt])
 }

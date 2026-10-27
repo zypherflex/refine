@@ -7,6 +7,7 @@ import { LOCATIONS, PRODUCTS, UNITS } from "@/lib/hub/catalog";
 import { audit } from "../audit";
 import { createAlert } from "../services/alerts";
 import { canSeeBusiness, requireMyBusiness } from "./business";
+import { endTripFor } from "../tracking";
 
 /**
  * Delivery jobs: a business posts a load, delivery partners quote, the poster accepts one quote, and the job counts
@@ -78,7 +79,7 @@ export async function myJobs(actor: Actor) {
  * while it is open. Carrier details of the accepted quote are shown to both parties.
  */
 export async function getJob(viewer: Actor, id: string) {
-  const job = await db.deliveryJob.findUnique({ where: { id }, include: { poster: true, quotes: { include: { carrier: true }, orderBy: { priceNaira: "asc" } } } });
+  const job = await db.deliveryJob.findUnique({ where: { id }, include: { poster: true, trip: { select: { status: true } }, quotes: { include: { carrier: true }, orderBy: { priceNaira: "asc" } } } });
   if (!job) throw new NotFoundError("Job not found");
   const isPoster = job.poster.ownerId === viewer.id;
   const myQuote = job.quotes.find((q) => q.carrier.ownerId === viewer.id) ?? null;
@@ -141,6 +142,7 @@ export async function cancelJob(actor: Actor, jobId: string) {
   if (job.status === "DELIVERED" || job.status === "CANCELLED") throw new AppError("This job is already closed.");
   await db.deliveryJob.update({ where: { id: jobId }, data: { status: "CANCELLED" } });
   await db.deliveryQuote.updateMany({ where: { jobId, status: "PENDING" }, data: { status: "DECLINED" } });
+  await endTripFor({ kind: "DELIVERY_JOB", id: jobId });
 }
 
 /** Poster or carrier confirms the delivery; the job becomes delivered when both have. */
@@ -153,6 +155,7 @@ export async function confirmDelivered(actor: Actor, jobId: string) {
   const carrierConfirmedAt = isCarrier ? now : job.carrierConfirmedAt;
   const done = !!posterConfirmedAt && !!carrierConfirmedAt;
   await db.deliveryJob.update({ where: { id: jobId }, data: { posterConfirmedAt, carrierConfirmedAt, ...(done ? { status: "DELIVERED" } : {}) } });
+  if (done) await endTripFor({ kind: "DELIVERY_JOB", id: jobId });
   const other = isPoster ? accepted.carrier.ownerId : job.poster.ownerId;
   await createAlert({ userId: other, kind: "HUB_JOB", title: done ? "Delivery confirmed by both sides" : "Delivery marked as done", body: done ? `“${job.title}” is complete.` : `Confirm “${job.title}” on the job page if the load arrived.`, link: `/hub/jobs/${job.id}`, dedupeKey: `job-confirm:${jobId}:${isPoster ? "p" : "c"}` });
   return done;

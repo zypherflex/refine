@@ -8,6 +8,7 @@ import { ORDER_STATUS } from "@/lib/everyday";
 import { fmtDateTime } from "@/lib/format";
 import { Notice, PageHeader } from "@/components/ui";
 import { CancelOrderForm, RateForm } from "@/components/everyday/forms";
+import { LiveMap } from "@/components/tracking/LiveMap";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Gas order" };
@@ -29,6 +30,9 @@ export default async function OrderDetailPage({ params, searchParams }: { params
       <p className="mb-2 text-sm"><Link href={isCustomer ? "/my-gas" : "/hub/orders"}>← {isCustomer ? "My gas" : "Gas orders"}</Link></p>
       <PageHeader eyebrow="Gas order" title={`${o.cylinders} × ${o.cylinderKg} kg refill`} subtitle={`From ${o.business.name} · placed ${fmtDateTime(o.createdAt)}`} actions={<span className={`rounded-full px-3 py-1 text-sm font-medium ${ORDER_STATUS[o.status].tone}`}>{ORDER_STATUS[o.status].label}</span>} />
       {placed && <div className="mb-4"><Notice tone="ok" title="Order placed">{o.business.name} has been told. You will get an alert when they accept, with the price to pay on delivery.</Notice></div>}
+      {["ACCEPTED", "OUT_FOR_DELIVERY", "DELIVERED"].includes(o.status) && (
+        <div className="mb-6"><LiveMap kind="gas-order" id={o.id} waitingText={isCustomer ? "When the seller's driver starts sharing their location, you will see them on a map here." : "Send your driver a link from Home gas orders to show their location here."} /></div>
+      )}
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <section className="card">
           {at >= 0 ? (

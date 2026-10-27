@@ -10,6 +10,7 @@ Answers for Google Play's **Data safety** form and the App Store's **App Privacy
 
 | Data type | Collected | Shared | Optional? | Purposes |
 | --- | --- | --- | --- | --- |
+| Location: Precise location | Yes, from drivers only, while they share from a driver link | Yes, with the customer or business receiving that delivery | Optional | App functionality |
 | Personal info: Name | Yes | No | Required | Account management, app functionality |
 | Personal info: Email address | Yes | No | Required | Account management, app functionality |
 | Personal info: Phone number | Yes | Yes, with the seller a user orders gas from | Optional (SMS or WhatsApp alerts; required to order gas) | App functionality |
@@ -22,7 +23,7 @@ Answers for Google Play's **Data safety** form and the App Store's **App Privacy
 | Financial info: Other financial info (gas order amounts, refill prices on the tracker) | Yes | No | Optional | App functionality |
 | Device or other IDs (push notification token) | Yes | No | Optional | App functionality |
 
-Not collected: device location (people choose their state and type their delivery address), contacts, calendar, photos from the camera, audio, health, web browsing, app interactions for analytics, crash logs through a third-party SDK, advertising ID.
+Location is collected only from a driver who opens a driver link and taps "Start sharing", in the foreground, and is deleted 7 days after the delivery ends. Approximate location is not collected separately. Not collected: contacts, calendar, photos from the camera, audio, health, web browsing, app interactions for analytics, crash logs through a third-party SDK, advertising ID.
 
 "Shared" means transferred to a third party for its own use. A gas order's address and phone go to the seller the user chose, to deliver it, which Google counts as sharing initiated by the user; declare it as shared for app functionality. Paystack, the SMS and WhatsApp providers, Dojah, Firebase/APNs and OpenStreetMap act as service providers processing data on RefineryLens's behalf, which Google's form does not count as sharing.
 
@@ -33,6 +34,7 @@ Not collected: device location (people choose their state and type their deliver
 
 | Category | Data type | Linked to the user | Used for tracking | Purposes |
 | --- | --- | --- | --- | --- |
+| Location | Precise Location (drivers sharing a delivery) | Yes | No | App Functionality |
 | Contact Info | Name | Yes | No | App Functionality |
 | Contact Info | Email Address | Yes | No | App Functionality |
 | Contact Info | Phone Number | Yes | No | App Functionality |
@@ -42,3 +44,8 @@ Not collected: device location (people choose their state and type their deliver
 | Purchases | Purchase History (website plans) | Yes | No | App Functionality |
 | Identifiers | User ID | Yes | No | App Functionality |
 | Other Data | Business registration and licence details | Yes | No | App Functionality |
+
+## Location permission notes
+
+- **Google Play:** the app requests `ACCESS_FINE_LOCATION` and `ACCESS_COARSE_LOCATION` only, never background location, so the background location declaration is not needed. Describe the feature as "Drivers share their location during a delivery so the customer can follow it".
+- **App Store:** `NSLocationWhenInUseUsageDescription` explains the purpose; there is no "Always" permission. In App Review notes, explain that location is used only on the driver page.

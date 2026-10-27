@@ -14,15 +14,14 @@ export function geocoderConfigured() {
 
 let lastCall = 0;
 
-export async function geocodeSite(siteId: string) {
+/** Looks up a place in Nigeria, one request at a time. Null when no geocoder is set up or nothing plausible matched. */
+export async function geocodePlace(parts: string[]): Promise<{ lat: number; lon: number } | null> {
   if (!geocoderConfigured()) return null;
-  const s = await db.gasSite.findUnique({ where: { id: siteId } });
-  if (!s) return null;
   const wait = lastCall + 1100 - Date.now();
   if (wait > 0) await new Promise((r) => setTimeout(r, wait));
   lastCall = Date.now();
   const base = (process.env.NOMINATIM_URL ?? "https://nominatim.openstreetmap.org").replace(/\/$/, "");
-  const q = new URLSearchParams({ format: "jsonv2", countrycodes: "ng", limit: "1", q: [s.town, s.state.replace("FCT Abuja", "Abuja"), "Nigeria"].filter(Boolean).join(", ") });
+  const q = new URLSearchParams({ format: "jsonv2", countrycodes: "ng", limit: "1", q: [...parts.map((p) => p.replace("FCT Abuja", "Abuja")), "Nigeria"].filter(Boolean).join(", ") });
   const res = await callJson<{ lat: string; lon: string }[]>("Nominatim", `${base}/search?${q}`, {
     headers: { "User-Agent": `RefineryLens/1.0 (${process.env.NOMINATIM_EMAIL})`, Accept: "application/json" },
   });
@@ -32,8 +31,15 @@ export async function geocodeSite(siteId: string) {
   const lon = Number(hit.lon);
   // Nigeria's bounding box, roughly; anything outside is a bad match.
   if (!(lat > 4 && lat < 14 && lon > 2.5 && lon < 15)) return null;
-  await db.gasSite.update({ where: { id: siteId }, data: { lat, lon } });
   return { lat, lon };
+}
+
+export async function geocodeSite(siteId: string) {
+  const s = await db.gasSite.findUnique({ where: { id: siteId } });
+  if (!s) return null;
+  const hit = await geocodePlace([s.town, s.state]);
+  if (hit) await db.gasSite.update({ where: { id: siteId }, data: hit });
+  return hit;
 }
 
 export const osmLink = (lat: number, lon: number) => `https://www.openstreetmap.org/?mlat=${lat.toFixed(5)}&mlon=${lon.toFixed(5)}#map=13/${lat.toFixed(5)}/${lon.toFixed(5)}`;

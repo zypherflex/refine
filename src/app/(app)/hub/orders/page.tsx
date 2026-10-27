@@ -7,6 +7,7 @@ import { ORDER_STATUS } from "@/lib/everyday";
 import { fmtDateTime } from "@/lib/format";
 import { EmptyState, Notice, PageHeader } from "@/components/ui";
 import { HomeDeliveryForm, OrderStepForm } from "@/components/everyday/forms";
+import { DriverLinkForm } from "@/components/tracking/DriverLinkForm";
 
 export const metadata = { title: "Home gas orders" };
 
@@ -41,6 +42,12 @@ export default async function SellerOrdersPage() {
                   {o.status === "ACCEPTED" && <><OrderStepForm orderId={o.id} step="dispatch" /><OrderStepForm orderId={o.id} step="deliver" /></>}
                   {o.status === "OUT_FOR_DELIVERY" && <OrderStepForm orderId={o.id} step="deliver" />}
                 </div>
+                {o.status !== "PLACED" && (
+                  <div className="mt-3 space-y-2">
+                    <DriverLinkForm kind="GAS_ORDER" id={o.id} hasLink={!!o.trip} compact />
+                    {o.trip && <p className="text-xs text-ink-600">Driver {o.trip.status === "LIVE" ? "is sharing their location" : o.trip.status === "WAITING" ? "has a link but is not sharing yet" : "stopped sharing"}. <Link href={`/orders/${o.id}`}>Watch on the map</Link></p>}
+                  </div>
+                )}
               </li>
             ))}
           </ul>

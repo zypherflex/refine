@@ -31,13 +31,13 @@ Copy these into Google Play Console and App Store Connect. Character limits are 
 > Log your refills and RefineryLens works out how long your cylinder lasts, then reminds you a few days before it runs out.
 >
 > GAS REFILLS TO YOUR DOOR
-> Order from sellers RefineryLens has verified. The seller confirms the price, you track the order, and you pay the rider in cash or by transfer when the gas arrives. No payment in advance.
+> Order from sellers RefineryLens has verified. The seller confirms the price, you follow the rider live on a map with an arrival time, and you pay in cash or by transfer when the gas arrives. No payment in advance.
 >
 > SHOULD YOU CONVERT TO CNG?
 > Put in how far you drive and today's prices to see your monthly saving on a car, bus or keke, and how fast a conversion pays for itself.
 >
 > FOR FUEL AND GAS BUSINESSES
-> A trade hub for depots, marketers, refill plants, hauliers and refineries: state price medians, verified suppliers, a map of the gas network, delivery jobs with quotes, regular supply agreements, private business messages and home-delivery orders from households.
+> A trade hub for depots, marketers, refill plants, hauliers and refineries: state price medians, verified suppliers, a map of the gas network, delivery jobs with quotes, regular supply agreements, private business messages, home-delivery orders from households, and live GPS tracking of your drivers and trucks.
 >
 > RefineryLens is free for households. Prices are reports from the public and sellers, not promises from any seller. RefineryLens is not affiliated with NNPC, Dangote or any company listed.
 
@@ -70,6 +70,8 @@ Both stores need a working sign-in to review the app. Create two reviewer accoun
 > The app opens on Today's prices, which work without signing in. The tabs at the bottom are Today, Stations (report a price, queue or problem at a station), My gas (cylinder tracker and refill reminders), Order gas (refill from verified sellers, paid in cash or transfer to the rider on delivery: physical goods, so no in-app purchase) and CNG savings. The business trade hub is under "Business hub" for business accounts.
 >
 > Household reviewer account: reviewer-home@<your domain> / <password> (create it with "Me and my home" and a state with sellers).
+>
+> Location is requested only on the driver page (opened from a driver link a business sends), when the driver taps "Start sharing my location". To see it: sign in as the business reviewer, open Home gas orders, accept an order, create a driver link and open it. The customer then sees the driver on a live map on the order page.
 >
 > Push notifications are requested only when the user taps "Turn on notifications" under Account & plan.
 >
