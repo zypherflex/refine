@@ -9,7 +9,7 @@ import { getTextSender, normalisePhone, type TextSender } from "../connect/text"
  * a once-a-day price digest for their state. Research alerts stay in-app and email; texts cost money per message.
  */
 
-const TEXTED_KINDS = ["HUB_MESSAGE", "HUB_JOB", "HUB_SUPPLY", "HUB_VERIFICATION"];
+const TEXTED_KINDS = ["HUB_MESSAGE", "HUB_JOB", "HUB_SUPPLY", "HUB_VERIFICATION", "HUB_LISTING", "GAS_ORDER", "REFILL_DUE"];
 
 export async function sendDueAlertTexts(now = new Date(), sender: TextSender | null = getTextSender()) {
   if (!sender) return { sent: 0 };

@@ -191,4 +191,5 @@ export async function setReportingBlockedAction(form: FormData) {
   const admin = await requireRole("ADMIN");
   await setReportingBlocked(admin, text(form, "userId"), text(form, "blocked") === "yes");
   revalidatePath("/admin/everyday");
+  revalidatePath(`/admin/users/${text(form, "userId")}`);
 }

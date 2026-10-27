@@ -507,10 +507,57 @@ test("moderation: a person flags a station report and an administrator reviews i
 
   await signIn(page, "admin@refinerylens.test");
   await page.goto("/admin");
-  await page.getByRole("link", { name: /Station reports \(\d+\)/ }).click();
+  await page.getByRole("navigation", { name: "Administration" }).getByRole("link", { name: /Flagged content\s*\d+/ }).click();
   const card = page.locator("li.card").filter({ hasText: note });
   await expect(card).toContainText("₦20 above the pump display");
   await expect(card.getByRole("button", { name: "Stop this person reporting" })).toBeVisible();
   await card.getByRole("button", { name: "Dismiss flags" }).click();
   await expect(page.locator("li.card").filter({ hasText: note })).toHaveCount(0);
+});
+
+test("admin console: every section opens from the navigation", async ({ page }) => {
+  await signIn(page, "admin@refinerylens.test");
+  await page.goto("/admin");
+  await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Needs attention" })).toBeVisible();
+  const nav = page.getByRole("navigation", { name: "Administration" });
+  const sections: [RegExp, string][] = [
+    [/^Users/, "Users"], [/^Verification & reports/, "Trade hub moderation"], [/^Businesses/, "Businesses"], [/^Listings/, "Listings"], [/^Delivery jobs/, "Delivery jobs"],
+    [/^Flagged content/, "Station report moderation"], [/^Stations & shops/, "Stations & shops"], [/^Price watch/, "Price watch"], [/^Gas orders/, "Gas orders"], [/^Live trips/, "Live trips"],
+    [/^Payments & plans/, "Payments & plans"], [/^Broadcast/, "Broadcast"], [/^Health & jobs/, "Health & jobs"], [/^Audit log/, "Audit log"], [/^Exports/, "Exports"],
+  ];
+  for (const [link, heading] of sections) {
+    await nav.getByRole("link", { name: link }).click();
+    await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+  }
+});
+
+test("admin console: find a user, broadcast to Lagos households and export users @mobile", async ({ page }, testInfo) => {
+  await signIn(page, "admin@refinerylens.test");
+  await page.goto("/admin/users");
+  await page.getByPlaceholder("Name, email or phone").fill("tunde");
+  await page.getByRole("button", { name: "Apply" }).click();
+  await page.getByRole("link", { name: "Tunde Household" }).click();
+  await expect(page.getByRole("heading", { name: "Account controls" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Stop this person reporting" })).toBeVisible();
+
+  await page.goto("/admin/broadcast?segment=households&state=Lagos");
+  const count = Number((await page.locator("p.rounded-xl strong").innerText()).replace(/,/g, ""));
+  expect(count).toBeGreaterThan(0);
+  await page.getByLabel("Title (up to 80 characters)").fill(`Prices fell this week (${testInfo.project.name} ${Date.now()})`);
+  await page.getByLabel("Message (up to 400 characters)").fill("Cooking gas is cheaper in Lagos this week. Check today's prices.");
+  await page.getByRole("button", { name: /^Send to/ }).click();
+  await expect(page.getByText(`Sent to ${count} people.`)).toBeVisible();
+
+  await page.goto("/admin/exports");
+  const [download] = await Promise.all([page.waitForEvent("download"), page.locator('a[href="/api/admin/exports/users"]').click()]);
+  expect(download.suggestedFilename()).toMatch(/^refinerylens-users-\d{4}-\d{2}-\d{2}\.csv$/);
+});
+
+test("admin console: non-administrators cannot open it or download exports", async ({ page }) => {
+  await signIn(page, "tunde@refinerylens.test");
+  await page.goto("/admin/users");
+  await expect(page).not.toHaveURL(/\/admin\/users/);
+  const res = await page.request.get("/api/admin/exports/users");
+  expect(res.status()).toBe(404);
 });

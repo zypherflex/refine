@@ -668,6 +668,8 @@ model AuditLog {
   createdAt  DateTime @default(now())
 
   @@index([entityType, entityId])
+  @@index([createdAt])
+  @@index([actorId, createdAt])
 }
 
 model Job {
@@ -1463,4 +1465,20 @@ model ContentFlag {
   @@index([status, createdAt])
   @@index([reportId])
   @@index([outletId])
+}
+
+// An administrator's message to a group of people, delivered as an in-app alert and a push notification.
+model Broadcast {
+  id         String   @id @default(cuid())
+  title      String
+  body       String
+  link       String
+  // all, households, businesses, sellers, buyers, delivery, refineries, home_delivery
+  segment    String
+  state      String?
+  recipients Int
+  sentById   String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
 }

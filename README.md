@@ -17,10 +17,11 @@ Product copy says "Dangote", never "Dangote refinery" or the company's full refi
 3. [What works now and what needs credentials](#what-works-now-and-what-needs-credentials)
 4. [Architecture](#architecture)
 5. [Screens](#screens)
-6. [Content and trust rules](#content-and-trust-rules)
-7. [Testing](#testing)
-8. [Deploying to production](#deploying-to-production)
-9. [Project layout](#project-layout)
+6. [Administration console](#administration-console)
+7. [Content and trust rules](#content-and-trust-rules)
+8. [Testing](#testing)
+9. [Deploying to production](#deploying-to-production)
+10. [Project layout](#project-layout)
 
 ---
 
@@ -195,6 +196,31 @@ Landing, sign-in and registration (signing in opens the trade hub); **Business o
 Colour system: Atlantic navy (`#0B1530`, the `ink` and `navy` scales in `tailwind.config.ts`) carries structure, Naija green (`brand`) marks actions, links and verified businesses, white is the page, and amber is kept for warnings. A thin green-white-green band is the one flag reference.
 
 All screens are responsive from phone to desktop widths, keyboard navigable with visible focus and a skip link, and use semantic headings and labels.
+
+---
+
+## Administration console
+
+Administrators open **Administration** (`/admin`). Every section shares one navigation, grouped by area, with a count on any section that has work waiting. Every tool checks the administrator role on the server (`src/server/admin/guard.ts`), and every change is written to the audit log. Administrators cannot read private files, theses or business conversations.
+
+| Area | Section | What it does |
+| --- | --- | --- |
+| Console | Overview | Key numbers, 14-day charts of new accounts, gas orders and station reports, where people are, and a **Needs attention** list linking to each queue |
+| People | Users | Search by name, email or phone; filter by kind, role, plan, state and reporting block. A person's page changes role, plan and start page, stops them reporting, signs them out on every device, and shows their orders, reports, payments and audit history |
+| Trade hub | Verification & reports | Verify or return businesses (with the CAC registry check), handle reports, suspend and reinstate |
+| | Businesses | Directory by status, role, state, home delivery and plan; suspend, reinstate, grant 30 days of the Business plan |
+| | Listings | Live, expired and closed listings; take one down with a reason the business is told |
+| | Delivery jobs | Jobs by status, quotes, tracking state and stale awards; cancel with a reason |
+| Everyday | Flagged content | Station reports and places people flagged; hide, restore, dismiss; stop an account reporting |
+| | Stations & shops | Edit details, hide and show, and merge duplicates so their reports count together |
+| | Price watch | Public medians by state and product, and the week's reports 30% or more from their state median, with a hide button |
+| | Gas orders | All orders with counts by status; stuck orders (no answer in 2 hours, or open over a day); cancel with a reason both sides are told |
+| | Live trips | Drivers sharing location, silent trips, end a trip left running (no exact positions shown) |
+| Money | Payments & plans | Paystack payments with status and purpose filters, revenue by month, Business plans ending within 14 days |
+| Communication | Broadcast | Count a group (everyone, households, business accounts, sellers, buyers, delivery partners, refineries, home-delivery sellers; optionally one state), then send an in-app alert and push notification. The count is confirmed when sending; links must stay inside RefineryLens; never sent by SMS |
+| System | Health & jobs | Integrations by group, background job counts, failed jobs with retry, open data feeds |
+| | Audit log | Filter by action, person, entity, ID and date |
+| | Exports | CSV downloads of users, businesses, stations, public and seller price reports, gas orders and payments, without addresses, phone numbers or who reported what; spreadsheet formulas are neutralised and each download is logged |
 
 ---
 

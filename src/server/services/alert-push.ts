@@ -7,7 +7,8 @@ import { getPushSender, type PushSender } from "../connect/push";
  * phone the user turned notifications on for. Research alerts stay in-app and email.
  */
 
-const PUSHED_KINDS = ["HUB_MESSAGE", "HUB_JOB", "HUB_SUPPLY", "HUB_VERIFICATION"];
+// Broadcasts go by push but not by text, since texts cost money per message.
+const PUSHED_KINDS = ["HUB_MESSAGE", "HUB_JOB", "HUB_SUPPLY", "HUB_VERIFICATION", "HUB_LISTING", "GAS_ORDER", "REFILL_DUE", "BROADCAST"];
 const MAX_DEVICES = 10;
 
 export const deviceInput = z.object({ token: z.string().trim().min(20).max(4096), platform: z.enum(["android", "ios"]) });
