@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/server/auth";
 import { getMyBusiness } from "@/server/hub/business";
-import { priceBoard } from "@/server/hub/prices";
+import { myReports, priceBoard } from "@/server/hub/prices";
 import { MIN_SELLERS, naira, PRICE_ITEMS, priceItem, WINDOW_DAYS } from "@/lib/hub/prices";
 import { fmtDate } from "@/lib/format";
 import { PriceReportForm } from "@/components/hub/opsForms";
@@ -23,6 +23,7 @@ export default async function PriceBoardPage({ searchParams }: { searchParams: P
   const item = priceItem(itemParam ?? "") ?? PRICE_ITEMS[1];
   const [{ cells, national, includesDemo }, mine] = await Promise.all([priceBoard(user, item.id), getMyBusiness(user)]);
   const canReport = !!mine && mine.roles.some((r) => r === "SELLER" || r === "REFINERY") && mine.verification !== "SUSPENDED";
+  const mineReports = canReport ? await myReports(user) : [];
   const shown = cells.filter((c) => c.median !== null);
   const groups = [...new Set(PRICE_ITEMS.map((p) => p.group))];
 
@@ -84,6 +85,22 @@ export default async function PriceBoardPage({ searchParams }: { searchParams: P
           <h2 id="report-h" className="h-section">Report what you charged</h2>
           <p className="muted mb-4">Takes a minute. Sellers who report regularly help buyers trust the board and get a reporting badge on their profile.</p>
           <PriceReportForm defaultState={mine!.state} />
+          {mineReports.length > 0 && (
+            <details className="mt-6 rounded-xl border border-ink-100">
+              <summary className="px-4 py-3 text-sm font-medium">Your recent reports ({mineReports.length}) · only you can see these</summary>
+              <div className="table-wrap border-t border-ink-100">
+                <table className="tbl">
+                  <thead><tr><th>Day</th><th>Product</th><th>State</th><th className="text-right">Your price</th></tr></thead>
+                  <tbody>
+                    {mineReports.map((r) => {
+                      const it = priceItem(r.item);
+                      return <tr key={r.id}><td>{fmtDate(r.day)}</td><td>{it?.label ?? r.item}</td><td>{r.state}</td><td className="num text-right">{naira(r.priceNaira)} <span className="text-xs text-ink-500">{it?.unit}</span></td></tr>;
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          )}
         </section>
       )}
       <div className="mt-6"><Notice title="How the board stays fair">Only prices already charged are collected, never planned ones; a state appears only with at least {MIN_SELLERS} sellers; and individual sellers&apos; prices are never published.</Notice></div>

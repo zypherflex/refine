@@ -4,10 +4,12 @@ import { getBusiness, getMyBusiness } from "@/server/hub/business";
 import { businessListings } from "@/server/hub/listings";
 import { reliability } from "@/server/hub/supply";
 import { carrierRecord } from "@/server/hub/jobs";
+import { reportingDays } from "@/server/hub/prices";
 import { db } from "@/lib/db";
 import { fmtDate } from "@/lib/format";
 import { EnquiryForm, ReportForm } from "@/components/hub/forms";
-import { DemoTag, ListingCard, RolePills, SafetyNote, VerificationBadge } from "@/components/hub/parts";
+import { DemoTag, FeaturedTag, ListingCard, ReporterBadge, RolePills, SafetyNote, VerificationBadge } from "@/components/hub/parts";
+import { isFeatured } from "@/lib/hub/catalog";
 import { EmptyState, PageHeader } from "@/components/ui";
 
 export const metadata = { title: "Business" };
@@ -17,12 +19,13 @@ export default async function BusinessPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   const b = await getBusiness(user, id);
   const own = b.ownerId === user.id;
-  const [listings, mine, existing, record, jobsDone] = await Promise.all([
+  const [listings, mine, existing, record, jobsDone, priceDays] = await Promise.all([
     businessListings(b.id),
     getMyBusiness(user),
     db.hubThread.findFirst({ where: { starterId: user.id, businessId: b.id, listingId: null }, select: { id: true } }),
     reliability(b.id),
     carrierRecord(b.id),
+    reportingDays(b.id),
   ]);
   const sells = b.roles.some((r) => r === "SELLER" || r === "REFINERY");
   return (
@@ -32,7 +35,7 @@ export default async function BusinessPage({ params }: { params: Promise<{ id: s
         eyebrow={b.roles.includes("REFINERY") ? "Refinery" : "Business"}
         title={b.name}
         subtitle={[b.city, b.state].filter(Boolean).join(", ")}
-        actions={<div className="flex flex-wrap gap-1.5"><VerificationBadge v={b.verification} />{b.isDemo && <DemoTag />}<RolePills roles={b.roles} /></div>}
+        actions={<div className="flex flex-wrap gap-1.5"><VerificationBadge v={b.verification} />{isFeatured(b) && <FeaturedTag />}{priceDays >= 2 && <ReporterBadge />}{b.isDemo && <DemoTag />}<RolePills roles={b.roles} /></div>}
       />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

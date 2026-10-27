@@ -180,3 +180,39 @@ describe("geocoding and USSD", () => {
     expect(await ussdReply("9")).toMatch(/^END Choose a number/);
   });
 });
+
+describe("Business plan", () => {
+  beforeEach(() => Object.assign(process.env, { PAYMENT_PROVIDER: "paystack", PAYSTACK_SECRET_KEY: "sk_test_x", BUSINESS_PLAN_PRICE_NGN: "15000" }));
+
+  it("is only for verified businesses, extends 30 days on payment, and features the business first", async () => {
+    const { requestVerification } = await import("@/server/hub/business");
+    const { decideVerification } = await import("@/server/hub/moderation");
+    const { startBusinessCheckout } = await import("@/server/connect/paystack");
+    const { browseListings, createListing } = await import("@/server/hub/listings");
+    const admin = await user("ADMIN");
+    const owner = await user();
+    const other = await user();
+    const b = await saveBusiness(owner, { name: "Ikeja Energy", roles: ["SELLER"], state: "Lagos", registrationNumber: "RC 1" });
+    await saveBusiness(other, { name: "Other Energy", roles: ["SELLER"], state: "Lagos" });
+    await createListing(owner, { kind: "OFFER", title: "Ikeja LPG offer", products: ["lpg"], state: "Lagos" });
+    await createListing(other, { kind: "OFFER", title: "Newer offer", products: ["lpg"], state: "Lagos" });
+    await expect(startBusinessCheckout({ ...owner, email: owner.email })).rejects.toThrow(/verified businesses/);
+
+    await requestVerification(owner);
+    await decideVerification(admin, b.id, "VERIFY", "");
+    mockFetch(() => ({ status: true, data: { authorization_url: "https://checkout.paystack.com/b" } }));
+    await startBusinessCheckout({ ...owner, email: owner.email });
+    const ref = JSON.parse(String(calls[0].init.body)).reference;
+    expect(JSON.parse(String(calls[0].init.body)).amount).toBe(1_500_000);
+    mockFetch(() => ({ status: true, data: { status: "success", amount: 1_500_000, currency: "NGN", reference: ref } }));
+    expect(await verifyAndSettle(ref)).toMatchObject({ ok: true, purpose: "BUSINESS_PLAN" });
+    const until = (await db.hubBusiness.findUniqueOrThrow({ where: { id: b.id } })).planUntil!;
+    expect(until.getTime()).toBeGreaterThan(Date.now() + 29 * 86_400_000);
+
+    const viewer = await user();
+    expect((await browseListings(viewer, {})).map((l) => l.title)).toEqual(["Ikeja LPG offer", "Newer offer"]);
+    // Losing verification stops featuring even though the plan has not run out.
+    await saveBusiness(owner, { name: "Ikeja Energy Ltd", roles: ["SELLER"], state: "Lagos", registrationNumber: "RC 1" });
+    expect((await browseListings(viewer, {})).map((l) => l.title)).toEqual(["Newer offer", "Ikeja LPG offer"]);
+  });
+});

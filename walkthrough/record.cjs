@@ -61,7 +61,7 @@ const durations = process.argv[3] ? JSON.parse(fs.readFileSync(process.argv[3], 
     await go("/login");
     await page.getByLabel("Email").fill(email);
     await page.getByLabel("Password").fill("RefineryLens-demo-2026");
-    await Promise.all([page.waitForURL(/\/opportunities/), page.getByRole("button", { name: "Sign in" }).click()]);
+    await Promise.all([page.waitForURL(/\/hub/), page.getByRole("button", { name: "Sign in" }).click()]);
   }
   async function step(name, fn) {
     try {
@@ -83,7 +83,7 @@ const durations = process.argv[3] ? JSON.parse(fs.readFileSync(process.argv[3], 
     await caption("login", 1800);
     await page.getByLabel("Email").pressSequentially("investor@refinerylens.test", { delay: 35 });
     await page.getByLabel("Password").pressSequentially("RefineryLens-demo-2026", { delay: 25 });
-    await Promise.all([page.waitForURL(/\/opportunities/), page.getByRole("button", { name: "Sign in" }).click()]);
+    await Promise.all([page.waitForURL(/\/hub/), page.getByRole("button", { name: "Sign in" }).click()]);
     await page.waitForLoadState("networkidle");
   });
 

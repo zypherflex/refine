@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, BookOpenCheck, GitCompareArrows, Layers, Lock, MessagesSquare, ShieldCheck } from "lucide-react";
+import { ArrowRight, BookOpenCheck, Flame, GitCompareArrows, Layers, Lock, MessagesSquare, Repeat, ShieldCheck, Tags, Truck } from "lucide-react";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/server/auth";
 import { companyFacts, factsIn } from "@/lib/company-facts";
@@ -37,7 +37,7 @@ const pillars = [
 ];
 
 export default async function Home() {
-  if (await getCurrentUser()) redirect("/opportunities");
+  if (await getCurrentUser()) redirect("/hub");
   const coverage = await db.company.findUnique({ where: { slug: COVERAGE_SLUG }, select: { name: true, profileFacts: true } }).catch(() => null);
   const facts = companyFacts(coverage?.profileFacts);
   const scale = factsIn(facts, "scale");
@@ -60,17 +60,22 @@ export default async function Home() {
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-brand-300">
               <span aria-hidden className="band-ng h-2 w-4 rounded-sm" />
-              Independent business intelligence for Nigeria's downstream
+              Nigeria's trade hub for fuel and gas
             </p>
-            <h1 className="mt-6 font-serif text-[2.5rem] font-semibold leading-[1.08] tracking-tight text-white sm:text-6xl">
-              Business opportunities around Dangote. <span className="text-brand-300">Evidence first.</span>
+            <h1 className="mt-6 font-serif text-[2.4rem] font-semibold leading-[1.08] tracking-tight text-white sm:text-[3.4rem]">
+              Buy, sell and move fuel and gas with businesses you can check. <span className="text-brand-300">Plus business opportunities around Dangote.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-200">
-              Find where your business fits, from one tanker or an LPG kiosk to crude cargoes and modular refining. RefineryLens maps the opportunities around Dangote's Lekki complex, shows the sourced facts and dated reports behind each one, and lets you size it with your own numbers.
+              Today&apos;s LPG, diesel and petrol prices by state. Verified sellers, buyers, hauliers and refineries. Delivery jobs with quotes, regular supply you can track, and a map of the gas network. And for the bigger picture, sourced research on where your business fits around Dangote&apos;s Lekki complex.
             </p>
+            <ul className="mt-6 grid max-w-xl grid-cols-2 gap-x-4 gap-y-2 text-sm text-ink-100 sm:grid-cols-3">
+              {([[Tags, "Price board"], [ShieldCheck, "Verified businesses"], [Truck, "Delivery jobs"], [Repeat, "Regular supply"], [Flame, "Gas network map"], [Layers, "Opportunity research"]] as const).map(([Icon, t]) => (
+                <li key={t} className="flex items-center gap-2"><Icon aria-hidden size={16} className="text-brand-300" />{t}</li>
+              ))}
+            </ul>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link href="/register" className="btn bg-brand-500 px-5 py-3 text-base font-semibold text-white shadow-sm hover:bg-brand-400 hover:text-ink-950">
-                Start free <ArrowRight size={18} aria-hidden />
+                Join free <ArrowRight size={18} aria-hidden />
               </Link>
               <Link href="/login" className="btn border border-white/15 px-5 py-3 text-base text-white hover:bg-white/10">Sign in</Link>
             </div>

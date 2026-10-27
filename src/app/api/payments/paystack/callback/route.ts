@@ -7,7 +7,8 @@ export async function GET(req: NextRequest) {
   const base = (process.env.APP_URL ?? req.nextUrl.origin).replace(/\/$/, "");
   try {
     const r = await verifyAndSettle(reference);
-    return NextResponse.redirect(`${base}/settings?payment=${r.ok ? "success" : "failed"}`);
+    const page = "purpose" in r && r.purpose === "BUSINESS_PLAN" ? "/hub/me" : "/settings";
+    return NextResponse.redirect(`${base}${page}?payment=${r.ok ? "success" : "failed"}`);
   } catch {
     return NextResponse.redirect(`${base}/settings?payment=failed`);
   }

@@ -39,3 +39,16 @@ describe("trade hub rules", () => {
     }
   });
 });
+
+describe("Business plan rules", () => {
+  it("features only verified businesses with a running plan, and lifts the listing limit", async () => {
+    const { isFeatured, listingLimit } = await import("@/lib/hub/catalog");
+    const soon = new Date(Date.now() + 86_400_000);
+    const past = new Date(Date.now() - 86_400_000);
+    expect(isFeatured({ verification: "VERIFIED", planUntil: soon })).toBe(true);
+    expect(isFeatured({ verification: "UNVERIFIED", planUntil: soon })).toBe(false);
+    expect(isFeatured({ verification: "VERIFIED", planUntil: past })).toBe(false);
+    expect(listingLimit({ planUntil: soon })).toBe(200);
+    expect(listingLimit({ planUntil: null })).toBe(50);
+  });
+});

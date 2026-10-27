@@ -2,7 +2,8 @@ import Link from "next/link";
 import { requireUser } from "@/server/auth";
 import { listRefineries } from "@/server/hub/business";
 import { LOCATIONS, NIGERIAN_STATES, OTHER_LOCATIONS } from "@/lib/hub/catalog";
-import { DemoTag, VerificationBadge } from "@/components/hub/parts";
+import { DemoTag, FeaturedTag, VerificationBadge } from "@/components/hub/parts";
+import { isFeatured } from "@/lib/hub/catalog";
 import { EmptyState, Notice, PageHeader } from "@/components/ui";
 
 export const metadata = { title: "Refineries on the hub" };
@@ -40,7 +41,7 @@ export default async function HubRefineriesPage({ searchParams }: { searchParams
         <ul className="grid gap-4 md:grid-cols-2">
           {refineries.map((r) => (
             <li key={r.id} className="card">
-              <div className="flex flex-wrap items-center gap-1.5"><VerificationBadge v={r.verification} />{r.isDemo && <DemoTag />}</div>
+              <div className="flex flex-wrap items-center gap-1.5"><VerificationBadge v={r.verification} />{isFeatured(r) && <FeaturedTag />}{r.isDemo && <DemoTag />}</div>
               <h2 className="mt-2 text-base font-semibold"><Link href={`/hub/businesses/${r.id}`}>{r.name}</Link></h2>
               <p className="text-sm text-ink-700">{[r.city, r.state].filter(Boolean).join(", ")}</p>
               {r.capacityBpd && <p className="mt-1 text-sm">Stated capacity {r.capacityBpd.toLocaleString("en-GB")} bpd</p>}

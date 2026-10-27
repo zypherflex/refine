@@ -12,6 +12,8 @@ import { acceptQuote, cancelJob, confirmDelivered, postJob, submitQuote, withdra
 import { logDelivery, proposeAgreement, respond, reviewDelivery, setStatus } from "@/server/hub/supply";
 import { closeReport, decideVerification, reinstateBusiness, reportBusiness, suspendBusiness } from "@/server/hub/moderation";
 import { AppError } from "@/lib/errors";
+import { BUSINESS_PLAN_DAYS, extendBusinessPlan, startBusinessCheckout } from "@/server/connect/paystack";
+import { audit } from "@/server/audit";
 
 export type ActionState = { error?: string | null; ok?: string | null };
 
@@ -327,4 +329,27 @@ export async function reviewDeliveryAction(_: ActionState, form: FormData): Prom
   }
   revalidatePath(`/hub/supply/${text(form, "agreementId")}`);
   return { ok: "Saved." };
+}
+
+export async function startBusinessCheckoutAction(): Promise<ActionState> {
+  const user = await requireUser();
+  let url: string;
+  try {
+    url = await startBusinessCheckout(user);
+  } catch (e) {
+    if (e instanceof AppError) return { error: e.message };
+    console.error("business checkout", e);
+    return { error: "The payment page could not be opened. Try again in a minute." };
+  }
+  redirect(url);
+}
+
+/** For payments taken outside the app (bank transfer): an administrator adds 30 days to a business's plan. */
+export async function grantBusinessPlanAction(form: FormData) {
+  const admin = await requireRole("ADMIN");
+  const id = text(form, "businessId");
+  await extendBusinessPlan(id, BUSINESS_PLAN_DAYS);
+  await audit(admin.id, "hub.business.grant_plan", "HubBusiness", id, { days: BUSINESS_PLAN_DAYS });
+  revalidatePath("/admin/hub");
+  revalidatePath("/hub", "layout");
 }

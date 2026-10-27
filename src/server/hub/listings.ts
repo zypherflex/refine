@@ -3,12 +3,11 @@ import type { HubListingKind, Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { AppError, ForbiddenError, NotFoundError } from "@/lib/errors";
 import type { Actor } from "@/lib/permissions";
-import { allowedKinds, counterpartKinds, isPubliclyVisible, kindLabel, LISTING_DAYS, LOCATIONS, PRODUCTS, UNITS } from "@/lib/hub/catalog";
+import { allowedKinds, counterpartKinds, isFeatured, isPubliclyVisible, kindLabel, LISTING_DAYS, listingLimit, LOCATIONS, PRODUCTS, UNITS } from "@/lib/hub/catalog";
 import { audit } from "../audit";
 import { canSeeBusiness, requireMyBusiness } from "./business";
 
 const DAY = 86_400_000;
-const MAX_ACTIVE = 50;
 const productIds = PRODUCTS.map((p) => p.id) as [string, ...string[]];
 const location = z.string().refine((s) => LOCATIONS.includes(s), "Choose a location from the list");
 
@@ -40,7 +39,8 @@ export async function createListing(actor: Actor, raw: z.input<typeof listingInp
   const data = clean(listingInput.parse(raw));
   if (!allowedKinds(business.roles).includes(data.kind)) throw new AppError(`Add a matching role to your business profile to post “${kindLabel(data.kind)}” listings.`);
   const active = await db.hubListing.count({ where: { businessId: business.id, status: "ACTIVE", expiresAt: { gt: new Date() } } });
-  if (active >= MAX_ACTIVE) throw new AppError(`You have ${MAX_ACTIVE} live listings. Close some before posting more.`);
+  const max = listingLimit(business);
+  if (active >= max) throw new AppError(`You have ${max} live listings. Close some before posting more${max === 50 ? ", or move to the Business plan for up to 200" : ""}.`);
   const l = await db.hubListing.create({ data: { ...data, businessId: business.id } });
   await audit(actor.id, "hub.listing.create", "HubListing", l.id, { kind: l.kind });
   return l;
@@ -72,7 +72,8 @@ export async function closeListing(actor: Actor, id: string) {
 export async function renewListing(actor: Actor, id: string) {
   const l = await ownListing(actor, id);
   const active = await db.hubListing.count({ where: { businessId: l.businessId, status: "ACTIVE", expiresAt: { gt: new Date() }, id: { not: id } } });
-  if (active >= MAX_ACTIVE) throw new AppError(`You have ${MAX_ACTIVE} live listings. Close some before renewing more.`);
+  const max = listingLimit(l.business);
+  if (active >= max) throw new AppError(`You have ${max} live listings. Close some before renewing more.`);
   await db.hubListing.update({ where: { id }, data: { status: "ACTIVE", expiresAt: new Date(Date.now() + 30 * DAY) } });
 }
 
@@ -87,7 +88,8 @@ export async function browseListings(viewer: Actor, f: BrowseFilter) {
   const q = f.q?.trim();
   if (q) and.push({ OR: [{ title: { contains: q, mode: "insensitive" } }, { details: { contains: q, mode: "insensitive" } }, { business: { name: { contains: q, mode: "insensitive" } } }] });
   const rows = await db.hubListing.findMany({ where: { AND: and }, include: { business: true }, orderBy: { createdAt: "desc" }, take: 150 });
-  return rows.filter((l) => canSeeBusiness(viewer, l.business));
+  // Featured (paid, verified) businesses first, each labelled in the UI; otherwise newest first.
+  return rows.filter((l) => canSeeBusiness(viewer, l.business)).sort((a, b) => Number(isFeatured(b.business)) - Number(isFeatured(a.business)));
 }
 
 export async function getListing(viewer: Actor, id: string) {
@@ -120,8 +122,9 @@ export async function matchesFor(viewer: Actor, l: { id: string; businessId: str
     take: 30,
   });
   const visible = rows.filter((r) => canSeeBusiness(viewer, r.business));
-  // Verified counterparts first, then the most recent.
-  return visible.sort((a, b) => Number(b.business.verification === "VERIFIED") - Number(a.business.verification === "VERIFIED")).slice(0, 8);
+  // Featured first, then verified counterparts, then the most recent.
+  const rank = (b: (typeof visible)[number]["business"]) => (isFeatured(b) ? 2 : b.verification === "VERIFIED" ? 1 : 0);
+  return visible.sort((a, b) => rank(b.business) - rank(a.business)).slice(0, 8);
 }
 
 /** Live listings per product that `viewer` can see, for the "on the trade hub" panel on opportunity pages. */

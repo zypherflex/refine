@@ -10,6 +10,7 @@ import {
   saveListingAction,
   saveSiteAction,
   sendEnquiryAction,
+  startBusinessCheckoutAction,
   suspendBusinessAction,
 } from "@/app/actions/hub";
 import { HUB_ROLES, LISTING_DAYS, LISTING_KINDS, LOCATIONS, NIGERIAN_STATES, OTHER_LOCATIONS, PRODUCTS, UNITS } from "@/lib/hub/catalog";
@@ -358,6 +359,16 @@ export function SiteForm({ kinds, site }: { kinds: GasSiteKind[]; site: GasSite 
       <p className="hint">Details are shown as stated by your business. Saving confirms they are current; entries not confirmed for 90 days are marked as possibly out of date.</p>
       <FieldError message={state.error} />
       <button className="btn-primary" disabled={pending}>{site ? "Save and confirm" : "Add site to the gas network"}</button>
+    </form>
+  );
+}
+
+export function BusinessPlanButton({ label }: { label: string }) {
+  const [state, action, pending] = useActionState(startBusinessCheckoutAction, {});
+  return (
+    <form action={action} className="space-y-2">
+      <button className="btn-primary w-full" disabled={pending}>{pending ? "Opening secure payment…" : label}</button>
+      <FieldError message={state.error} />
     </form>
   );
 }

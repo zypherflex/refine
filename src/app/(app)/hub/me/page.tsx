@@ -7,14 +7,17 @@ import { allowedSiteKinds, isStale, siteKindLabel } from "@/lib/hub/gas";
 import { closeListingAction, renewListingAction } from "@/app/actions/hub";
 import { isProtectedName, isPubliclyVisible, kindLabel } from "@/lib/hub/catalog";
 import { fmtDate } from "@/lib/format";
-import { BusinessForm, RequestVerificationForm } from "@/components/hub/forms";
+import { BusinessForm, BusinessPlanButton, RequestVerificationForm } from "@/components/hub/forms";
+import { businessPriceKobo, paystackConfigured } from "@/server/connect/paystack";
+import { isFeatured } from "@/lib/hub/catalog";
 import { DemoTag, VerificationBadge } from "@/components/hub/parts";
 import { Notice, PageHeader } from "@/components/ui";
 
 export const metadata = { title: "My business" };
 
-export default async function MyBusinessPage() {
+export default async function MyBusinessPage({ searchParams }: { searchParams: Promise<{ payment?: string }> }) {
   const user = await requireUser();
+  const { payment } = await searchParams;
   const business = await getMyBusiness(user);
   const [listings, sites] = business ? await Promise.all([myListings(user), mySites(user)]) : [[], []];
   const now = new Date();
@@ -27,6 +30,8 @@ export default async function MyBusinessPage() {
         subtitle={business ? "Your public trading profile, verification and listings." : "One profile lets you post offers, buy requests or delivery capacity, and message other businesses. You can post straight away; a Verified badge follows once RefineryLens has checked your registration and licences."}
         actions={business ? <><Link href={`/hub/businesses/${business.id}`} className="btn-secondary btn-sm no-underline">View public profile</Link><Link href="/hub/post" className="btn-primary btn-sm no-underline">Post a listing</Link></> : undefined}
       />
+      {payment === "success" && <div className="mb-4"><Notice tone="ok" title="Business plan active">Thank you. Your listings are now featured while the plan runs. Paystack emails your receipt.</Notice></div>}
+      {payment === "failed" && <div className="mb-4"><Notice tone="risk" title="Payment not completed">Paystack did not confirm the payment, so your plan has not changed. Try again, or contact your bank if money left your account.</Notice></div>}
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="card lg:col-span-2" aria-labelledby="profile-h">
           <h2 id="profile-h" className="h-section">Business profile</h2>
@@ -48,6 +53,28 @@ export default async function MyBusinessPage() {
               )}
               {business.verificationNote && business.verification !== "SUSPENDED" && <p className="rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-800"><span className="font-medium">Note from RefineryLens:</span> {business.verificationNote}</p>}
               {!isPubliclyVisible(business) && isProtectedName(business.name) && <Notice tone="warn" title="Hidden until verified">Your business name matches a well-known refiner, so your profile and listings stay hidden from other users until RefineryLens verifies you.</Notice>}
+            </section>
+          )}
+          {business && business.verification !== "SUSPENDED" && (
+            <section className="card space-y-3 border-amber-600/25 bg-gradient-to-b from-amber-50/60 to-white" aria-labelledby="plan-h">
+              <h2 id="plan-h" className="h-section">Business plan</h2>
+              {business.planUntil && business.planUntil > new Date() ? (
+                <p className="text-sm text-ink-800"><span className="font-semibold">Active until {fmtDate(business.planUntil)}.</span> {isFeatured(business) ? "Your listings are featured." : "Featuring resumes once your business is verified again."}</p>
+              ) : (
+                <p className="text-sm text-ink-800">Be seen first by buyers and sellers.</p>
+              )}
+              <ul className="space-y-1 text-sm text-ink-700">
+                <li>★ Featured first in hub search, matches and the refinery list, always labelled</li>
+                <li>✓ Up to 200 live listings instead of 50</li>
+                <li>✓ Featured badge on your profile</li>
+              </ul>
+              {business.verification !== "VERIFIED" ? (
+                <p className="text-xs text-ink-600">Available once RefineryLens has verified your business, so paid placement only goes to checked businesses.</p>
+              ) : paystackConfigured() ? (
+                <BusinessPlanButton label={`${business.planUntil && business.planUntil > new Date() ? "Add 30 days" : "Start"} for ₦${(businessPriceKobo() / 100).toLocaleString("en-GB")}`} />
+              ) : (
+                <p className="text-xs text-ink-600">Card payments are not set up in this installation yet. Contact RefineryLens to start a plan.</p>
+              )}
             </section>
           )}
           {business && (sites.length > 0 || allowedSiteKinds(business.roles).length > 0) && (

@@ -49,6 +49,8 @@ export async function seedHub(db: PrismaClient, mk: (email: string, name: string
       name: "Lagoon Coast Refining Co. (fictional demo)", roles: ["REFINERY", "SELLER", "BUYER"], state: "Rivers", city: "Onne",
       about: "The fictional refinery from RefineryLens's demo research pages. Sells diesel and polypropylene and buys crude and condensate.",
       registrationNumber: "RC 0000004 (demo)", licences: "Refinery operating licence (demo entry)", capacityBpd: 120_000,
+      // On the demo Business plan, so its listings show as Featured.
+      planUntil: until(20),
     },
   });
   const ogun = await db.hubBusiness.create({

@@ -10,7 +10,7 @@ import { QuickActions } from "@/components/hub/QuickActions";
 
 export const metadata = { title: "Trade hub" };
 
-type Search = Promise<{ kind?: string; product?: string; state?: string; verified?: string; q?: string }>;
+type Search = Promise<{ kind?: string; product?: string; state?: string; verified?: string; q?: string; welcome?: string }>;
 
 export default async function HubPage({ searchParams }: { searchParams: Search }) {
   const user = await requireUser();
@@ -41,6 +41,13 @@ export default async function HubPage({ searchParams }: { searchParams: Search }
           )
         }
       />
+      {sp.welcome && (
+        <div className="mb-6">
+          <Notice tone="ok" title="Welcome to RefineryLens">
+            Two good places to start: <Link href="/hub/me">set up your business</Link> so others can find and message you, or <Link href="/opportunities/fit">find the opportunities that fit you</Link>. Prices, the gas map and listings are open to browse now.
+          </Notice>
+        </div>
+      )}
       <QuickActions />
       {!mine && (
         <div className="mb-6 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">

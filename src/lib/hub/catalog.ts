@@ -80,6 +80,17 @@ export function isPubliclyVisible(b: Visible): boolean {
   return true;
 }
 
+/**
+ * A business on the paid Business plan is featured (listed first, always labelled "Featured") only while the plan runs
+ * and the business is verified, so paid placement never goes to a business RefineryLens has not checked.
+ */
+export function isFeatured(b: { verification: HubVerification; planUntil: Date | null }, now = new Date()) {
+  return b.verification === "VERIFIED" && !!b.planUntil && b.planUntil > now;
+}
+
+/** Live listings a business may have at once. */
+export const listingLimit = (b: { planUntil: Date | null }, now = new Date()) => (b.planUntil && b.planUntil > now ? 200 : 50);
+
 export const verificationLabel: Record<HubVerification, string> = {
   UNVERIFIED: "Unverified",
   PENDING_REVIEW: "Verification requested",

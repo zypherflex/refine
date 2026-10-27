@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireRole } from "@/server/auth";
 import { moderatedBusinesses, openReports, verificationQueue } from "@/server/hub/moderation";
-import { closeReportAction, reinstateBusinessAction } from "@/app/actions/hub";
+import { closeReportAction, grantBusinessPlanAction, reinstateBusinessAction } from "@/app/actions/hub";
 import { roleLabel } from "@/lib/hub/catalog";
 import { fmtDateTime } from "@/lib/format";
 import { DecideForm, SuspendForm } from "@/components/hub/forms";
@@ -88,12 +88,15 @@ export default async function HubModerationPage() {
                   <tr key={b.id}>
                     <td><Link href={`/hub/businesses/${b.id}`}>{b.name}</Link><p className="text-xs text-ink-600">{b.roles.map(roleLabel).join(", ")}</p></td>
                     <td><VerificationBadge v={b.verification} /></td>
-                    <td className="text-xs">{b.verificationNote}</td>
+                    <td className="text-xs">{b.verificationNote}{b.planUntil && b.planUntil > new Date() ? <span className="block font-medium text-amber-800">Business plan until {fmtDateTime(b.planUntil)}</span> : null}</td>
                     <td>
                       {b.verification === "SUSPENDED" ? (
                         <form action={reinstateBusinessAction}><input type="hidden" name="businessId" value={b.id} /><button className="btn-secondary btn-sm">Lift suspension</button></form>
                       ) : (
-                        <SuspendForm businessId={b.id} name={b.name} />
+                        <div className="space-y-2">
+                          <form action={grantBusinessPlanAction}><input type="hidden" name="businessId" value={b.id} /><button className="btn-secondary btn-sm">Add 30 plan days (paid offline)</button></form>
+                          <SuspendForm businessId={b.id} name={b.name} />
+                        </div>
                       )}
                     </td>
                   </tr>

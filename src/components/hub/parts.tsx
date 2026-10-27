@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { HubBusiness, HubListing, HubVerification } from "@prisma/client";
-import { kindLabel, productLabel, roleLabel, verificationLabel } from "@/lib/hub/catalog";
+import { isFeatured, kindLabel, productLabel, roleLabel, verificationLabel } from "@/lib/hub/catalog";
 import { fmtDate } from "@/lib/format";
 import { Pill } from "../ui";
 
@@ -24,6 +24,16 @@ export function VerificationBadge({ v }: { v: HubVerification }) {
       {v === "VERIFIED" ? "✓ Verified" : v === "PENDING_REVIEW" ? "Unverified (check requested)" : verificationLabel[v]}
     </Pill>
   );
+}
+
+/** Sellers who reported prices on at least two days in the last fortnight help keep the price board honest. */
+export function ReporterBadge() {
+  return <Pill className="bg-navy-50 text-navy-800 ring-1 ring-inset ring-navy-600/20" title="Reported their selling prices to the RefineryLens price board on at least two days in the last 14.">Reports prices</Pill>;
+}
+
+/** Paid placement is always labelled. */
+export function FeaturedTag() {
+  return <Pill className="bg-amber-100 text-amber-900 ring-1 ring-inset ring-amber-600/30" title="This verified business pays for the Business plan, which lists it first. RefineryLens does not rank by quality.">★ Featured</Pill>;
 }
 
 export function DemoTag() {
@@ -52,12 +62,13 @@ export function placesText(l: Pick<HubListing, "kind" | "state" | "areas">) {
   return `${base} · ${l.kind === "REQUEST" ? "accepts supply from" : "serves"} ${shown}`;
 }
 
-export function ListingCard({ l, business, showBusiness = true }: { l: HubListing; business: Pick<HubBusiness, "id" | "name" | "verification" | "isDemo">; showBusiness?: boolean }) {
+export function ListingCard({ l, business, showBusiness = true }: { l: HubListing; business: Pick<HubBusiness, "id" | "name" | "verification" | "isDemo" | "planUntil">; showBusiness?: boolean }) {
   const qty = quantityText(l);
   return (
     <li className="card flex flex-col">
       <div className="flex flex-wrap items-center gap-1.5">
         <KindPill kind={l.kind} />
+        {showBusiness && isFeatured(business) && <FeaturedTag />}
         {l.products.map((p) => <Pill key={p} className="bg-ink-50 text-ink-700 ring-1 ring-inset ring-ink-100">{productLabel(p)}</Pill>)}
       </div>
       <h3 className="mt-2 text-base font-semibold text-ink-950"><Link href={`/hub/listings/${l.id}`}>{l.title}</Link></h3>

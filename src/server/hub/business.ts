@@ -3,7 +3,7 @@ import type { HubBusiness, Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { AppError, ForbiddenError, NotFoundError } from "@/lib/errors";
 import type { Actor } from "@/lib/permissions";
-import { isPubliclyVisible, LOCATIONS } from "@/lib/hub/catalog";
+import { isFeatured, isPubliclyVisible, LOCATIONS } from "@/lib/hub/catalog";
 import { audit } from "../audit";
 import { enqueue } from "../jobs";
 import { registryConfigured } from "../connect/registry";
@@ -92,5 +92,6 @@ export async function listRefineries(viewer: Actor, opts: { state?: string; veri
     take: 200,
   });
   // VERIFIED sorts after PENDING_REVIEW in the enum, so put verified refineries first here.
-  return list.filter((b) => canSeeBusiness(viewer, b)).sort((a, b) => Number(b.verification === "VERIFIED") - Number(a.verification === "VERIFIED"));
+  const rank = (b: (typeof list)[number]) => (isFeatured(b) ? 2 : b.verification === "VERIFIED" ? 1 : 0);
+  return list.filter((b) => canSeeBusiness(viewer, b)).sort((a, b) => rank(b) - rank(a));
 }

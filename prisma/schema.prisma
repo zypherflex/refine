@@ -869,6 +869,8 @@ model HubBusiness {
   verifiedById       String?
   // What the company registry returned for the registration number, when a registry lookup is configured.
   registryCheck      Json?
+  // Paid Business plan: featured placement and higher limits while in the future. Only verified businesses buy it.
+  planUntil          DateTime?
   registryCheckedAt  DateTime?
   // Seeded demo businesses are labelled so nobody mistakes them for real trading partners.
   isDemo             Boolean         @default(false)
@@ -1188,6 +1190,8 @@ model Payment {
   provider   String
   reference  String        @unique
   purpose    String
+  // For BUSINESS_PLAN payments, the business the plan is for.
+  businessId String?
   amountKobo Int
   status     PaymentStatus @default(PENDING)
   paidAt     DateTime?

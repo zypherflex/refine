@@ -57,3 +57,10 @@ export async function priceBoard(viewer: Actor, itemId: string, now = new Date()
 export async function myReports(actor: Actor) {
   return db.priceReport.findMany({ where: { business: { ownerId: actor.id } }, orderBy: [{ day: "desc" }, { item: "asc" }], take: 60 });
 }
+
+/** Days in the last 14 on which a business reported prices; the profile badge needs at least two. */
+export async function reportingDays(businessId: string, now = new Date()) {
+  const since = new Date(dayOf(now).getTime() - 13 * 86_400_000);
+  const rows = await db.priceReport.findMany({ where: { businessId, day: { gte: since } }, select: { day: true }, distinct: ["day"] });
+  return rows.length;
+}
