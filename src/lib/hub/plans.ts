@@ -18,8 +18,8 @@ export const REVENUE_LINES = [
     when: "NOW" as LineWhen,
     title: "Price intelligence",
     who: "Banks, manufacturers and traders",
-    summary: "The daily price board and morning price alerts stay free. Paid tiers add price history, threshold alerts, state-by-state exports and an API.",
-    features: ["Median history by product and state", "Alerts when a median moves past your threshold", "CSV exports", "API access for credit and procurement teams"],
+    summary: "The daily price board, morning price alerts and 8 weeks of history stay free. Price data adds two years of weekly medians, CSV exports and a JSON API, set up by the team while online payment is off.",
+    features: ["Two years of weekly medians by product and state", "CSV exports", "JSON API with keys for credit and procurement teams", "Threshold alerts (coming)"],
   },
   {
     id: "procurement-desk",
@@ -66,7 +66,7 @@ export const REVENUE_LINES = [
     when: "PARTNER" as LineWhen,
     title: "Inventory and trade finance",
     who: "Kiosks, stations and refill plants",
-    summary: "Licensed lenders finance stock, using confirmed delivery records on RefineryLens as the credit signal.",
+    summary: "Licensed lenders finance stock, using confirmed delivery records on RefineryLens as the credit signal. A pilot is open: verified businesses can share their record with a lender under Stock finance.",
     features: [],
   },
   {

@@ -8,6 +8,9 @@ import { ZodError } from "zod";
 import { requireUser, type CurrentUser } from "@/server/auth";
 import { AppError } from "@/lib/errors";
 import { reportBusiness, requestVerification, resolveReport, reviewBusiness, saveBusiness, setBusinessPlan } from "@/server/hub/business";
+import { createApiKey, revokeApiKey, setPriceDataAccess } from "@/server/hub/priceindex";
+import { createPartner, lenderDecide, requestFinance, setPartnerActive, setPartnerStaff, withdrawFinance } from "@/server/hub/finance";
+import { recordCylinders, registerCylinders } from "@/server/hub/cylinders";
 import { assignVisit, decideVisit, markPaid, setFieldAgent, submitVisit } from "@/server/hub/field";
 import { closeListing, createListing, sendEnquiry, setPromoted } from "@/server/hub/market";
 import { reportPrice } from "@/server/hub/prices";
@@ -212,4 +215,75 @@ export async function decideVisitAction(_: HubState, f: FormData) {
 
 export async function markPaidAction(_: HubState, f: FormData) {
   return run((u) => markPaid(u, str(f, "visitId")), "Marked paid.");
+}
+
+export async function setPriceDataAction(_: HubState, f: FormData) {
+  return run((u) => setPriceDataAccess(u, { email: str(f, "email"), months: Number(str(f, "months")) }), "Price data access saved.");
+}
+
+export type KeyState = HubState & { key?: string | null };
+
+/** Returns the new key once, so the page can show it to copy. */
+export async function createApiKeyAction(_: KeyState, f: FormData): Promise<KeyState> {
+  const user = await requireUser();
+  try {
+    const { key } = await createApiKey(user, str(f, "name"));
+    revalidatePath("/hub/data");
+    return { ok: "Key created. Copy it now: it will not be shown again.", key };
+  } catch (e) {
+    return { error: message(e) };
+  }
+}
+
+export async function revokeApiKeyAction(_: HubState, f: FormData) {
+  return run((u) => revokeApiKey(u, str(f, "id")), "Key revoked.");
+}
+
+export async function createPartnerAction(_: HubState, f: FormData) {
+  return run((u) => createPartner(u, { name: str(f, "name"), description: str(f, "description"), states: f.getAll("states").map(String), products: f.getAll("products").map(String) }), "Lender partner added.");
+}
+
+export async function setPartnerActiveAction(_: HubState, f: FormData) {
+  return run((u) => setPartnerActive(u, str(f, "partnerId"), str(f, "active") === "1"), "Saved.");
+}
+
+export async function setPartnerStaffAction(_: HubState, f: FormData) {
+  return run((u) => setPartnerStaff(u, str(f, "partnerId"), str(f, "email"), str(f, "add") !== "0"), "Lender staff saved.");
+}
+
+export async function requestFinanceAction(_: HubState, f: FormData) {
+  return run((u) => requestFinance(u, {
+    partnerId: str(f, "partnerId"), amountNgn: Number(str(f, "amountNgn").replace(/[^0-9]/g, "")), purpose: str(f, "purpose"), product: str(f, "product"), notes: str(f, "notes"), consent: (f.get("consent") === "on") as true,
+  }), "Your record is shared with the lender for 90 days. They will reply here.");
+}
+
+export async function withdrawFinanceAction(_: HubState, f: FormData) {
+  return run((u) => withdrawFinance(u, str(f, "id")), "Withdrawn. The lender can no longer see your record.");
+}
+
+export async function lenderDecideAction(_: HubState, f: FormData) {
+  return run((u) => lenderDecide(u, { requestId: str(f, "requestId"), status: str(f, "status") as never, note: str(f, "note") }), "Saved. The business has been told.");
+}
+
+export async function registerCylindersAction(_: HubState, f: FormData) {
+  const user = await requireUser();
+  try {
+    const r = await registerCylinders(user, { prefix: str(f, "prefix"), from: Number(str(f, "from")), count: Number(str(f, "count")), sizeKg: Number(str(f, "sizeKg")), lastTestOn: new Date(str(f, "lastTestOn")) });
+    revalidatePath("/hub", "layout");
+    return { ok: `Registered ${r.count} cylinders: ${r.first} to ${r.last}.` };
+  } catch (e) {
+    return { error: message(e) };
+  }
+}
+
+export async function recordCylindersAction(_: HubState, f: FormData) {
+  const user = await requireUser();
+  try {
+    const t = str(f, "testedOn");
+    const r = await recordCylinders(user, { serials: str(f, "serials"), action: str(f, "action") as never, toBusinessId: str(f, "toBusinessId"), testedOn: t ? new Date(t) : undefined, note: str(f, "note") });
+    revalidatePath("/hub", "layout");
+    return { ok: `Recorded for ${r.count} cylinder${r.count === 1 ? "" : "s"}.` };
+  } catch (e) {
+    return { error: message(e) };
+  }
 }

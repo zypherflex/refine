@@ -413,3 +413,71 @@ test("reliability score and Verified Business plan show with their formula", asy
   await page.goto("/hub/my");
   await expect(page.getByText(/Verified Business/).first()).toBeVisible();
 });
+
+test("price history: subscribers get two years, CSV and an API key; others see 8 weeks", async ({ page }) => {
+  await signIn(page, "other@refinerylens.test");
+  await page.goto("/hub/prices/history?product=LPG&state=LA");
+  await expect(page.getByText("You are seeing the last 8 weeks")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Download CSV/ })).toHaveCount(0);
+  expect((await page.request.get("/api/hub/price-history?product=LPG&state=LA")).status()).toBe(403);
+
+  await signIn(page, "investor@refinerylens.test");
+  await page.goto("/hub/prices/history?product=LPG&state=LA");
+  await expect(page.getByRole("heading", { name: "LPG (cooking gas), Lagos" })).toBeVisible();
+  await expect(page.locator("tbody tr").first()).toBeVisible();
+  const csv = await page.request.get("/api/hub/price-history?product=LPG&state=LA");
+  expect(csv.status()).toBe(200);
+  expect(await csv.text()).toMatch(/^week_ending,product,state,median_ngn,sellers\n/);
+
+  await page.goto("/hub/data");
+  await page.getByLabel("Key name").fill("E2E credit team");
+  await page.getByRole("button", { name: "Create key" }).click();
+  const key = (await page.getByTestId("new-api-key").innerText()).trim();
+  expect(key).toMatch(/^rl_live_/);
+  const board = await page.request.get("/api/v1/prices/board", { headers: { Authorization: `Bearer ${key}` } });
+  expect(board.status()).toBe(200);
+  const json = await board.json();
+  expect(json.medians.some((m: { product: string; state: string }) => m.product === "LPG" && m.state === "LA")).toBe(true);
+  expect((await page.request.get("/api/v1/prices/board")).status()).toBe(401);
+});
+
+test("finance pilot: a lender reads a shared record and replies; the business sees it", async ({ page }) => {
+  await signIn(page, "trader@refinerylens.test");
+  await page.goto("/hub/finance");
+  await expect(page.getByText("RefineryLens does not lend or hold money")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Not ready yet" })).toBeVisible();
+
+  await signIn(page, "lender@refinerylens.test");
+  await page.goto("/hub/lender");
+  await page.getByRole("link", { name: "Open the shared record" }).first().click();
+  await expect(page.getByRole("heading", { name: "Eko Bobtail Logistics" })).toBeVisible();
+  await expect(page.getByText("Different trading partners")).toBeVisible();
+  await page.getByLabel("Status").selectOption("OFFERED");
+  await page.getByLabel("Message").fill("We can offer a 90-day loan. Call our Ikeja branch.");
+  await page.getByRole("button", { name: "Save and tell the business" }).click();
+  await expect(page.getByText("Saved. The business has been told.")).toBeVisible();
+
+  await signIn(page, "haulier@refinerylens.test");
+  await page.goto("/hub/finance");
+  await expect(page.getByText("Lender wants to make an offer")).toBeVisible();
+  await expect(page.getByText("90-day loan")).toBeVisible();
+});
+
+test("cylinders: overdue cylinders cannot be filled, and anyone can check a serial @mobile", async ({ page }) => {
+  await signIn(page, "trader@refinerylens.test");
+  await page.goto("/hub/cylinders");
+  await expect(page.getByText("2 of your cylinders are past their test date")).toBeVisible();
+  await page.getByLabel("Serial numbers").fill("IKG-000041");
+  await page.getByLabel("What happened").selectOption("FILL");
+  await page.getByRole("button", { name: "Record" }).click();
+  await expect(page.getByText(/IKG-000041 is past its retest date/)).toBeVisible();
+
+  await page.context().clearCookies();
+  await page.goto("/check-cylinder?serial=ikg-000041");
+  await expect(page.getByRole("heading", { name: /Do not refill/ })).toBeVisible();
+  await page.goto("/check-cylinder?serial=IKG-000020");
+  await expect(page.getByRole("heading", { name: "Registered and within its test date" })).toBeVisible();
+  await expect(page.getByText("Ikeja Gas Hub (sample data)")).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});

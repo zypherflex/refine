@@ -132,7 +132,41 @@ export async function seedHub(db: PrismaClient, opts: { passwordHash: string; ed
   // Morning price alerts for the trader (in-app only until SMS or WhatsApp is switched on).
   await db.priceAlertSubscription.create({ data: { userId: trader.id, states: ["LA", "OG"], products: ["LPG", "DIESEL"], channels: ["IN_APP"] } });
 
+  // Price history: weekly reports from Lagos and Ogun sellers for the past half year (older than the board's 14-day
+  // window, so today's board is unchanged). A gentle upward drift with small deterministic wobbles.
+  const history: [string, string, string, number][] = [
+    ["ikeja", "LPG", "LA", 1180], ["ojota", "LPG", "LA", 1150], ["apapa", "LPG", "LA", 1200], ["mile2", "LPG", "LA", 1260],
+    ["apapa", "DIESEL", "LA", 1720], ["ijora", "DIESEL", "LA", 1760], ["mile2", "DIESEL", "LA", 1830],
+    ["sango", "LPG", "OG", 1170], ["ikeja", "LPG", "OG", 1210], ["ojota", "LPG", "OG", 1190],
+  ];
+  const histRows = [];
+  for (const [k, product, state, base] of history) {
+    for (let w = 3; w <= 26; w++) {
+      const drift = (26 - w) * 0.006;
+      const wobble = (((w * 7 + base) % 11) - 5) / 400;
+      histRows.push({ businessId: b[k]!.id, product, state, priceNgn: Math.round(base * (1 + drift + wobble)), chargedOn: dateOnly(w * 7 - 2) });
+    }
+  }
+  await db.priceReport.createMany({ data: histRows, skipDuplicates: true });
+
+  // Finance pilot: an invented sample lender, its staff login, and Eko Bobtail's shared record.
+  const lender = await db.financePartner.create({ data: { name: "Harbour Microfinance Bank (sample lender)", description: "Sample data. Stock and truck-repair loans for verified hauliers and gas sellers in Lagos and Ogun.", states: ["LA", "OG"], products: ["LPG", "DIESEL"] } });
+  const lenderUser = await db.user.create({ data: { email: "lender@refinerylens.test", name: "Lola Lender", passwordHash: opts.passwordHash, role: "USER", plan: "FREE", financePartnerId: lender.id, priceDataUntil: new Date(now + 365 * DAY) } });
+  await db.financeRequest.create({ data: { businessId: b.eko!.id, partnerId: lender.id, amountNgn: 4_500_000, purpose: "TRUCK", product: "LPG", notes: "Two bobtails need new pumps before the harmattan rush.", consentAt: ago(2), shareUntil: new Date(now + 88 * DAY), createdAt: ago(2) } });
+
+  // Cylinders: Ikeja Gas Hub owns 40 tested cylinders (10 out at the Lekki kiosks) and 2 past their test date.
+  const cyl = (n: number) => `IKG-${String(n).padStart(6, "0")}`;
+  const tested = dateOnly(400);
+  const due = new Date(Date.UTC(tested.getUTCFullYear() + 5, tested.getUTCMonth(), tested.getUTCDate()));
+  await db.cylinder.createMany({ data: Array.from({ length: 40 }, (_, i) => ({ serial: cyl(i + 1), ownerId: b.ikeja!.id, holderId: i < 10 ? b.lekki!.id : b.ikeja!.id, sizeKg: 12.5, lastTestOn: tested, nextTestDue: due, lastFilledAt: i < 10 ? ago(3) : null, createdAt: ago(30) })) });
+  const old = dateOnly(365 * 5 + 20);
+  await db.cylinder.createMany({ data: [41, 42].map((n) => ({ serial: cyl(n), ownerId: b.ikeja!.id, holderId: b.ikeja!.id, sizeKg: 12.5, lastTestOn: old, nextTestDue: new Date(Date.UTC(old.getUTCFullYear() + 5, old.getUTCMonth(), old.getUTCDate())), createdAt: ago(30) })) });
+  const cyls = await db.cylinder.findMany({ where: { ownerId: b.ikeja!.id }, select: { id: true, serial: true } });
+  await db.cylinderEvent.createMany({ data: cyls.map((c) => ({ cylinderId: c.id, kind: "REGISTERED", byId: b.ikeja!.id, at: ago(30) })) });
+  const out = cyls.filter((c) => Number(c.serial.slice(4)) <= 10);
+  await db.cylinderEvent.createMany({ data: out.flatMap((c) => [{ cylinderId: c.id, kind: "FILLED", byId: b.ikeja!.id, at: ago(3) }, { cylinderId: c.id, kind: "DISPATCHED", byId: b.ikeja!.id, toId: b.lekki!.id, at: ago(3) }]) });
+
   await db.hubReport.create({ data: { businessId: b.mile2!.id, reporterId: haulier.id, reason: "ADVANCE_PAYMENT", details: "Sample report: asked for full payment before loading, then stopped answering for two days." } });
 
-  return { trader, haulier, agent };
+  return { trader, haulier, agent, lenderUser };
 }
