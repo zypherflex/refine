@@ -3,6 +3,7 @@ import "@fontsource-variable/inter";
 import "@fontsource-variable/source-serif-4";
 import "./globals.css";
 import { ServiceWorker } from "@/components/AppInstall";
+import { NativeBridge } from "@/components/native/NativeBridge";
 
 export const metadata: Metadata = {
   title: { default: "RefineryLens · Business opportunities around Dangote", template: "%s · RefineryLens" },
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen font-sans">
         {children}
         <ServiceWorker />
+        <NativeBridge />
       </body>
     </html>
   );

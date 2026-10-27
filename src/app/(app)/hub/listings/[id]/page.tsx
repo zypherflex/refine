@@ -9,6 +9,7 @@ import { fmtDate } from "@/lib/format";
 import { EnquiryForm, ReportForm } from "@/components/hub/forms";
 import { DemoTag, KindPill, ListingCard, placesText, quantityText, RolePills, SafetyNote, VerificationBadge } from "@/components/hub/parts";
 import { Notice, PageHeader, Pill } from "@/components/ui";
+import { ShareButton } from "@/components/native/ShareButton";
 
 export const metadata = { title: "Listing" };
 
@@ -34,7 +35,7 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
   return (
     <>
       <p className="mb-2 text-sm"><Link href="/hub">← Trade hub</Link></p>
-      <PageHeader eyebrow={kindLabel(l.kind)} title={l.title} subtitle={placesText(l)} actions={<div className="flex flex-wrap gap-1.5"><KindPill kind={l.kind} />{l.products.map((p) => <Pill key={p} className="bg-ink-50 text-ink-700 ring-1 ring-inset ring-ink-100">{productLabel(p)}</Pill>)}</div>} />
+      <PageHeader eyebrow={kindLabel(l.kind)} title={l.title} subtitle={placesText(l)} actions={<div className="flex flex-wrap gap-1.5"><KindPill kind={l.kind} />{l.products.map((p) => <Pill key={p} className="bg-ink-50 text-ink-700 ring-1 ring-inset ring-ink-100">{productLabel(p)}</Pill>)}{l.isLive && <ShareButton title={l.title} text={`${l.title} on RefineryLens`} path={`/hub/listings/${l.id}`} />}</div>} />
       {saved && <div className="mb-4"><Notice tone="ok" title="Listing published">It is live until {fmtDate(l.expiresAt)}. Matching listings from other businesses appear below.</Notice></div>}
       {l.own && !l.isLive && <div className="mb-4"><Notice tone="warn" title="Only you can see this listing">{l.status === "CLOSED" ? "You closed it." : l.expiresAt <= new Date() ? `It expired on ${fmtDate(l.expiresAt)}.` : "Your business is hidden until RefineryLens verifies it."} Renew it to put it back on the hub.</Notice></div>}
 

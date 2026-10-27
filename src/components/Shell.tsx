@@ -155,7 +155,7 @@ export function Shell({ user, children, companies, current, unread, hubUnread, c
         <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-6 sm:px-8 sm:pt-8 lg:pb-10">{children}</main>
         <footer className="border-t border-ink-100 bg-white px-4 pb-24 pt-5 text-xs text-ink-600 sm:px-8 lg:pb-5">
           <div className="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p>© {new Date().getFullYear()} RefineryLens. Independent research platform.</p>
+            <p>© {new Date().getFullYear()} RefineryLens · <Link href="/privacy">Privacy</Link></p>
             <p className="max-w-2xl sm:text-right">Provenance labels describe who published information, not whether it is accurate. Nothing here is a recommendation to buy or sell.</p>
           </div>
         </footer>

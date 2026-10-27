@@ -40,6 +40,7 @@ export function RegisterForm() {
         <p id="pw-hint" className="hint">At least 10 characters.</p>
       </div>
       <FieldError message={state.error} />
+      <p className="text-xs text-ink-600">By creating an account you agree to how we handle your data in the <a href="/privacy">privacy policy</a>.</p>
       <button className="btn-primary w-full py-2.5" disabled={pending}>{pending ? "Creating account…" : "Create free account"}</button>
     </form>
   );

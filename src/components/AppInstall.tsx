@@ -1,13 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Download, Share } from "lucide-react";
+import { isNativeApp } from "./native/NativeBridge";
 
 type InstallEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 
 /** Registers the service worker once, in production builds only. */
 export function ServiceWorker() {
   useEffect(() => {
-    if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
+    // The store apps have their own offline screen; the service worker is for the website and installed web app.
+    if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator) || isNativeApp()) return;
     navigator.serviceWorker.register("/sw.js").catch(() => undefined);
   }, []);
   return null;
@@ -29,7 +31,8 @@ export function InstallApp({ compact = false }: { compact?: boolean }) {
   const [help, setHelp] = useState(false);
 
   useEffect(() => {
-    const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true;
+    // Already an app: installed from the home screen, or the Google Play / App Store app.
+    const standalone = isNativeApp() || window.matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true;
     setInstalled(standalone);
     setIos(/iphone|ipad|ipod/i.test(navigator.userAgent));
     const onPrompt = (e: Event) => {

@@ -4,6 +4,7 @@ import { textProvider } from "./connect/text";
 import { registryConfigured } from "./connect/registry";
 import { geocoderConfigured } from "./connect/geocode";
 import { ussdConfigured } from "./connect/ussd";
+import { apnsConfigured, fcmConfigured } from "./connect/push";
 
 /**
  * Which external services are actually usable in this installation. A provider only counts as available when it is
@@ -48,6 +49,7 @@ export function integrationStatus() {
     registry: registryConfigured(),
     geocoder: geocoderConfigured(),
     ussd: ussdConfigured(),
+    push: { android: fcmConfigured(), ios: apnsConfigured() },
     openData: openDataStatus(),
   };
 }

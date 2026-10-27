@@ -4,6 +4,8 @@ import { jobHandlers } from "../src/server/job-handlers";
 import { sendDueAlertEmails } from "../src/server/services/alert-email";
 import { sendDueAlertTexts, sendPriceDigests } from "../src/server/services/alert-text";
 import { getTextSender } from "../src/server/connect/text";
+import { sendDueAlertPushes } from "../src/server/services/alert-push";
+import { getPushSender } from "../src/server/connect/push";
 import { getMailer } from "../src/server/email";
 import { scheduleIngestionIfDue } from "../src/server/opendata/ingest";
 
@@ -23,6 +25,7 @@ async function loop() {
     if (Date.now() - lastEmail > EMAIL_INTERVAL_MS) {
       lastEmail = Date.now();
       await sendDueAlertEmails().catch((e) => console.error("alert email error", e));
+      if (getPushSender()) await sendDueAlertPushes().catch((e) => console.error("push error", e));
       if (getTextSender()) {
         await sendDueAlertTexts().catch((e) => console.error("alert text error", e));
         await sendPriceDigests().catch((e) => console.error("price digest error", e));

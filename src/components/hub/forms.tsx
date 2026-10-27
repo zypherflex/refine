@@ -16,6 +16,7 @@ import {
 import { HUB_ROLES, LISTING_DAYS, LISTING_KINDS, LOCATIONS, NIGERIAN_STATES, OTHER_LOCATIONS, PRODUCTS, UNITS } from "@/lib/hub/catalog";
 import { CYLINDER_SIZES, GASES, SITE_KINDS } from "@/lib/hub/gas";
 import { FieldError } from "../ui";
+import { useIsNativeApp } from "../native/NativeBridge";
 
 function Status({ state }: { state: { error?: string | null; ok?: string | null } }) {
   return (
@@ -365,6 +366,8 @@ export function SiteForm({ kinds, site }: { kinds: GasSiteKind[]; site: GasSite 
 
 export function BusinessPlanButton({ label }: { label: string }) {
   const [state, action, pending] = useActionState(startBusinessCheckoutAction, {});
+  // App store rules require their own billing for in-app purchases, so plans are bought on the website only.
+  if (useIsNativeApp()) return <p className="rounded-xl bg-ink-50 px-3 py-2 text-xs text-ink-700">Plans are managed on the RefineryLens website, not in the app.</p>;
   return (
     <form action={action} className="space-y-2">
       <button className="btn-primary w-full" disabled={pending}>{pending ? "Opening secure payment…" : label}</button>

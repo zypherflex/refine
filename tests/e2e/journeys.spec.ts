@@ -355,3 +355,25 @@ test("price board, delivery job and supply agreement work end to end @mobile", a
   await page.getByRole("link", { name: /20 tonnes of LPG/ }).click();
   await expect(page.getByText("Waiting for buyer")).toBeVisible();
 });
+
+test("a new user finds the privacy policy and deletes their account from settings @mobile", async ({ page }) => {
+  const email = `delete-me-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@example.com`;
+  await page.context().clearCookies();
+  await page.goto("/register");
+  await page.getByRole("link", { name: "privacy policy" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Privacy policy" })).toBeVisible();
+  await page.goto("/register");
+  await page.getByLabel("Name").fill("Temporary Tester");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill("a-long-test-password-123");
+  await Promise.all([page.waitForURL(/\/hub/), page.getByRole("button", { name: "Create free account" }).click()]);
+
+  await page.goto("/settings");
+  await page.getByText("Delete my account", { exact: true }).click();
+  await page.getByLabel("Password", { exact: true }).last().fill("a-long-test-password-123");
+  await page.getByLabel("Type DELETE to confirm").fill("DELETE");
+  await Promise.all([page.waitForURL(/\/account-deleted/), page.getByRole("button", { name: "Delete my account permanently" }).click()]);
+  await expect(page.getByRole("heading", { level: 1, name: "Your account has been deleted" })).toBeVisible();
+  await page.goto("/hub");
+  await expect(page).toHaveURL(/\/login/);
+});

@@ -66,6 +66,7 @@ model User {
   hubMessages     HubMessage[]
   hubReports      HubReport[]
   payments        Payment[]
+  devices         DeviceToken[]
 }
 
 model Session {
@@ -592,6 +593,8 @@ model Alert {
   emailedAt DateTime?
   // Set once an SMS or WhatsApp copy has been sent (or skipped for alerts that predate opting in).
   textedAt  DateTime?
+  // Set once a push notification has been sent to the user's phones (or skipped for alerts that predate opting in).
+  pushedAt  DateTime?
   createdAt DateTime  @default(now())
 
   @@unique([userId, dedupeKey])
@@ -1196,4 +1199,18 @@ model Payment {
   status     PaymentStatus @default(PENDING)
   paidAt     DateTime?
   createdAt  DateTime      @default(now())
+}
+
+// Phones that receive push notifications in the Google Play and App Store apps. The token comes from FCM (Android)
+// or APNs (iOS) and is deleted when the push service reports it as no longer valid, or when the user signs out.
+model DeviceToken {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token      String   @unique
+  platform   String
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+
+  @@index([userId])
 }

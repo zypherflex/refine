@@ -31,6 +31,8 @@ export default async function AdminPage() {
     ["Card payments (Paystack)" + (st.payments.configured && !st.payments.available ? " (needs PAYMENT_PROVIDER=paystack and PAYSTACK_SECRET_KEY)" : ""), st.payments.available],
     [`Text alerts${st.text.provider ? ` (${st.text.provider})` : st.text.configured ? " (provider set but keys missing)" : " (Termii, Africa's Talking or WhatsApp)"}`, !!st.text.provider],
     ["USSD price check (Africa's Talking)", st.ussd],
+    ["Push notifications, Android app (Firebase Cloud Messaging)", st.push.android],
+    ["Push notifications, iPhone app (Apple Push Notification service)", st.push.ios],
     ["CAC registry lookup (Dojah)", st.registry],
     ["Gas site geocoding (OpenStreetMap Nominatim)", st.geocoder],
     ...PROVIDER_ORDER.map((id) => [`Open data: ${PROVIDERS[id].publisher}${st.openData[id].reason ? ` (${st.openData[id].reason})` : ""}`, st.openData[id].available] as const),

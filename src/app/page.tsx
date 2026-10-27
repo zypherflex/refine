@@ -203,7 +203,7 @@ export default async function Home() {
       <footer className="border-t border-ink-100">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-xs text-ink-600 sm:flex-row sm:items-start sm:justify-between sm:px-8">
           <Logo size={24} />
-          <p className="max-w-2xl sm:text-right">RefineryLens is an independent research platform. It is not affiliated with, endorsed by or sponsored by any company it covers, and does not provide investment advice. Demonstration features use a clearly labelled fictional company.</p>
+          <p className="max-w-2xl sm:text-right">RefineryLens is an independent research platform. It is not affiliated with, endorsed by or sponsored by any company it covers, and does not provide investment advice. Demonstration features use a clearly labelled fictional company. <Link href="/privacy">Privacy policy</Link> · <Link href="/delete-account">Delete your account</Link></p>
         </div>
       </footer>
     </div>

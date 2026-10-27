@@ -2,8 +2,9 @@ import { integrationStatus } from "@/server/integrations";
 import { db } from "@/lib/db";
 import { requireUser } from "@/server/auth";
 import { PLANS } from "@/lib/plans";
-import { CheckoutButton, PasswordForm, ProfileForm, TextSettingsForm } from "@/components/SettingsForms";
+import { CheckoutButton, DeleteAccountForm, PasswordForm, ProfileForm, TextSettingsForm } from "@/components/SettingsForms";
 import { proPriceKobo } from "@/server/connect/paystack";
+import { PushSettings } from "@/components/native/Push";
 import { Notice, PageHeader, Pill } from "@/components/ui";
 
 export const metadata = { title: "Account and plan" };
@@ -30,6 +31,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <h3 className="pt-2 font-semibold">Password</h3>
           <PasswordForm />
         </section>
+        <PushSettings />
         <section className="card space-y-3" aria-labelledby="texts-h">
           <h2 id="texts-h" className="h-section">Text alerts{textProvider ? ` by ${textName[textProvider]}` : ""}</h2>
           {!textProvider && <Notice tone="warn">Text messages are not configured in this installation. You can save your number now; alerts stay in-app and email until a provider is set up.</Notice>}
@@ -62,6 +64,11 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             </div>
           ))}
         </div>
+      </section>
+      <section className="mt-8 space-y-3" aria-labelledby="privacy-h">
+        <h2 id="privacy-h" className="h-section">Privacy and your data</h2>
+        <p className="muted">Read the <a href="/privacy">privacy policy</a>. You can delete your account at any time.</p>
+        <DeleteAccountForm />
       </section>
     </>
   );

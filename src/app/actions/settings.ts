@@ -1,7 +1,8 @@
 "use server";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { requireUser } from "@/server/auth";
+import { destroySession, requireUser } from "@/server/auth";
+import { deleteAccount } from "@/server/services/account";
 import { changePassword } from "@/server/services/users";
 import { AppError } from "@/lib/errors";
 import { saveTextSettings } from "@/server/services/alert-text";
@@ -50,4 +51,16 @@ export async function startCheckoutAction(): Promise<SettingsState> {
     return { error: "The payment page could not be opened. Try again in a minute." };
   }
   redirect(url);
+}
+
+export async function deleteAccountAction(_: SettingsState, form: FormData): Promise<SettingsState> {
+  const user = await requireUser();
+  try {
+    await deleteAccount(user, String(form.get("password") ?? ""), String(form.get("confirm") ?? ""));
+  } catch (e) {
+    if (e instanceof AppError) return { error: e.message };
+    throw e;
+  }
+  await destroySession().catch(() => undefined);
+  redirect("/account-deleted");
 }

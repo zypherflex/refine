@@ -6,6 +6,7 @@ import { MIN_SELLERS, naira, PRICE_ITEMS, priceItem, WINDOW_DAYS } from "@/lib/h
 import { fmtDate } from "@/lib/format";
 import { PriceReportForm } from "@/components/hub/opsForms";
 import { EmptyState, Notice, PageHeader } from "@/components/ui";
+import { ShareButton } from "@/components/native/ShareButton";
 
 export const metadata = { title: "Price board" };
 
@@ -33,7 +34,7 @@ export default async function PriceBoardPage({ searchParams }: { searchParams: P
         eyebrow="Trade hub"
         title="Price board"
         subtitle={`What sellers on RefineryLens charged in the last ${WINDOW_DAYS} days, by state. Each figure is the median across at least ${MIN_SELLERS} sellers, so no single seller's price is shown.`}
-        actions={canReport ? <a href="#report" className="btn-primary btn-sm no-underline">Report my prices</a> : <Link href="/hub/me" className="btn-secondary btn-sm no-underline">Sellers: set up your business to report</Link>}
+        actions={<><ShareButton title={`${item.label} prices by state`} text={`${item.label} prices by state on RefineryLens`} path={`/hub/prices?item=${item.id}`} />{canReport ? <a href="#report" className="btn-primary btn-sm no-underline">Report my prices</a> : <Link href="/hub/me" className="btn-secondary btn-sm no-underline">Sellers: set up your business to report</Link>}</>}
       />
 
       {includesDemo && <div className="mb-4"><Notice tone="warn" title="Includes demo sellers">Some figures come from fictional demo businesses seeded for this installation. They are sample data, not market prices.</Notice></div>}

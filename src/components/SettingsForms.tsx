@@ -1,8 +1,9 @@
 "use client";
 import { useActionState } from "react";
-import { changePasswordAction, saveTextSettingsAction, startCheckoutAction, updateProfileAction } from "@/app/actions/settings";
+import { changePasswordAction, deleteAccountAction, saveTextSettingsAction, startCheckoutAction, updateProfileAction } from "@/app/actions/settings";
 import { NIGERIAN_STATES } from "@/lib/hub/catalog";
 import { FieldError } from "./ui";
+import { useIsNativeApp } from "./native/NativeBridge";
 
 export function ProfileForm({ name }: { name: string }) {
   const [s, a, p] = useActionState(updateProfileAction, {});
@@ -44,10 +45,29 @@ export function TextSettingsForm({ phone, textAlerts, priceDigest, digestState, 
 
 export function CheckoutButton({ label }: { label: string }) {
   const [s, a, p] = useActionState(startCheckoutAction, {});
+  // App store rules require their own billing for in-app purchases, so plans are bought on the website only.
+  if (useIsNativeApp()) return <div className="mt-4"><p className="rounded-xl bg-ink-50 px-3 py-2 text-xs text-ink-700">Plans are managed on the RefineryLens website, not in the app.</p></div>;
   return (
     <form action={a} className="mt-4">
       <button className="btn-primary w-full" disabled={p}>{p ? "Opening secure payment…" : label}</button>
       <FieldError message={s.error} />
     </form>
+  );
+}
+
+/** Account deletion, required by both app stores. Asks for the password and the word DELETE. */
+export function DeleteAccountForm() {
+  const [s, a, p] = useActionState(deleteAccountAction, {});
+  return (
+    <details className="rounded-2xl border border-risk-600/20 bg-white p-4">
+      <summary className="font-semibold text-risk-800">Delete my account</summary>
+      <form action={a} className="mt-3 space-y-3">
+        <p className="text-sm text-ink-700">This permanently deletes your account, private files, theses, alerts, your trade hub business with its listings, sites, prices, jobs, agreements and messages, and the phones registered for notifications. It cannot be undone. Payment records held by Paystack are kept by Paystack under its own rules.</p>
+        <div><label className="label" htmlFor="del-password">Password</label><input id="del-password" name="password" type="password" className="input" required autoComplete="current-password" /></div>
+        <div><label className="label" htmlFor="del-confirm">Type DELETE to confirm</label><input id="del-confirm" name="confirm" className="input" required autoComplete="off" /></div>
+        <FieldError message={s.error} />
+        <button className="btn-danger" disabled={p}>{p ? "Deleting…" : "Delete my account permanently"}</button>
+      </form>
+    </details>
   );
 }

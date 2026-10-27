@@ -11,6 +11,7 @@ import { fmtDate } from "@/lib/format";
 import { EnquiryForm, ReportForm } from "@/components/hub/forms";
 import { DemoTag, ListingCard, RolePills, SafetyNote, VerificationBadge } from "@/components/hub/parts";
 import { Notice, PageHeader, Pill } from "@/components/ui";
+import { ShareButton } from "@/components/native/ShareButton";
 
 export const metadata = { title: "Gas site" };
 
@@ -30,7 +31,7 @@ export default async function GasSitePage({ params, searchParams }: { params: Pr
   return (
     <>
       <p className="mb-2 text-sm"><Link href={`/hub/gas?state=${encodeURIComponent(s.state)}#map`}>← Gas network: {s.state}</Link></p>
-      <PageHeader eyebrow={siteKindLabel(s.kind)} title={s.name} subtitle={[s.address, s.town, s.state].filter(Boolean).join(", ")} actions={<div className="flex flex-wrap gap-1.5">{s.gases.map((g) => <Pill key={g} className="bg-ink-50 text-ink-700 ring-1 ring-inset ring-ink-100">{gasLabel(g)}</Pill>)}</div>} />
+      <PageHeader eyebrow={siteKindLabel(s.kind)} title={s.name} subtitle={[s.address, s.town, s.state].filter(Boolean).join(", ")} actions={<div className="flex flex-wrap gap-1.5">{s.gases.map((g) => <Pill key={g} className="bg-ink-50 text-ink-700 ring-1 ring-inset ring-ink-100">{gasLabel(g)}</Pill>)}<ShareButton title={s.name} text={`${s.name}, ${s.state}, on the RefineryLens gas network`} path={`/hub/gas/sites/${s.id}`} /></div>} />
       {saved && <div className="mb-4"><Notice tone="ok" title="Site saved">It shows on the gas network map{s.status === "CLOSED" ? " only to you, because it is marked closed" : ""}.</Notice></div>}
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
