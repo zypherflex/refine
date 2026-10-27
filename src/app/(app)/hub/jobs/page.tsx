@@ -6,6 +6,7 @@ import { isState, PRODUCTS, productLabel, stateName } from "@/lib/hub/catalog";
 import { postJobAction } from "@/app/actions/hub";
 import { EmptyState, PageHeader, Pill, SectionHeader } from "@/components/ui";
 import { HubForm } from "@/components/hub/HubForm";
+import { hubT } from "@/server/hub/lang";
 import { BusinessName, JOB_STATUS, ProductSelect, StateSelect, UnitSelect, day, isoDay, qty } from "@/components/hub/bits";
 
 export const metadata = { title: "Delivery jobs" };
@@ -13,6 +14,7 @@ export const metadata = { title: "Delivery jobs" };
 
 export default async function JobsPage({ searchParams }: { searchParams: Promise<{ state?: string; product?: string }> }) {
   const user = await requireUser();
+  const { t } = await hubT();
   const sp = await searchParams;
   const state = sp.state && isState(sp.state) ? sp.state : "";
   const product = PRODUCTS.some((p) => p.id === sp.product) ? sp.product! : "";
@@ -20,7 +22,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
 
   return (
     <>
-      <PageHeader eyebrow="Trade hub" title="Delivery jobs" subtitle="Post a load and collect quotes from hauliers. Accept one, and once the product arrives both sides confirm delivery. Confirmed deliveries build each business's record." actions={me ? <a href="#post" className="btn-primary btn-sm no-underline">Post a load</a> : <Link href="/hub/my" className="btn-primary btn-sm no-underline">Add your business to post</Link>} />
+      <PageHeader eyebrow={t("hub.eyebrow")} title={t("jobs.title")} subtitle={t("jobs.subtitle")} actions={me ? <a href="#post" className="btn-primary btn-sm no-underline">{t("jobs.post")}</a> : <Link href="/hub/my" className="btn-primary btn-sm no-underline">Add your business to post</Link>} />
 
       {(mine.posted.length > 0 || mine.quoted.length > 0) && (
         <section aria-labelledby="mine-h" className="mb-8 grid gap-4 md:grid-cols-2">
@@ -51,7 +53,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                 <Pill className="bg-ink-100 text-ink-900">{j._count.quotes} quotes</Pill>
               </div>
               <p className="mt-1 text-sm text-ink-800">{j.fromPlace}, {stateName(j.fromState)} → {j.toPlace}, {stateName(j.toState)}</p>
-              <p className="mt-1 text-xs text-ink-600">Ready by {day(j.readyBy)} · posted by <BusinessName b={j.poster} /></p>
+              <p className="mt-1 text-xs text-ink-600">Ready by {day(j.readyBy)} · posted by <BusinessName b={j.poster} t={t} /></p>
             </li>
           ))}
         </ul>

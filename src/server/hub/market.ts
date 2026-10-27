@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { AppError, ForbiddenError, NotFoundError } from "@/lib/errors";
 import { can, type Actor } from "@/lib/permissions";
 import { PRODUCTS, UNITS } from "@/lib/hub/catalog";
-import { LISTING_DAYS } from "@/lib/hub/rules";
+import { activePlan, LISTING_DAYS, PLAN_LIMITS, trustRank } from "@/lib/hub/rules";
 import { audit } from "../audit";
 import { requireBusiness, stateField } from "./business";
 
@@ -23,7 +23,8 @@ export async function createListing(actor: Actor, raw: z.input<typeof listingInp
   const input = listingInput.parse(raw);
   const b = await requireBusiness(actor);
   const active = await db.hubListing.count({ where: { businessId: b.id, active: true, expiresAt: { gt: new Date() } } });
-  if (active >= 20) throw new AppError("You have 20 live listings. Close some before adding more.");
+  const max = PLAN_LIMITS[activePlan(b)].listings;
+  if (active >= max) throw new AppError(`You have ${max} live listings. Close some before adding more.`);
   const l = await db.hubListing.create({ data: { ...input, businessId: b.id, expiresAt: new Date(Date.now() + LISTING_DAYS * 86_400_000) } });
   await audit(actor.id, "hub.listing.create", "HubListing", l.id);
   return l;
@@ -55,8 +56,8 @@ export async function listListings(f: ListingFilter = {}, take = 100) {
     ...(f.state ? { state: f.state } : {}),
   };
   const rows = await db.hubListing.findMany({ where, include: { business: true }, orderBy: { createdAt: "desc" }, take });
-  // Promoted first (and labelled), then verified sellers, then newest.
-  const rank = (l: (typeof rows)[number]) => (l.promoted ? 0 : l.business.verification === "VERIFIED" ? 1 : 2);
+  // Promoted first (and labelled), then Verified Business members, then verified sellers, then newest.
+  const rank = (l: (typeof rows)[number]) => (l.promoted ? 0 : 1 + trustRank(l.business));
   return rows.sort((a, b) => rank(a) - rank(b));
 }
 
@@ -77,7 +78,8 @@ export async function sendEnquiry(actor: Actor, raw: z.input<typeof enquiryInput
     if (!l) throw new NotFoundError("Listing not found");
   }
   const today = await db.hubEnquiry.count({ where: { fromId: from.id, createdAt: { gt: new Date(Date.now() - 86_400_000) } } });
-  if (today >= 30) throw new AppError("You have sent 30 enquiries in the last day. Try again tomorrow.");
+  const max = PLAN_LIMITS[activePlan(from)].enquiriesPerDay;
+  if (today >= max) throw new AppError(`You have sent ${max} enquiries in the last day. Try again tomorrow.`);
   return db.hubEnquiry.create({ data: { fromId: from.id, toId: to.id, listingId: input.listingId || null, message: input.message } });
 }
 
@@ -85,4 +87,13 @@ export async function inbox(actor: Actor) {
   const b = await db.hubBusiness.findUnique({ where: { ownerId: actor.id } });
   if (!b) return [];
   return db.hubEnquiry.findMany({ where: { toId: b.id }, include: { from: true, listing: true }, orderBy: { createdAt: "desc" }, take: 50 });
+}
+
+/** Enquiry analytics for Verified Business members: messages received in the last 30 days, in total and per listing. */
+export async function enquiryStats(businessId: string, now = new Date()) {
+  const since = new Date(now.getTime() - 30 * 86_400_000);
+  const rows = await db.hubEnquiry.groupBy({ by: ["listingId"], where: { toId: businessId, createdAt: { gte: since } }, _count: { _all: true } });
+  const total = rows.reduce((s, r) => s + r._count._all, 0);
+  const listings = await db.hubListing.findMany({ where: { id: { in: rows.map((r) => r.listingId).filter((x): x is string => !!x) } } });
+  return { total, byListing: rows.map((r) => ({ listing: listings.find((l) => l.id === r.listingId) ?? null, count: r._count._all })).sort((a, b) => b.count - a.count) };
 }

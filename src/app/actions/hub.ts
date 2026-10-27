@@ -1,16 +1,21 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+import { isLang } from "@/lib/i18n/hub";
+import { LANG_COOKIE } from "@/server/hub/lang";
 import { redirect } from "next/navigation";
 import { ZodError } from "zod";
 import { requireUser, type CurrentUser } from "@/server/auth";
 import { AppError } from "@/lib/errors";
-import { reportBusiness, requestVerification, resolveReport, reviewBusiness, saveBusiness } from "@/server/hub/business";
+import { reportBusiness, requestVerification, resolveReport, reviewBusiness, saveBusiness, setBusinessPlan } from "@/server/hub/business";
+import { assignVisit, decideVisit, markPaid, setFieldAgent, submitVisit } from "@/server/hub/field";
 import { closeListing, createListing, sendEnquiry, setPromoted } from "@/server/hub/market";
 import { reportPrice } from "@/server/hub/prices";
 import { addSite, confirmSite, removeSite } from "@/server/hub/gas";
 import { acceptQuote, cancelJob, confirmDelivery, postJob, quoteJob, withdrawQuote } from "@/server/hub/jobs";
 import { confirmSupplyDelivery, endAgreement, proposeAgreement, recordDelivery, respondAgreement } from "@/server/hub/supply";
 import { registerInterest } from "@/server/hub/plans";
+import { confirmPhone, saveAlertSettings, startPhoneConfirmation } from "@/server/hub/alerts";
 
 export type HubState = { error?: string | null; ok?: string | null };
 
@@ -159,4 +164,52 @@ export async function registerInterestAction(_: HubState, f: FormData): Promise<
   }
   revalidatePath("/plans");
   return { ok: "Thanks. We will contact you before launch. No payment has been taken." };
+}
+
+export async function setLangAction(f: FormData) {
+  await requireUser();
+  const lang = str(f, "lang");
+  if (!isLang(lang)) return;
+  (await cookies()).set(LANG_COOKIE, lang, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax", httpOnly: true });
+  revalidatePath("/hub", "layout");
+}
+
+export async function saveAlertsAction(_: HubState, f: FormData) {
+  return run((u) => saveAlertSettings(u, { states: f.getAll("states").map(String), products: f.getAll("products").map(String), channels: f.getAll("channels").map(String) as never, language: str(f, "language"), active: f.get("active") === "on" }), "Alert settings saved.");
+}
+
+export async function sendPhoneCodeAction(_: HubState, f: FormData) {
+  return run((u) => startPhoneConfirmation(u, str(f, "phone")), "Code sent. It is valid for 15 minutes.");
+}
+
+export async function confirmPhoneAction(_: HubState, f: FormData) {
+  return run((u) => confirmPhone(u, str(f, "code")), "Number confirmed. Text alerts will go to it.");
+}
+
+export async function setBusinessPlanAction(_: HubState, f: FormData) {
+  return run((u) => setBusinessPlan(u, { businessId: str(f, "businessId"), plan: str(f, "plan") as never, months: Number(str(f, "months")) || 12 }), "Plan saved.");
+}
+
+export async function setFieldAgentAction(_: HubState, f: FormData) {
+  return run((u) => setFieldAgent(u, { email: str(f, "email"), areas: f.getAll("areas").map(String), enabled: str(f, "enabled") !== "0" }), "Field agent saved.");
+}
+
+export async function assignVisitAction(_: HubState, f: FormData) {
+  return run((u) => assignVisit(u, str(f, "businessId"), str(f, "agentId")), "Visit assigned.");
+}
+
+export async function submitVisitAction(_: HubState, f: FormData) {
+  const tick = (k: string) => f.get(k) === "on";
+  return run((u) => submitVisit(u, {
+    visitId: str(f, "visitId"), visitedOn: new Date(str(f, "visitedOn")), cacSeen: tick("cacSeen"), licenceSeen: tick("licenceSeen"), premisesSeen: tick("premisesSeen"),
+    phoneAnswered: tick("phoneAnswered"), productSeen: tick("productSeen"), notes: str(f, "notes"),
+  }), "Visit report sent for review.");
+}
+
+export async function decideVisitAction(_: HubState, f: FormData) {
+  return run((u) => decideVisit(u, str(f, "visitId"), str(f, "decision") === "ACCEPT", str(f, "note")), "Decision saved.");
+}
+
+export async function markPaidAction(_: HubState, f: FormData) {
+  return run((u) => markPaid(u, str(f, "visitId")), "Marked paid.");
 }

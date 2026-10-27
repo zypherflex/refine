@@ -344,3 +344,72 @@ test("plans page labels partner services as coming soon and editors see the hub 
   await expect(page.getByText("Sango-Ota LPG Plant").first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Waiting for verification" })).toBeVisible();
 });
+
+test("trade hub speaks Hausa and Pidgin, and says the translation is new @mobile", async ({ page }) => {
+  await signIn(page, "trader@refinerylens.test");
+  await page.goto("/hub");
+  await page.getByLabel("Language").selectOption("ha");
+  await page.getByRole("button", { name: "OK" }).click();
+  await expect(page.getByRole("link", { name: "Allon farashi" }).first()).toBeVisible();
+  await expect(page.getByText(/Fassarar sabuwa ce/)).toBeVisible();
+  await page.getByLabel("Harshe").selectOption("pcm");
+  await page.getByRole("button", { name: "OK" }).click();
+  await expect(page.getByText("check who you dey deal with").first()).toBeVisible();
+  await page.getByLabel("Language").selectOption("en");
+  await page.getByRole("button", { name: "OK" }).click();
+  await expect(page.getByText(/The translation is new/)).toHaveCount(0);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
+test("morning price alerts: texts are off until switched on, and the preview uses medians @mobile", async ({ page }) => {
+  await signIn(page, "trader@refinerylens.test");
+  await page.goto("/hub/alerts");
+  await expect(page.getByRole("heading", { name: "Morning price alerts" })).toBeVisible();
+  await expect(page.locator("#ch-sms")).toBeDisabled();
+  await expect(page.locator("#ch-wa")).toBeDisabled();
+  await expect(page.getByText("Not switched on yet").first()).toBeVisible();
+  await page.locator("input[name=states][value=KN]").check();
+  await page.getByRole("button", { name: "Save alerts" }).click();
+  await expect(page.getByText("Alert settings saved.")).toBeVisible();
+  await expect(page.locator("main")).toContainText(/₦1,3\d\d/);
+  await expect(page.locator("main")).toContainText("Not enough seller reports in Kano");
+});
+
+test("field programme: an agent reports a visit, an editor accepts it and the business is verified", async ({ page }) => {
+  await signIn(page, "agent@refinerylens.test");
+  await page.goto("/hub/field");
+  await expect(page.getByText("Sango-Ota LPG Plant")).toBeVisible();
+  for (const l of ["I saw the CAC certificate", "I visited the premises", "I called the listed phone"]) await page.getByLabel(new RegExp(l)).check();
+  await page.getByLabel("What you saw").fill("Met the plant manager; two 20-tonne tanks and a weighbridge on site.");
+  await page.getByRole("button", { name: "Send report" }).click();
+  await expect(page.locator("section[aria-labelledby=done-h]")).toContainText("Waiting for review");
+
+  await signIn(page, "editor@refinerylens.test");
+  await page.goto("/hub/review");
+  const report = page.locator("li.card", { hasText: "two 20-tonne tanks" });
+  await expect(report).toContainText("✓ CAC certificate seen");
+  await report.getByRole("button", { name: "Save decision" }).click();
+  await expect(report).toHaveCount(0);
+  await expect(page.locator("section[aria-labelledby=pending-h]")).not.toContainText("Sango-Ota LPG Plant");
+
+  await signIn(page, "admin@refinerylens.test");
+  await page.goto("/hub/review");
+  await page.getByRole("button", { name: "Mark paid" }).first().click();
+  await expect(page.getByText(/Paid \d/).first()).toBeVisible();
+
+  await signIn(page, "agent@refinerylens.test");
+  await page.goto("/hub/field");
+  await expect(page.getByText("Accepted", { exact: true })).toBeVisible();
+  await expect(page.getByText("Paid so far").locator("..")).toContainText("₦5,000");
+});
+
+test("reliability score and Verified Business plan show with their formula", async ({ page }) => {
+  await signIn(page, "trader@refinerylens.test");
+  await page.goto("/hub/directory?q=Eko");
+  await page.getByRole("link", { name: /Eko Bobtail/ }).first().click();
+  await expect(page.getByText(/Reliability/).first()).toBeVisible();
+  await expect(page.locator("main")).toContainText(/not a credit rating/i);
+  await page.goto("/hub/my");
+  await expect(page.getByText(/Verified Business/).first()).toBeVisible();
+});

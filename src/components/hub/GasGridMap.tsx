@@ -12,7 +12,7 @@ const STYLE: Record<StateStatus, string> = {
 export const STATUS_LABEL: Record<StateStatus, string> = { SERVED: "Supply listed", DELIVERY_ONLY: "Delivery only", GAP: "Demand, no supply (gap)", NO_DATA: "Nothing listed yet" };
 
 /** Tile-grid map of Nigeria's states. Each tile links to that state's sites. */
-export function GasGridMap({ cells, gas, selected }: { cells: StateCell[]; gas: string; selected?: string }) {
+export function GasGridMap({ cells, gas, selected, labels = STATUS_LABEL }: { cells: StateCell[]; gas: string; selected?: string; labels?: Record<StateStatus, string> }) {
   const byId = new Map(cells.map((c) => [c.state, c]));
   return (
     <figure>
@@ -28,8 +28,8 @@ export function GasGridMap({ cells, gas, selected }: { cells: StateCell[]; gas: 
               key={s.id}
               role="listitem"
               href={`/hub/gas-map?gas=${gas}&state=${s.id}#state-sites`}
-              title={`${s.name}: ${STATUS_LABEL[c.status]}. ${c.supply} supply, ${c.delivery} delivery, ${c.demand} demand.`}
-              aria-label={`${s.name}: ${STATUS_LABEL[c.status]}, ${c.supply} supply, ${c.delivery} delivery, ${c.demand} demand`}
+              title={`${s.name}: ${labels[c.status]}. ${c.supply} supply, ${c.delivery} delivery, ${c.demand} demand.`}
+              aria-label={`${s.name}: ${labels[c.status]}, ${c.supply} supply, ${c.delivery} delivery, ${c.demand} demand`}
               className={`flex aspect-square flex-col items-center justify-center rounded-md text-[10px] font-semibold leading-tight no-underline hover:no-underline hover:opacity-90 sm:text-xs ${STYLE[c.status]} ${selected === s.id ? "outline outline-2 outline-offset-1 outline-brand-600" : ""}`}
             >
               <span>{s.id}</span>
@@ -40,7 +40,7 @@ export function GasGridMap({ cells, gas, selected }: { cells: StateCell[]; gas: 
       </div>
       <figcaption className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-ink-700">
         {(Object.keys(STYLE) as StateStatus[]).map((k) => (
-          <span key={k} className="inline-flex items-center gap-1.5"><span aria-hidden className={`inline-block h-3 w-3 rounded-sm ${STYLE[k]}`} />{STATUS_LABEL[k]}</span>
+          <span key={k} className="inline-flex items-center gap-1.5"><span aria-hidden className={`inline-block h-3 w-3 rounded-sm ${STYLE[k]}`} />{labels[k]}</span>
         ))}
         <span>Numbers: supply · demand sites</span>
       </figcaption>

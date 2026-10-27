@@ -53,3 +53,23 @@ export const ADVANCE_PAYMENT_WARNING =
 
 export const PRICE_BOARD_RULES =
   "Medians of prices sellers say they actually charged on a past date, across at least three different sellers. No single seller's price is shown, and planned or future prices are never accepted. Do not use this board, or messages on RefineryLens, to agree prices with competitors.";
+
+/**
+ * Verified Business plan. Staff assign it while online payment is not switched on, and it only applies to a business
+ * that is verified. Limits are per business.
+ */
+export const PLAN_LIMITS = {
+  FREE: { listings: 20, sites: 50, enquiriesPerDay: 30 },
+  VERIFIED_BUSINESS: { listings: 100, sites: 200, enquiriesPerDay: 200 },
+} as const;
+export type HubPlan = keyof typeof PLAN_LIMITS;
+
+export function activePlan(b: { plan: string; planUntil: Date | null; verification: string }, now = new Date()): HubPlan {
+  return b.plan === "VERIFIED_BUSINESS" && b.verification === "VERIFIED" && (!b.planUntil || b.planUntil > now) ? "VERIFIED_BUSINESS" : "FREE";
+}
+
+/** Directory and listing order: Verified Business plan members, then other verified businesses, then the rest. */
+export function trustRank(b: { plan: string; planUntil: Date | null; verification: string }) {
+  if (activePlan(b) === "VERIFIED_BUSINESS") return 0;
+  return b.verification === "VERIFIED" ? 1 : 2;
+}

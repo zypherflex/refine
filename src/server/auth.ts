@@ -13,6 +13,7 @@ export type CurrentUser = {
   role: Role;
   plan: "FREE" | "PRO" | "TEAM";
   organizationId: string | null;
+  fieldAgent: boolean;
 };
 
 export async function createSession(userId: string) {
@@ -43,7 +44,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   const session = await db.session.findUnique({ where: { tokenHash: hashToken(token) }, include: { user: true } });
   if (!session || session.expiresAt < new Date()) return null;
   const u = session.user;
-  return { id: u.id, email: u.email, name: u.name, role: u.role, plan: u.plan, organizationId: u.organizationId };
+  return { id: u.id, email: u.email, name: u.name, role: u.role, plan: u.plan, organizationId: u.organizationId, fieldAgent: u.fieldAgent };
 }
 
 export async function requireUser(): Promise<CurrentUser> {

@@ -102,8 +102,8 @@ async function main() {
   await db.job.updateMany({ where: { type: "document.extract", status: "QUEUED" }, data: { status: "DONE", finishedAt: new Date() } });
 
   console.log("Seeded RefineryLens.");
-  console.log(`  Users (password ${DEMO_PASSWORD}): admin@, editor@, analyst@, investor@, other@, trader@, haulier@ refinerylens.test`);
-  console.log("  Trade hub: 15 sample businesses with prices, gas sites, delivery jobs and supply agreements");
+  console.log(`  Users (password ${DEMO_PASSWORD}): admin@, editor@, analyst@, investor@, other@, trader@, haulier@, agent@ refinerylens.test`);
+  console.log("  Trade hub: 16 sample businesses with prices, gas sites, delivery jobs and supply agreements");
   console.log(`  Companies: ${dangote.name} (website facts awaiting review); ${demo.company.name}`);
 }
 

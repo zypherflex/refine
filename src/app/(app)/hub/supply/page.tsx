@@ -7,6 +7,7 @@ import { displayName } from "@/lib/hub/rules";
 import { proposeAgreementAction } from "@/app/actions/hub";
 import { EmptyState, PageHeader, Pill, SectionHeader } from "@/components/ui";
 import { HubForm } from "@/components/hub/HubForm";
+import { hubT } from "@/server/hub/lang";
 import { AGREEMENT_STATUS, BusinessName, ProductSelect, UnitSelect, isoDay, qty } from "@/components/hub/bits";
 
 export const metadata = { title: "Recurring supply" };
@@ -14,13 +15,14 @@ export const metadata = { title: "Recurring supply" };
 
 export default async function SupplyPage({ searchParams }: { searchParams: Promise<{ with?: string }> }) {
   const user = await requireUser();
+  const { t } = await hubT();
   const sp = await searchParams;
   const [{ me, agreements }, directory] = await Promise.all([myAgreements(user), listDirectory()]);
   const others = directory.filter((b) => b.id !== me?.id);
 
   return (
     <>
-      <PageHeader eyebrow="Trade hub" title="Recurring supply" subtitle="A kiosk or factory needs the same volume every week, not one-off deals. Agree a recurring supply with a seller, and confirm each delivery on both sides. The confirmed record is yours to show lenders and new partners." />
+      <PageHeader eyebrow={t("hub.eyebrow")} title={t("supply.title")} subtitle={t("supply.subtitle")} />
       {!me ? (
         <EmptyState title="Add your business first" action={<Link href="/hub/my" className="btn-primary btn-sm no-underline">Add my business</Link>}>Supply agreements are between two businesses on the hub.</EmptyState>
       ) : (
@@ -37,7 +39,7 @@ export default async function SupplyPage({ searchParams }: { searchParams: Promi
                       <h3 className="font-semibold"><Link href={`/hub/supply/${a.id}`}>{productLabel(a.product)}: <span className="num">{qty(a.quantity)}</span> {a.unit} {frequencyLabel(a.frequency).toLowerCase()}</Link></h3>
                       <Pill className={a.status === "ACTIVE" ? "bg-brand-50 text-brand-800 ring-1 ring-inset ring-brand-600/30" : "bg-ink-100 text-ink-800"}>{AGREEMENT_STATUS[a.status]}</Pill>
                     </div>
-                    <p className="mt-1 text-sm text-ink-700">You {a.buyerId === me.id ? "buy from" : "supply"} <BusinessName b={other} /></p>
+                    <p className="mt-1 text-sm text-ink-700">You {a.buyerId === me.id ? "buy from" : "supply"} <BusinessName b={other} t={t} /></p>
                     <p className="mt-1 text-xs text-ink-600"><span className="num">{confirmed}</span> deliveries confirmed by both sides · <span className="num">{a.deliveries.length - confirmed}</span> awaiting confirmation</p>
                   </li>
                 );

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { requireUser } from "@/server/auth";
 import { deliveryRecord, myBusiness } from "@/server/hub/business";
-import { businessListings, inbox } from "@/server/hub/market";
+import { businessListings, enquiryStats, inbox } from "@/server/hub/market";
+import { reliability } from "@/server/hub/reliability";
+import { Reliability } from "@/components/hub/Reliability";
 import { mySites } from "@/server/hub/gas";
 import { GASES, PRODUCTS, productLabel, ROLES, SITE_KINDS, stateName } from "@/lib/hub/catalog";
-import { displayName, isProtectedName, SITE_STALE_DAYS, daysAgo } from "@/lib/hub/rules";
+import { activePlan, displayName, isProtectedName, PLAN_LIMITS, SITE_STALE_DAYS, daysAgo } from "@/lib/hub/rules";
 import { addSiteAction, closeListingAction, confirmSiteAction, createListingAction, removeSiteAction, requestVerificationAction, saveBusinessAction } from "@/app/actions/hub";
 import { Notice, PageHeader, Pill, SectionHeader } from "@/components/ui";
 import { HubForm } from "@/components/hub/HubForm";
@@ -15,7 +17,8 @@ export const metadata = { title: "My business" };
 export default async function MyBusinessPage() {
   const user = await requireUser();
   const b = await myBusiness(user);
-  const [listings, sites, messages, record] = b ? await Promise.all([businessListings(b.id, true), mySites(user), inbox(user), deliveryRecord(b.id)]) : [[], [], [], null];
+  const [listings, sites, messages, record, rel, stats] = b ? await Promise.all([businessListings(b.id, true), mySites(user), inbox(user), deliveryRecord(b.id), reliability(b.id), enquiryStats(b.id)]) : [[], [], [], null, null, null];
+  const plan = b ? activePlan(b) : "FREE";
   const now = new Date();
 
   return (
@@ -27,6 +30,15 @@ export default async function MyBusinessPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 id="verify-h" className="h-section flex items-center gap-2">Verification <VerificationBadge v={b.verification} /></h2>
             {record && <p className="text-xs text-ink-600"><span className="num font-semibold text-ink-950">{record.total}</span> deliveries confirmed by both sides</p>}
+          </div>
+          {rel && <div className="mt-3"><Reliability r={rel} /></div>}
+          <div className="mt-3 rounded-lg bg-ink-50 p-3 text-sm">
+            <p><span className="font-medium">Plan:</span> {plan === "VERIFIED_BUSINESS" ? `Verified Business${b.planUntil ? ` until ${day(b.planUntil)}` : ""}` : "Free"} · up to {PLAN_LIMITS[plan].listings} listings, {PLAN_LIMITS[plan].sites} sites and {PLAN_LIMITS[plan].enquiriesPerDay} messages a day.{plan === "FREE" && <> <Link href="/plans">Verified Business plan</Link></>}</p>
+            {plan === "VERIFIED_BUSINESS" && stats && (
+              <div className="mt-2"><p className="font-medium">Enquiries, last 30 days: <span className="num">{stats.total}</span></p>
+                <ul className="mt-1 space-y-0.5 text-xs text-ink-700">{stats.byListing.map((r, i) => <li key={i}>{r.listing ? `${productLabel(r.listing.product)} ${r.listing.kind === "OFFER" ? "offer" : "request"}, ${stateName(r.listing.state)}` : "Your business page"}: <span className="num">{r.count}</span></li>)}</ul>
+              </div>
+            )}
           </div>
           {b.verification === "VERIFIED" && <p className="mt-2 text-sm text-ink-700">Verified on {day(b.verifiedAt!)}. Changing your name, CAC or licence numbers removes the badge until a reviewer checks them again.</p>}
           {b.verification === "PENDING" && <p className="mt-2 text-sm text-ink-700">Requested on {day(b.verificationAskedAt!)}. A reviewer will call {b.phone} and ask to see your CAC certificate and licences.</p>}
