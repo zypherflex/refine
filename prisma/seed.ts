@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { seedDangote } from "./seed-dangote";
 import { seedDemo } from "./seed-demo";
 import { seedHub } from "./seed-hub";
+import { seedEveryday } from "./seed-everyday";
 import { createThesis } from "../src/server/services/thesis";
 import { suggestEvidenceForTheses } from "../src/server/services/thesis-matching";
 import { notifyWatchers } from "../src/server/services/alerts";
@@ -26,7 +27,8 @@ async function main() {
 
   const dangote = await seedDangote(db, editor.id);
   const demo = await seedDemo(db, { editorId: editor.id, analystId: analyst.id });
-  await seedHub(db, (email, name) => mk(email, name, "USER"), admin.id);
+  const hub = await seedHub(db, (email, name) => mk(email, name, "USER"), admin.id);
+  await seedEveryday(db, (email, name) => mk(email, name, "USER"), { ikejaId: hub.ikeja.id, surulereId: hub.surulere.id });
 
   await db.watchlist.create({ data: { userId: investor.id, companyId: demo.company.id, topics: [], frequency: "IMMEDIATE" } });
   await db.watchlist.create({ data: { userId: investor.id, companyId: dangote.id, topics: [], frequency: "DAILY" } });
@@ -104,7 +106,7 @@ async function main() {
   console.log("Seeded RefineryLens.");
   console.log(`  Users (password ${DEMO_PASSWORD}): admin@, editor@, analyst@, investor@, other@ refinerylens.test`);
   console.log(`  Companies: ${dangote.name} (website facts awaiting review); ${demo.company.name}`);
-  console.log("  Trade hub (same password): seller@, buyer@, haulier@, refinery@, converter@, cng@ refinerylens.test; nine demo businesses, ten listings, eleven gas sites, price reports, delivery jobs and supply agreements");
+  console.log("  Trade hub (same password): seller@, buyer@, haulier@, refinery@, converter@, cng@ refinerylens.test; nine demo businesses, ten listings, eleven gas sites, price reports, delivery jobs and supply agreements\n  Everyday (same password): tunde@ (household with a cylinder and orders), kemi@, emeka@, halima@, joy@ refinerylens.test; demo stations and reports");
 }
 
 main()

@@ -126,6 +126,8 @@ Distribute App → App Store Connect*.
   replaced with "Plans are managed on the RefineryLens website" and no price or link, because both stores require
   their own billing for digital purchases made in an app (Apple 3.1.1, Google Play Payments policy). If you later want
   to sell plans in the apps, they must use Apple In-App Purchase and Google Play Billing.
+- **Gas orders are physical goods paid on delivery** (cash or transfer to the rider), which both stores allow outside
+  their billing (Apple 3.1.3(e), Google Play Payments policy). The app never takes payment for an order.
 - **Account deletion** in the app (Apple 5.1.1(v)) and a public deletion page (Google Play).
 - **Privacy policy** at `/privacy`; notification permission is asked only when the user turns notifications on.
 - **Private data stays off the phone:** cookies are excluded from Android backups, and sign-out removes the phone's
@@ -134,5 +136,7 @@ Distribute App → App Store Connect*.
 ## Releasing updates
 
 - **Website changes** reach both apps immediately; no store review needed.
+- **This release changes the start page** (`capacitor.config.ts` now opens `/?source=app`, which sends households and
+  visitors to today's prices and business accounts to the trade hub), so ship new Android and iPhone builds with it.
 - **Native changes** (new plugin, icon, permissions, `capacitor.config.ts`): run `npx cap sync`, raise the version
   (`version_name` input in the workflows; build numbers come from the run number) and submit new builds.

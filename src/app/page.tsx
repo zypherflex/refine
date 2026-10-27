@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, BookOpenCheck, Flame, GitCompareArrows, Layers, Lock, MessagesSquare, Repeat, ShieldCheck, Tags, Truck } from "lucide-react";
+import { ArrowRight, BookOpenCheck, Flame, Fuel, GitCompareArrows, Layers, Lock, MessagesSquare, Repeat, ShieldCheck, Tags, Truck } from "lucide-react";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/server/auth";
 import { companyFacts, factsIn } from "@/lib/company-facts";
@@ -36,8 +36,11 @@ const pillars = [
   { icon: ShieldCheck, title: "Corrections in public", body: "Every correction and retraction is logged with what changed and why, and watchers are told straight away." },
 ];
 
-export default async function Home() {
-  if (await getCurrentUser()) redirect("/hub");
+export default async function Home({ searchParams }: { searchParams: Promise<{ source?: string }> }) {
+  const me = await getCurrentUser();
+  if (me) redirect(me.audience === "PERSONAL" ? "/today" : "/hub");
+  // The installed apps open on something useful straight away rather than on the marketing page.
+  if ((await searchParams).source === "app") redirect("/today");
   const coverage = await db.company.findUnique({ where: { slug: COVERAGE_SLUG }, select: { name: true, profileFacts: true } }).catch(() => null);
   const facts = companyFacts(coverage?.profileFacts);
   const scale = factsIn(facts, "scale");
@@ -52,6 +55,7 @@ export default async function Home() {
         <header className="relative mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-8">
           <Logo light />
           <nav className="flex items-center gap-2 text-sm">
+            <Link href="/today" className="btn-ghost hidden text-white hover:bg-white/10 sm:inline-flex">Today&apos;s prices</Link>
             <Link href="/login" className="btn-ghost text-white hover:bg-white/10">Sign in</Link>
             <Link href="/register" className="btn bg-white text-ink-950 shadow-sm hover:bg-ink-100">Create account</Link>
           </nav>
@@ -115,6 +119,29 @@ export default async function Home() {
           </section>
         )}
       </div>
+
+      <section aria-labelledby="everyday-h" className="border-b border-ink-100 bg-brand-50/60">
+        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <div>
+            <p className="eyebrow">For every Nigerian, free</p>
+            <h2 id="everyday-h" className="mt-2 font-serif text-3xl font-semibold tracking-tight">Know the price before you buy. Never run out of gas.</h2>
+            <p className="mt-3 text-ink-700">See what people paid for petrol, diesel, kerosene, cooking gas and CNG in your state today, at named stations and gas shops. Warn your neighbours about short measure. Track your cylinder and get a refill delivered by a verified seller, paid on delivery.</p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/today" className="btn-primary px-5 py-3 text-base no-underline">Check today&apos;s prices <ArrowRight size={18} aria-hidden /></Link>
+              <Link href="/cng-savings" className="btn-secondary px-5 py-3 text-base no-underline">CNG savings calculator</Link>
+            </div>
+          </div>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {([[Tags, "Prices near you", "Medians from several people, so one wrong report can't mislead you."], [Fuel, "Stations and gas shops", "Who is selling now, and how long the queue is."], [Flame, "Cooking gas tracker", "A reminder before your cylinder runs out."], [Truck, "Refill to your door", "From verified sellers. Pay the rider on delivery."]] as const).map(([Icon, t, d]) => (
+              <li key={t} className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-600 text-white" aria-hidden><Icon size={18} /></span>
+                <h3 className="mt-3 font-semibold">{t}</h3>
+                <p className="mt-1 text-sm text-ink-600">{d}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
 
       <section aria-labelledby="ng" className="border-b border-ink-100">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-8">

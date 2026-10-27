@@ -12,17 +12,19 @@ Answers for Google Play's **Data safety** form and the App Store's **App Privacy
 | --- | --- | --- | --- | --- |
 | Personal info: Name | Yes | No | Required | Account management, app functionality |
 | Personal info: Email address | Yes | No | Required | Account management, app functionality |
-| Personal info: Phone number | Yes | No | Optional (SMS or WhatsApp alerts) | App functionality |
+| Personal info: Phone number | Yes | Yes, with the seller a user orders gas from | Optional (SMS or WhatsApp alerts; required to order gas) | App functionality |
+| Personal info: Address | Yes | Yes, with the seller a user orders gas from | Optional (only to order gas delivery) | App functionality |
 | Personal info: Other info (business name, CAC number, licences) | Yes | No | Optional (trade hub) | App functionality, fraud prevention and security |
 | Financial info: Purchase history | Yes, website purchases only | No | Optional | Account management |
 | Messages: Other in-app messages | Yes | No | Optional | App functionality |
 | Photos, videos, files: Files and docs | Yes (research uploads) | No | Optional | App functionality |
-| App activity: Other user-generated content (listings, sites, prices, jobs, agreements) | Yes | No | Optional | App functionality |
+| App activity: Other user-generated content (listings, sites, prices, jobs, agreements, station reports, gas tracker) | Yes | No | Optional | App functionality |
+| Financial info: Other financial info (gas order amounts, refill prices on the tracker) | Yes | No | Optional | App functionality |
 | Device or other IDs (push notification token) | Yes | No | Optional | App functionality |
 
-Not collected: location, contacts, calendar, photos from the camera, audio, health, web browsing, app interactions for analytics, crash logs through a third-party SDK, advertising ID.
+Not collected: device location (people choose their state and type their delivery address), contacts, calendar, photos from the camera, audio, health, web browsing, app interactions for analytics, crash logs through a third-party SDK, advertising ID.
 
-"Shared" means transferred to a third party for its own use. Paystack, the SMS and WhatsApp providers, Dojah, Firebase/APNs and OpenStreetMap act as service providers processing data on RefineryLens's behalf, which Google's form does not count as sharing.
+"Shared" means transferred to a third party for its own use. A gas order's address and phone go to the seller the user chose, to deliver it, which Google counts as sharing initiated by the user; declare it as shared for app functionality. Paystack, the SMS and WhatsApp providers, Dojah, Firebase/APNs and OpenStreetMap act as service providers processing data on RefineryLens's behalf, which Google's form does not count as sharing.
 
 ## App Store: App Privacy
 
@@ -34,8 +36,9 @@ Not collected: location, contacts, calendar, photos from the camera, audio, heal
 | Contact Info | Name | Yes | No | App Functionality |
 | Contact Info | Email Address | Yes | No | App Functionality |
 | Contact Info | Phone Number | Yes | No | App Functionality |
+| Contact Info | Physical Address (gas delivery) | Yes | No | App Functionality |
 | User Content | Emails or Text Messages (business-to-business messages) | Yes | No | App Functionality |
-| User Content | Other User Content (listings, sites, prices, jobs, agreements, files) | Yes | No | App Functionality |
+| User Content | Other User Content (listings, sites, prices, jobs, agreements, files, station reports, gas tracker) | Yes | No | App Functionality |
 | Purchases | Purchase History (website plans) | Yes | No | App Functionality |
 | Identifiers | User ID | Yes | No | App Functionality |
 | Other Data | Business registration and licence details | Yes | No | App Functionality |

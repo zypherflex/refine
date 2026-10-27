@@ -45,8 +45,18 @@ export function Shell({ user, children, companies, current, unread, hubUnread, c
       tone: "navy",
       items: [
         { href: "/hub/inbox", label: "Inbox", icon: "inbox", badge: hubUnread },
+        { href: "/hub/orders", label: "Home gas orders", icon: "order" },
         { href: "/hub/me", label: "Profile & listings", icon: "business" },
         { href: "/watchlist", label: "Alerts", icon: "alerts", badge: unread },
+      ],
+    },
+    {
+      label: "Everyday",
+      tone: "green",
+      items: [
+        { href: "/today", label: "Today's prices near me", icon: "today" },
+        { href: "/stations", label: "Stations & gas shops", icon: "stations" },
+        { href: "/my-gas", label: "My cooking gas", icon: "gas" },
       ],
     },
     {

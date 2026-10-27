@@ -4,13 +4,13 @@
  * or the offline page if there is none. Built static assets are cached because their file names change on each build.
  * API routes, server actions and sign-in are never cached.
  */
-const VERSION = "rl-v1";
+const VERSION = "rl-v2";
 const STATIC = `${VERSION}-static`;
 const PAGES = `${VERSION}-pages`;
 const OFFLINE_URL = "/offline";
 const MAX_PAGES = 40;
 // Private pages are never stored on the device, even for offline use.
-const NEVER_STORE = ["/hub/inbox", "/settings", "/admin", "/documents", "/thesis", "/assistant"];
+const NEVER_STORE = ["/hub/inbox", "/hub/orders", "/orders", "/order", "/my-gas", "/settings", "/admin", "/documents", "/thesis", "/assistant"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(STATIC).then((c) => c.addAll([OFFLINE_URL, "/icons/icon-192.png", "/icon.svg"])).then(() => self.skipWaiting()));

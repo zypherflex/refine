@@ -48,6 +48,10 @@ model User {
   priceDigest    Boolean       @default(false)
   // State whose prices the morning digest covers.
   digestState    String?
+  // Household users land on the everyday pages (prices, stations, gas orders); businesses on the trade hub.
+  audience       Audience      @default(BUSINESS)
+  // State shown first on the everyday pages.
+  homeState      String?
   createdAt      DateTime      @default(now())
 
   sessions        Session[]
@@ -67,6 +71,15 @@ model User {
   hubReports      HubReport[]
   payments        Payment[]
   devices         DeviceToken[]
+  outletReports   OutletReport[]
+  outletsAdded    Outlet[]
+  gasOrders       GasOrder[]
+  cylinders       GasCylinder[]
+}
+
+enum Audience {
+  PERSONAL
+  BUSINESS
 }
 
 model Session {
@@ -889,6 +902,16 @@ model HubBusiness {
   quotes           DeliveryQuote[]
   buyerAgreements  SupplyAgreement[] @relation("AgreementBuyer")
   sellerAgreements SupplyAgreement[] @relation("AgreementSeller")
+  gasOrders        GasOrder[]
+
+  // Home delivery of LPG refills to households. Only verified sellers receive orders.
+  homeDelivery     Boolean  @default(false)
+  // States the business delivers to households in.
+  deliveryStates   String[] @default([])
+  // Price per kg of LPG the business charges households, and a flat delivery fee, both in naira. The final price is
+  // confirmed by the seller when accepting an order.
+  homePricePerKg   Float?
+  deliveryFeeNaira Float?
 
   @@index([verification])
 }
@@ -1213,4 +1236,135 @@ model DeviceToken {
   lastSeenAt DateTime @default(now())
 
   @@index([userId])
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Everyday use: filling stations, gas shops and CNG stations that anyone can look up, with prices, availability and
+// problems reported by signed-in members of the public. Prices are shown as medians across several people.
+
+enum OutletKind {
+  FILLING_STATION
+  GAS_RETAILER
+  CNG_STATION
+}
+
+model Outlet {
+  id        String         @id @default(cuid())
+  name      String
+  // Brand on the forecourt, e.g. NNPC, MRS, Conoil, or an independent.
+  brand     String         @default("")
+  kind      OutletKind
+  state     String
+  // Neighbourhood or LGA, e.g. Surulere or Wuse 2.
+  area      String
+  address   String         @default("")
+  lat       Float?
+  lon       Float?
+  addedById String?
+  addedBy   User?          @relation(fields: [addedById], references: [id], onDelete: SetNull)
+  // Hidden by an administrator (duplicate, closed or not real).
+  hidden    Boolean        @default(false)
+  isDemo    Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  reports   OutletReport[]
+
+  @@index([state, kind])
+}
+
+enum OutletReportKind {
+  PRICE
+  AVAILABILITY
+  PROBLEM
+}
+
+model OutletReport {
+  id         String           @id @default(cuid())
+  outletId   String
+  outlet     Outlet           @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  // Reports stay (without the link) when the person deletes their account; they describe the outlet, not the person.
+  userId     String?
+  user       User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  kind       OutletReportKind
+  // PRICE: an entry from PRICE_ITEMS sold at the pump or counter (pms_retail_litre, lpg_retail_kg, ...).
+  item       String?
+  priceNaira Float?
+  // AVAILABILITY: whether the product was being sold, and the queue (NONE, SHORT, LONG).
+  available  Boolean?
+  queue      String?
+  // PROBLEM: SHORT_MEASURE, OVERCHARGED, BAD_PRODUCT, REFUSED_SALE or OTHER.
+  problem    String?
+  note       String           @default("")
+  hidden     Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+
+  @@index([outletId, createdAt])
+  @@index([kind, item, createdAt])
+  @@index([userId, createdAt])
+}
+
+enum GasOrderStatus {
+  PLACED
+  ACCEPTED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  DECLINED
+  CANCELLED
+}
+
+// A household orders an LPG refill from a verified seller that delivers. Paid in cash or transfer on delivery,
+// directly to the seller; RefineryLens records the order and its progress.
+model GasOrder {
+  id            String         @id @default(cuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessId    String
+  business      HubBusiness    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  cylinderKg    Float
+  cylinders     Int            @default(1)
+  state         String
+  area          String
+  address       String
+  phone         String
+  note          String         @default("")
+  // Estimate from the seller's listed prices when ordered, and the price the seller confirmed on accepting.
+  estimateNaira Float?
+  priceNaira    Float?
+  status        GasOrderStatus @default(PLACED)
+  sellerNote    String         @default("")
+  rating        Int?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deliveredAt   DateTime?
+
+  @@index([userId, createdAt])
+  @@index([businessId, status])
+}
+
+// A household's gas cylinder and its refills, to estimate when it will run out and remind the owner.
+model GasCylinder {
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label      String           @default("Kitchen")
+  sizeKg     Float
+  // Days a full cylinder usually lasts, as the owner estimates, until refills give a measured figure.
+  usualDays  Int              @default(30)
+  remind     Boolean          @default(true)
+  // Set when a "running low" alert was sent for the latest refill, so it is sent once.
+  remindedAt DateTime?
+  createdAt  DateTime         @default(now())
+  refills    CylinderRefill[]
+
+  @@index([userId])
+}
+
+model CylinderRefill {
+  id         String      @id @default(cuid())
+  cylinderId String
+  cylinder   GasCylinder @relation(fields: [cylinderId], references: [id], onDelete: Cascade)
+  filledAt   DateTime
+  priceNaira Float?
+  createdAt  DateTime    @default(now())
+
+  @@index([cylinderId, filledAt])
 }

@@ -5,8 +5,8 @@ Copy these into Google Play Console and App Store Connect. Character limits are 
 ## Shared
 
 - **App name:** RefineryLens (Google Play: up to 30 characters; App Store: up to 30)
-- **Category:** Business (both stores). Secondary on the App Store: Productivity.
-- **Content rating:** Everyone / 4+. The app has user-to-user messaging between businesses, which both questionnaires ask about; answer yes, with reporting and blocking (suspension) available.
+- **Category:** Lifestyle on Google Play; on the App Store, Lifestyle with Business as secondary. Most people install it for prices and cooking gas; businesses find the trade hub inside.
+- **Content rating:** Everyone / 4+. The app has user-to-user messaging between businesses and public, nameless station reports, which both questionnaires ask about; answer yes to user-generated content, with reporting, hiding by administrators and suspension available.
 - **Support URL:** your site, e.g. `https://app.refinerylens.ng/`
 - **Privacy policy URL:** `https://<your site>/privacy`
 - **Account deletion URL (Google Play):** `https://<your site>/delete-account`
@@ -15,34 +15,31 @@ Copy these into Google Play Console and App Store Connect. Character limits are 
 
 **Short description** (80 characters max)
 
-> Buy, sell and deliver fuel and gas in Nigeria. Prices, gas map, haulage jobs.
+> Fuel and cooking gas prices near you, gas refills to your door, CNG savings.
 
 **Full description** (4,000 characters max)
 
-> RefineryLens is Nigeria's trade hub for fuel and gas. Find verified suppliers, check what LPG, diesel, petrol and CNG really cost in your state, book a truck for your load, and keep regular supply running, all in one app.
+> Know the price before you buy. RefineryLens shows what people paid for petrol, diesel, kerosene, cooking gas and CNG in your state today, at named filling stations and gas shops, and helps you never run out of cooking gas.
 >
-> CHECK TODAY'S PRICES
-> See the median price sellers charged in each state over the last 7 days, for bulk LPG, cylinder refills, CNG, diesel, petrol and kerosene. Every figure combines at least three sellers, so you see the market, not one seller's offer.
+> TODAY'S PRICES NEAR YOU
+> Petrol, diesel, kerosene, cooking gas per kg, 12.5 kg refills and CNG, for all 36 states and the FCT. Each figure is the median of what at least three different people paid in the last three days, so one wrong report cannot mislead you.
 >
-> FIND SUPPLY YOU CAN TRUST
-> Browse offers from depots, marketers, refill plants and refineries. Every business shows whether RefineryLens has checked its CAC registration and licences, and how many of its deliveries buyers have confirmed.
+> STATIONS AND GAS SHOPS
+> See who is selling now, how long the queue is, and the latest prices at each place. Report what you paid in seconds. Warn your neighbours about short measure or overcharging; repeated problems show on the station's page.
 >
-> FIND GAS NEAR YOU
-> The gas network shows terminals, depots, refill plants, cylinder shops and CNG stations in all 36 states and the FCT, the hauliers serving each state, and the nearest supply when your state has none.
+> NEVER RUN OUT OF COOKING GAS
+> Log your refills and RefineryLens works out how long your cylinder lasts, then reminds you a few days before it runs out.
 >
-> MOVE A LOAD
-> Post a delivery job, get quotes from tanker and truck operators, accept the best one, and confirm delivery when it arrives.
+> GAS REFILLS TO YOUR DOOR
+> Order from sellers RefineryLens has verified. The seller confirms the price, you track the order, and you pay the rider in cash or by transfer when the gas arrives. No payment in advance.
 >
-> KEEP SUPPLY REGULAR
-> Agree weekly or monthly supply with a seller. Each delivery is logged and confirmed by both sides, building a record you can rely on.
+> SHOULD YOU CONVERT TO CNG?
+> Put in how far you drive and today's prices to see your monthly saving on a car, bus or keke, and how fast a conversion pays for itself.
 >
-> TALK BUSINESS SAFELY
-> Message other businesses privately in the app. Only the two businesses can read a conversation. Report anyone who breaks the rules.
+> FOR FUEL AND GAS BUSINESSES
+> A trade hub for depots, marketers, refill plants, hauliers and refineries: state price medians, verified suppliers, a map of the gas network, delivery jobs with quotes, regular supply agreements, private business messages and home-delivery orders from households.
 >
-> GET ALERTS
-> Turn on notifications for new messages, quotes and deliveries to confirm.
->
-> RefineryLens introduces businesses and carries their messages. It does not take payments for trades, hold goods or guarantee any party, and is not affiliated with Dangote or any refinery listed. Always check licences and product quality, and never pay in advance to a business you have not verified.
+> RefineryLens is free for households. Prices are reports from the public and sellers, not promises from any seller. RefineryLens is not affiliated with NNPC, Dangote or any company listed.
 
 **Graphics:** `mobile/store/screenshots/android-phone/*.png` (1080 × 1920), feature graphic `mobile/store/screenshots/feature-graphic-1024x500.png`, app icon `mobile/store/screenshots/app-icon-1024.png` (resize to 512 × 512 for the Play listing).
 
@@ -50,15 +47,15 @@ Copy these into Google Play Console and App Store Connect. Character limits are 
 
 **Subtitle** (30 characters max)
 
-> Fuel & gas trade hub, Nigeria
+> Fuel & gas prices near you
 
 **Promotional text** (170 characters max)
 
-> Check LPG, diesel and petrol prices by state, find verified suppliers and gas near you, and book trucks for your loads.
+> Today's petrol, diesel and cooking gas prices in your state, reminders before your gas runs out, and refills delivered by verified sellers, paid on delivery.
 
 **Keywords** (100 characters max, comma separated)
 
-> LPG,cooking gas,diesel,AGO,petrol,PMS,CNG,haulage,tanker,depot,Nigeria,fuel price,supplier,Lagos
+> fuel price,petrol,cooking gas,LPG,refill,diesel,kerosene,CNG,filling station,Nigeria,Lagos,Abuja
 
 **Description:** use the Google Play full description above.
 
@@ -66,11 +63,13 @@ Copy these into Google Play Console and App Store Connect. Character limits are 
 
 ## App Review notes (App Store) and app access (Google Play)
 
-Both stores need a working sign-in to review the app. Create a reviewer account on the production site with a business profile (seller and buyer roles) and some listings, then give:
+Both stores need a working sign-in to review the app. Create two reviewer accounts on the production site: a household account, and a business account with a profile (seller and buyer roles) and some listings. Then give:
 
 > Sign in with: reviewer@<your domain> / <password>
 >
-> The app is the RefineryLens trade hub for businesses in Nigeria. After signing in, use the tabs at the bottom: Hub (listings), Prices (state price medians), Gas map, Jobs (delivery jobs) and Inbox (business-to-business messages).
+> The app opens on Today's prices, which work without signing in. The tabs at the bottom are Today, Stations (report a price, queue or problem at a station), My gas (cylinder tracker and refill reminders), Order gas (refill from verified sellers, paid in cash or transfer to the rider on delivery: physical goods, so no in-app purchase) and CNG savings. The business trade hub is under "Business hub" for business accounts.
+>
+> Household reviewer account: reviewer-home@<your domain> / <password> (create it with "Me and my home" and a state with sellers).
 >
 > Push notifications are requested only when the user taps "Turn on notifications" under Account & plan.
 >

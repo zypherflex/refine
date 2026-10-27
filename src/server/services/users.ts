@@ -4,19 +4,23 @@ import { db } from "@/lib/db";
 import { AppError, ForbiddenError } from "@/lib/errors";
 import { can, type Actor } from "@/lib/permissions";
 import type { Role } from "@prisma/client";
+import { NIGERIAN_STATES } from "@/lib/hub/catalog";
 import { audit } from "../audit";
 
 export const registerInput = z.object({
   name: z.string().trim().min(2).max(80),
   email: z.string().trim().toLowerCase().email().max(200),
   password: z.string().min(10, "Use at least 10 characters.").max(200),
+  // Households start on the everyday pages; businesses on the trade hub.
+  audience: z.enum(["PERSONAL", "BUSINESS"]).default("BUSINESS"),
+  homeState: z.string().refine((s) => (NIGERIAN_STATES as readonly string[]).includes(s), "Choose your state").nullable().default(null),
 });
 
 export async function registerUser(raw: z.input<typeof registerInput>) {
   const input = registerInput.parse(raw);
   const exists = await db.user.findUnique({ where: { email: input.email } });
   if (exists) throw new AppError("An account with that email already exists.");
-  const user = await db.user.create({ data: { name: input.name, email: input.email, passwordHash: await bcrypt.hash(input.password, 12), role: "USER", plan: "FREE" } });
+  const user = await db.user.create({ data: { name: input.name, email: input.email, passwordHash: await bcrypt.hash(input.password, 12), role: "USER", plan: "FREE", audience: input.audience, homeState: input.homeState } });
   await audit(user.id, "user.register", "User", user.id);
   return user;
 }

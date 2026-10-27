@@ -13,6 +13,9 @@ export default function PrivacyPage() {
         <li><b>Your account:</b> name, email address and a scrambled (hashed) password. We never store your password itself.</li>
         <li><b>Your business, if you set one up:</b> business name, roles, state and town, website, description, CAC registration number and licences you list. Your registration number is seen only by RefineryLens administrators who check it.</li>
         <li><b>What you post:</b> listings, gas sites, delivery jobs and quotes, supply agreements and deliveries, and reports. Prices you report are published only as medians across at least three sellers, never on their own.</li>
+        <li><b>Station and gas shop reports:</b> prices you paid, whether a place was selling and its queue, and problems such as short measure, with any note you add. They are published without your name; prices appear on their own at the station and in state medians across at least three people. Places you add are listed publicly.</li>
+        <li><b>Gas orders:</b> your delivery address, area, phone number, cylinder size and any note. Only the seller you order from sees them, so their rider can reach you. Your rating of a delivery counts towards the seller&apos;s public average.</li>
+        <li><b>Cooking gas tracker:</b> your cylinders, refill dates and what you paid, visible to you alone. Your state, if you choose one, so we show its prices first.</li>
         <li><b>Messages</b> between your business and others. Only the two businesses in a conversation can read it; RefineryLens staff cannot.</li>
         <li><b>Research you keep:</b> files you upload privately, theses, watchlists and questions to the research assistant. Private files and theses are visible to you alone.</li>
         <li><b>Optional contact details:</b> a phone number, if you turn on SMS or WhatsApp alerts, and a notification token for each phone where you turn on app notifications.</li>
@@ -25,6 +28,7 @@ export default function PrivacyPage() {
       <ul>
         <li>To run your account and the trade hub: showing your listings, carrying messages, matching buyers, sellers and delivery partners, and keeping delivery records both sides confirmed.</li>
         <li>To verify businesses and keep the hub safe, including handling reports and suspending businesses that break the rules.</li>
+        <li>To publish today&apos;s prices and station reports, pass your gas order to the seller you chose, and remind you before your gas runs out.</li>
         <li>To send the alerts you asked for, in the app, by email, SMS, WhatsApp or phone notification.</li>
         <li>To take payment for plans you buy on the website.</li>
       </ul>
@@ -42,7 +46,7 @@ export default function PrivacyPage() {
       </ul>
 
       <h2>How long we keep it</h2>
-      <p>We keep your data while your account is open. Listings expire and drop off the hub; closed listings stay visible to you. When you delete your account, your data is deleted straight away, except security log entries, which are kept without your name, and payment records Paystack keeps under its own rules.</p>
+      <p>We keep your data while your account is open. Listings expire and drop off the hub; closed listings stay visible to you. When you delete your account, your data is deleted straight away, including gas orders and your gas tracker, except security log entries and station reports, which are kept without your name, and payment records Paystack keeps under its own rules.</p>
 
       <h2>Your rights and choices</h2>
       <ul>

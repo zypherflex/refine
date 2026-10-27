@@ -1,23 +1,39 @@
 import { test, expect, type Page, type Cookie } from "@playwright/test";
+import fs from "node:fs";
+import path from "node:path";
 import { PrismaClient } from "@prisma/client";
 
 const PASSWORD = "RefineryLens-demo-2026";
-// Sign in through the form once per user, then reuse the session: the app rate-limits repeated sign-ins.
-const sessions = new Map<string, Cookie[]>();
+// Sign in through the form once per user, then reuse the session: the app rate-limits repeated sign-ins. Sessions are
+// also kept in a file, because each project (desktop, mobile) runs in its own worker; test-results is cleared per run.
+const SESSIONS_FILE = path.join("test-results", "e2e-sessions.json");
+const sessions = new Map<string, Cookie[]>(Object.entries(readSessions()));
+
+function readSessions(): Record<string, Cookie[]> {
+  try {
+    return JSON.parse(fs.readFileSync(SESSIONS_FILE, "utf8"));
+  } catch {
+    return {};
+  }
+}
 
 async function signIn(page: Page, email: string) {
   await page.context().clearCookies();
-  const saved = sessions.get(email);
+  const saved = sessions.get(email) ?? readSessions()[email];
   if (saved) {
     await page.context().addCookies(saved);
     await page.goto("/dashboard");
-    return;
+    if (!/\/login/.test(page.url())) return;
+    await page.context().clearCookies();
   }
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(PASSWORD);
-  await Promise.all([page.waitForURL(/\/hub/), page.getByRole("button", { name: "Sign in" }).click()]);
+  // Households land on today's prices, businesses on the trade hub.
+  await Promise.all([page.waitForURL(/\/(hub|today)/), page.getByRole("button", { name: "Sign in" }).click()]);
   sessions.set(email, (await page.context().cookies()).filter((c) => c.name === "rl_session"));
+  fs.mkdirSync(path.dirname(SESSIONS_FILE), { recursive: true });
+  fs.writeFileSync(SESSIONS_FILE, JSON.stringify({ ...readSessions(), ...Object.fromEntries(sessions) }));
 }
 
 async function selectCompany(page: Page, slug: string) {
@@ -366,7 +382,8 @@ test("a new user finds the privacy policy and deletes their account from setting
   await page.getByLabel("Name").fill("Temporary Tester");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("a-long-test-password-123");
-  await Promise.all([page.waitForURL(/\/hub/), page.getByRole("button", { name: "Create free account" }).click()]);
+  await Promise.all([page.waitForURL(/\/today/), page.getByRole("button", { name: "Create free account" }).click()]);
+  await expect(page.getByRole("heading", { level: 1, name: "Know the price before you buy." })).toBeVisible();
 
   await page.goto("/settings");
   await page.getByText("Delete my account", { exact: true }).click();
@@ -376,4 +393,62 @@ test("a new user finds the privacy policy and deletes their account from setting
   await expect(page.getByRole("heading", { level: 1, name: "Your account has been deleted" })).toBeVisible();
   await page.goto("/hub");
   await expect(page).toHaveURL(/\/login/);
+});
+
+test("everyday: anyone sees today's prices and a station without signing in, and is asked to sign in to report @mobile", async ({ page }) => {
+  await page.context().clearCookies();
+  await page.goto("/today?state=Lagos");
+  await expect(page.getByRole("heading", { level: 1, name: "Know the price before you buy." })).toBeVisible();
+  const petrol = page.locator("li.card").filter({ hasText: /^Petrol/ });
+  await expect(petrol).toContainText("₦950");
+  await expect(petrol).toContainText("3 people");
+  await page.goto("/stations?state=Lagos");
+  await page.getByRole("link", { name: /Ikorodu Road Filling Station/ }).click();
+  await expect(page.getByRole("heading", { name: "Problems reported in the last 30 days" })).toBeVisible();
+  await expect(page.getByText(/Short measure/).first()).toBeVisible();
+  await expect(page.getByText(/to report\. Reports are tied to an account/)).toBeVisible();
+  await page.goto("/cng-savings");
+  await page.getByLabel("Petrol, ₦ per litre").fill("1000");
+  await page.getByLabel("CNG, ₦ per scm").fill("300");
+  await page.getByLabel("Conversion quote, ₦ (optional)").fill("700000");
+  await expect(page.getByText("You could save")).toBeVisible();
+  await expect(page.getByText(/pay for itself in about/)).toBeVisible();
+});
+
+test("everyday: a household reports a queue, logs a refill, orders gas and the seller accepts @mobile", async ({ page }) => {
+  await signIn(page, "tunde@refinerylens.test");
+  // The refill reminder on /today is covered by the integration tests; this journey runs twice (desktop, mobile) and logs a refill.
+  await page.goto("/stations?state=Lagos");
+  await page.getByRole("link", { name: /Ojuelegba Service Station/ }).click();
+  await page.getByRole("tab", { name: "Selling / queue" }).click();
+  await page.getByRole("button", { name: "Send report" }).click();
+  await expect(page.getByText("Thank you. Your report helps everyone nearby.")).toBeVisible();
+
+  await page.goto("/my-gas");
+  await page.getByRole("button", { name: "I refilled" }).click();
+  await expect(page.getByText("Refill logged.")).toBeVisible();
+  await expect(page.getByText(/measured from your refills/)).toBeVisible();
+
+  await page.goto("/order?state=Lagos");
+  await page.getByLabel(/Surulere Gas Point/).check();
+  await page.getByLabel("Area *").fill("Surulere");
+  await page.getByLabel("Delivery address and landmark *").fill("14 Demo Close, off Bode Thomas St");
+  await expect(page.getByText("₦16,500")).toBeVisible(); // 12.5 kg × ₦1,320, free delivery
+  await Promise.all([page.waitForURL(/\/orders\/[a-z0-9]+\?placed=1/), page.getByRole("button", { name: /Place order/ }).click()]);
+  const orderPath = new URL(page.url()).pathname;
+  await expect(page.getByText("Waiting for seller").first()).toBeVisible();
+
+  await signIn(page, "surulere@refinerylens.test");
+  await page.goto("/hub/orders");
+  const card = page.locator("li.card").filter({ has: page.locator(`a[href="${orderPath}"]`) });
+  await card.getByLabel("Total to collect, ₦").fill("16800");
+  await card.getByRole("button", { name: "Accept" }).click();
+  // The card moves on to its next step once accepted.
+  await expect(card.getByText("agreed ₦16,800")).toBeVisible();
+  await expect(card.getByRole("button", { name: "On the way" })).toBeVisible();
+
+  await signIn(page, "tunde@refinerylens.test");
+  await page.goto(orderPath);
+  await expect(page.getByText("₦16,800")).toBeVisible();
+  await expect(page.getByText("Accepted (now)")).toBeVisible();
 });

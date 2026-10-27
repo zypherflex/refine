@@ -16,7 +16,7 @@ const config: CapacitorConfig = {
   // Shown only if the site cannot be reached when the app starts.
   webDir: "mobile/www",
   server: {
-    url: `${serverUrl.replace(/\/$/, "")}/hub?source=app`,
+    url: `${serverUrl.replace(/\/$/, "")}/?source=app`,
     // Only the RefineryLens site loads inside the app; every other link opens in the phone's browser.
     allowNavigation: [host],
     errorPath: "offline.html",

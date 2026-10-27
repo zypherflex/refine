@@ -191,5 +191,5 @@ export async function seedHub(db: PrismaClient, mk: (email: string, name: string
   ] });
   await db.supplyAgreement.create({ data: { buyerId: ogun.id, sellerId: lagoon.id, proposedById: ogun.id, product: "pp", quantity: 40, unit: "tonnes", frequency: "MONTHLY", deliverTo: "Ogun", priceNote: "Demo terms: monthly quote", startDate: day(-10), status: "PROPOSED" } });
 
-  return { ikeja, kano, corridor, lagoon, ogun, abujaCng };
+  return { ikeja, kano, corridor, lagoon, ogun, abujaCng, surulere };
 }
