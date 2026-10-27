@@ -21,6 +21,8 @@ async function signIn(page: Page, email: string) {
 }
 
 async function selectCompany(page: Page, slug: string) {
+  // The company switcher only appears on research pages.
+  if (!(await page.locator("#company-switch").count())) await page.goto("/dashboard");
   await Promise.all([page.waitForLoadState("networkidle"), page.locator("#company-switch").selectOption(slug)]);
   await expect(page.locator("#company-switch")).toHaveValue(slug);
 }

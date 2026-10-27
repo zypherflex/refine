@@ -6,6 +6,7 @@ import { browseListings } from "@/server/hub/listings";
 import { HUB_ROLES, LISTING_KINDS, LOCATIONS, NIGERIAN_STATES, OTHER_LOCATIONS, PRODUCTS, kindLabel, productLabel } from "@/lib/hub/catalog";
 import { ListingCard, SafetyNote } from "@/components/hub/parts";
 import { EmptyState, Notice, PageHeader } from "@/components/ui";
+import { QuickActions } from "@/components/hub/QuickActions";
 
 export const metadata = { title: "Trade hub" };
 
@@ -40,6 +41,7 @@ export default async function HubPage({ searchParams }: { searchParams: Search }
           )
         }
       />
+      <QuickActions />
       {!mine && (
         <div className="mb-6 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {HUB_ROLES.map((r) => (
