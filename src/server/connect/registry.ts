@@ -28,7 +28,7 @@ export function namesMatch(profileName: string, registryName: string) {
   return !!a && !!b && (a === b || a.includes(b) || b.includes(a));
 }
 
-export type RegistryCheck = { ok: boolean; name?: string; status?: string; address?: string; matches?: boolean; error?: string; source: "dojah" };
+export type RegistryCheck = { ok: boolean; name?: string; status?: string; address?: string; type?: string; matches?: boolean; numberMatches?: boolean; error?: string; source: "dojah" };
 
 export async function lookupBusiness(businessId: string): Promise<RegistryCheck | null> {
   if (!registryConfigured()) return null;
@@ -42,9 +42,23 @@ export async function lookupBusiness(businessId: string): Promise<RegistryCheck 
     try {
       const base = (process.env.DOJAH_BASE_URL ?? "https://api.dojah.io").replace(/\/$/, "");
       const url = `${base}/api/v1/kyc/cac/basic?rc_number=${encodeURIComponent(parsed.number)}&company_type=${parsed.companyType}`;
-      const res = await callJson<{ entity?: { company_name?: string; status?: string; address?: string } }>("Dojah", url, { headers: { AppId: process.env.DOJAH_APP_ID!, Authorization: process.env.DOJAH_SECRET_KEY! } });
+      // The basic lookup returns `entity`; some responses carry `address`, others only state, city and LGA.
+      const res = await callJson<{ entity?: { company_name?: string; status?: string; address?: string; state?: string; city?: string; lga?: string; rc_number?: string | number; type_of_company?: string } }>("Dojah", url, {
+        headers: { AppId: process.env.DOJAH_APP_ID!, Authorization: process.env.DOJAH_SECRET_KEY! },
+      });
       const e = res.entity;
-      check = e?.company_name ? { ok: true, name: e.company_name, status: e.status, address: e.address, matches: namesMatch(b.name, e.company_name), source: "dojah" } : { ok: false, error: "No company found for that number", source: "dojah" };
+      check = e?.company_name
+        ? {
+            ok: true,
+            name: e.company_name,
+            status: e.status,
+            type: e.type_of_company,
+            address: e.address || [e.city, e.lga, e.state].filter(Boolean).join(", ") || undefined,
+            matches: namesMatch(b.name, e.company_name),
+            numberMatches: e.rc_number === undefined ? undefined : String(e.rc_number).replace(/\D/g, "") === parsed.number,
+            source: "dojah",
+          }
+        : { ok: false, error: "No company found for that number", source: "dojah" };
     } catch (err) {
       check = { ok: false, error: err instanceof Error ? err.message : "Lookup failed", source: "dojah" };
     }

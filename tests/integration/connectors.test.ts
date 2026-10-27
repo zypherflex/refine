@@ -143,11 +143,11 @@ describe("CAC registry lookup", () => {
     const b = await saveBusiness(u, { name: "Ikeja Energy Supplies", roles: ["SELLER"], state: "Lagos", registrationNumber: "RC 1234567" });
     await requestVerification(u);
     expect(await db.job.count({ where: { type: "hub.registry-lookup" } })).toBe(1);
-    mockFetch(() => ({ entity: { company_name: "IKEJA ENERGY SUPPLIES LTD", status: "ACTIVE" } }));
+    mockFetch(() => ({ entity: { company_name: "IKEJA ENERGY SUPPLIES LTD", status: "ACTIVE", rc_number: "1234567", state: "LAGOS", city: "IKEJA", type_of_company: "COMPANY" } }));
     const check = await lookupBusiness(b.id);
     expect(calls[0].url).toBe("https://api.dojah.io/api/v1/kyc/cac/basic?rc_number=1234567&company_type=COMPANY");
     expect((calls[0].init.headers as Record<string, string>).Authorization).toBe("sec");
-    expect(check).toMatchObject({ ok: true, matches: true, status: "ACTIVE" });
+    expect(check).toMatchObject({ ok: true, matches: true, numberMatches: true, status: "ACTIVE", address: "IKEJA, LAGOS" });
     expect((await db.hubBusiness.findUniqueOrThrow({ where: { id: b.id } })).registryCheckedAt).not.toBeNull();
   });
 });

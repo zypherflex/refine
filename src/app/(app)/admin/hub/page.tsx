@@ -36,11 +36,11 @@ export default async function HubModerationPage() {
                     {b.website && <div><dt className="inline text-ink-600">Website: </dt><dd className="inline"><a href={b.website} target="_blank" rel="noopener noreferrer nofollow">{b.website}</a></dd></div>}
                     <div><dt className="inline text-ink-600">Requested: </dt><dd className="inline">{fmtDateTime(b.updatedAt)}</dd></div>
                     {b.registryCheckedAt && (() => {
-                      const c = b.registryCheck as { ok: boolean; name?: string; status?: string; matches?: boolean; error?: string } | null;
+                      const c = b.registryCheck as { ok: boolean; name?: string; status?: string; address?: string; matches?: boolean; numberMatches?: boolean; error?: string } | null;
                       return (
                         <div className={`mt-2 rounded-lg px-3 py-2 ${c?.ok && c.matches ? "bg-brand-50" : "bg-amber-50"}`}>
                           <dt className="font-medium">CAC registry (Dojah), {fmtDateTime(b.registryCheckedAt)}</dt>
-                          <dd>{c?.ok ? <>{c.matches ? "✓ Name matches" : "! Name differs"}: {c.name}{c.status ? ` · ${c.status}` : ""}</> : <>! {c?.error ?? "No result"}</>}</dd>
+                          <dd>{c?.ok ? <>{c.matches ? "✓ Name matches" : "! Name differs"}: {c.name}{c.status ? ` · ${c.status}` : ""}{c.numberMatches === false ? " · ! registry returned a different RC number" : ""}{c.address ? <span className="block text-xs text-ink-700">{c.address}</span> : null}</> : <>! {c?.error ?? "No result"}</>}</dd>
                         </div>
                       );
                     })()}
