@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { AppError, ForbiddenError, NotFoundError } from "@/lib/errors";
 import { can, type Actor } from "@/lib/permissions";
 import { isState, PRODUCTS, ROLES } from "@/lib/hub/catalog";
+import { trustRank } from "@/lib/hub/rules";
 import { audit } from "../audit";
 
 const roleIds = ROLES.map((r) => r.id) as [string, ...string[]];
@@ -122,7 +123,7 @@ export async function reviewQueue(actor: Actor) {
 
 export type DirectoryFilter = { role?: string; state?: string; product?: string; q?: string; verifiedOnly?: boolean };
 
-/** The public directory. Suspended businesses never appear; verified ones come first. */
+/** The public directory. Suspended businesses never appear; Verified Business members, then verified ones, come first. */
 export async function listDirectory(f: DirectoryFilter = {}) {
   const where: Prisma.HubBusinessWhereInput = {
     verification: f.verifiedOnly ? "VERIFIED" : { not: "SUSPENDED" },
@@ -132,8 +133,7 @@ export async function listDirectory(f: DirectoryFilter = {}) {
     ...(f.q ? { OR: [{ name: { contains: f.q, mode: "insensitive" } }, { town: { contains: f.q, mode: "insensitive" } }, { description: { contains: f.q, mode: "insensitive" } }] } : {}),
   };
   const rows = await db.hubBusiness.findMany({ where, orderBy: [{ name: "asc" }], take: 200 });
-  const rank = (v: string) => (v === "VERIFIED" ? 0 : 1);
-  return rows.sort((a, b) => rank(a.verification) - rank(b.verification));
+  return rows.sort((a, b) => trustRank(a) - trustRank(b));
 }
 
 /** A business page. Suspended businesses are visible only to their owner and reviewers. */
@@ -157,4 +157,19 @@ export async function deliveryRecord(businessId: string) {
     db.supplyDelivery.count({ where: { OR: [{ sellerConfirmedAt: null }, { buyerConfirmedAt: null }], agreement: { OR: [{ buyerId: businessId }, { sellerId: businessId }] } } }),
   ]);
   return { jobs: asPoster + asHaulier, supply: supplyConfirmed, pending: supplyPending, total: asPoster + asHaulier + supplyConfirmed };
+}
+
+export const planInput = z.object({ businessId: z.string().min(1), plan: z.enum(["FREE", "VERIFIED_BUSINESS"]), months: z.coerce.number().int().min(1).max(24).default(12) });
+
+/** Administrators assign the Verified Business plan (after payment is agreed offline) to verified businesses only. */
+export async function setBusinessPlan(actor: Actor, raw: z.input<typeof planInput>, now = new Date()) {
+  if (!can.manageUsers(actor)) throw new ForbiddenError();
+  const input = planInput.parse(raw);
+  const b = await db.hubBusiness.findUnique({ where: { id: input.businessId } });
+  if (!b) throw new NotFoundError("Business not found");
+  if (input.plan === "VERIFIED_BUSINESS" && b.verification !== "VERIFIED") throw new AppError("Only verified businesses can join the Verified Business plan.");
+  const until = input.plan === "FREE" ? null : new Date(now.getTime() + input.months * 30 * 86_400_000);
+  const u = await db.hubBusiness.update({ where: { id: b.id }, data: { plan: input.plan, planUntil: until } });
+  await audit(actor.id, "hub.plan.set", "HubBusiness", b.id, { plan: input.plan, until: until?.toISOString() ?? null });
+  return u;
 }

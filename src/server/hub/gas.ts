@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { NotFoundError, AppError } from "@/lib/errors";
 import type { Actor } from "@/lib/permissions";
 import { STATES } from "@/lib/hub/catalog";
-import { SITE_EXPIRED_DAYS, SITE_STALE_DAYS } from "@/lib/hub/rules";
+import { activePlan, PLAN_LIMITS, SITE_EXPIRED_DAYS, SITE_STALE_DAYS } from "@/lib/hub/rules";
 import { audit } from "../audit";
 import { requireBusiness, stateField } from "./business";
 
@@ -22,7 +22,8 @@ export async function addSite(actor: Actor, raw: z.input<typeof siteInput>) {
   const input = siteInput.parse(raw);
   const b = await requireBusiness(actor);
   if (input.kind === "DELIVERY" && !b.roles.includes("HAULIER") && !b.roles.includes("SELLER")) throw new AppError("Delivery coverage is for hauliers and sellers. Add one of those roles to your profile first.");
-  if ((await db.gasSite.count({ where: { businessId: b.id } })) >= 50) throw new AppError("You can list up to 50 sites.");
+  const max = PLAN_LIMITS[activePlan(b)].sites;
+  if ((await db.gasSite.count({ where: { businessId: b.id } })) >= max) throw new AppError(`You can list up to ${max} sites.`);
   const s = await db.gasSite.create({ data: { ...input, businessId: b.id } });
   await audit(actor.id, "hub.site.create", "GasSite", s.id);
   return s;

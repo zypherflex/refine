@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/server/auth";
 import { getJob } from "@/server/hub/jobs";
+import { reliability } from "@/server/hub/reliability";
 import { NotFoundError } from "@/lib/errors";
 import { productLabel, stateName } from "@/lib/hub/catalog";
 import { acceptQuoteAction, cancelJobAction, confirmJobAction, quoteJobAction, withdrawQuoteAction } from "@/app/actions/hub";
@@ -18,6 +19,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
   const { job, quotes, quoteCount, accepted, me, isPoster, isHaulier } = data;
   const canQuote = !!me && !isPoster && me.roles.includes("HAULIER") && job.status === "OPEN" && me.verification !== "SUSPENDED";
   const myQuote = quotes.find((q) => q.haulierId === me?.id);
+  const scores = new Map(isPoster ? await Promise.all(quotes.map(async (q) => [q.haulierId, (await reliability(q.haulierId)).score] as const)) : []);
   const myConfirm = isPoster ? job.posterConfirmedAt : isHaulier ? job.haulierConfirmedAt : null;
 
   return (
@@ -58,7 +60,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
                   {quotes.map((q) => (
                     <li key={q.id} className="flex flex-col gap-2 rounded-xl border border-ink-100 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <p className="text-sm"><BusinessName b={q.haulier} /></p>
+                        <p className="text-sm"><BusinessName b={q.haulier} /> <span className="text-xs text-ink-600">· reliability {scores.get(q.haulierId) ?? "not enough data yet"}</span></p>
                         <p className="mt-0.5 text-sm"><span className="num font-semibold">{naira(q.priceNgn)}</span> · {q.days} {q.days === 1 ? "day" : "days"}{q.note ? ` · ${q.note}` : ""}</p>
                       </div>
                       {job.status === "OPEN" && q.status === "PENDING" ? <HubForm action={acceptQuoteAction} submit="Accept quote" inline><input type="hidden" name="id" value={q.id} /></HubForm> : <Pill className="bg-ink-50 text-ink-700">{q.status.toLowerCase()}</Pill>}

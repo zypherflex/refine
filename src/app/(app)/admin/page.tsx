@@ -26,6 +26,8 @@ export default async function AdminPage() {
     ["S3-compatible object storage", st.storage.driver === "s3" && st.storage.available],
     ["Language model for the assistant", st.languageModel],
     ["Email alert delivery" + (st.email.configured && !st.email.available ? " (incomplete: needs EMAIL_PROVIDER=smtp, SMTP_URL and EMAIL_FROM)" : ""), st.email.available],
+    ["SMS price alerts (Twilio)" + (st.messaging.configured && !st.messaging.sms ? " (needs MESSAGING_PROVIDER=twilio, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_SMS_FROM)" : ""), st.messaging.sms],
+    ["WhatsApp price alerts (Twilio)" + (st.messaging.configured && !st.messaging.whatsapp ? " (needs TWILIO_WHATSAPP_FROM as well)" : ""), st.messaging.whatsapp],
     ["Payment collection" + (st.payments.configured && !st.payments.available ? " (provider set, no adapter)" : ""), st.payments.available],
     ...PROVIDER_ORDER.map((id) => [`Open data: ${PROVIDERS[id].publisher}${st.openData[id].reason ? ` (${st.openData[id].reason})` : ""}`, st.openData[id].available] as const),
   ] as const;

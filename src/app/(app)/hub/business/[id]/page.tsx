@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/server/auth";
 import { deliveryRecord, getBusiness, myBusiness, REPORT_REASONS } from "@/server/hub/business";
 import { businessListings } from "@/server/hub/market";
+import { reliability } from "@/server/hub/reliability";
+import { Reliability } from "@/components/hub/Reliability";
+import { hubT } from "@/server/hub/lang";
 import { NotFoundError } from "@/lib/errors";
 import { can } from "@/lib/permissions";
 import { productLabel, roleLabel, stateName } from "@/lib/hub/catalog";
@@ -20,14 +23,15 @@ export default async function BusinessPage({ params, searchParams }: { params: P
   const { id } = await params;
   const sp = await searchParams;
   const b = await getBusiness(user, id).catch((e) => { if (e instanceof NotFoundError) notFound(); throw e; });
-  const [listings, record, sites, me] = await Promise.all([businessListings(b.id), deliveryRecord(b.id), db.gasSite.findMany({ where: { businessId: b.id }, orderBy: { state: "asc" } }), myBusiness(user)]);
+  const { t } = await hubT();
+  const [listings, record, rel, sites, me] = await Promise.all([businessListings(b.id), deliveryRecord(b.id), reliability(b.id), db.gasSite.findMany({ where: { businessId: b.id }, orderBy: { state: "asc" } }), myBusiness(user)]);
   const own = me?.id === b.id;
   const verified = b.verification === "VERIFIED";
 
   return (
     <>
       <p className="mb-2 text-sm"><Link href="/hub/directory">← Directory</Link></p>
-      <PageHeader eyebrow={b.roles.map(roleLabel).join(" · ")} title={displayName(b)} subtitle={<BusinessName b={b} link={false} />} actions={!own && me ? <Link href={`/hub/supply?with=${b.id}#propose`} className="btn-secondary btn-sm no-underline">Propose recurring supply</Link> : undefined} />
+      <PageHeader eyebrow={b.roles.map(roleLabel).join(" · ")} title={displayName(b)} subtitle={<BusinessName b={b} link={false} t={t} />} actions={!own && me ? <Link href={`/hub/supply?with=${b.id}#propose`} className="btn-secondary btn-sm no-underline">Propose recurring supply</Link> : undefined} />
 
       {!verified && <div className="mb-6"><Notice tone="warn" title="Not verified by RefineryLens">Everything on this page is stated by the business itself and has not been checked. Do not pay in advance. {displayName(b) !== b.name && "Its name is hidden because it matches a well-known company."}</Notice></div>}
       {b.verification === "SUSPENDED" && <div className="mb-6"><Notice tone="risk" title="Suspended">This business is hidden from the hub. {can.reviewHub(user) && b.verificationNote}</Notice></div>}
@@ -52,6 +56,7 @@ export default async function BusinessPage({ params, searchParams }: { params: P
                 <div key={k} className="rounded-xl border border-ink-100 bg-ink-50 p-3"><dt className="text-xs text-ink-600">{k}</dt><dd className="num mt-1 text-xl font-semibold">{v}</dd></div>
               ))}
             </dl>
+            <div className="mt-3"><Reliability r={rel} t={t} /></div>
           </section>
 
           <section aria-labelledby="bl-h">
@@ -83,7 +88,7 @@ export default async function BusinessPage({ params, searchParams }: { params: P
               ) : <p className="text-sm text-ink-700"><Link href="/hub/my">Add your business</Link> to send messages.</p>}
             </section>
           )}
-          <AdvanceWarning />
+          <AdvanceWarning t={t} />
           {!own && (
             <details className="card">
               <summary className="text-sm font-medium">Report this business</summary>

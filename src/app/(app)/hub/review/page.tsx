@@ -2,12 +2,14 @@ import Link from "next/link";
 import { requireRole } from "@/server/auth";
 import { reviewQueue, REPORT_REASONS } from "@/server/hub/business";
 import { db } from "@/lib/db";
-import { productLabel, roleLabel, stateName } from "@/lib/hub/catalog";
-import { isProtectedName } from "@/lib/hub/rules";
-import { promoteListingAction, resolveReportAction, reviewBusinessAction } from "@/app/actions/hub";
+import { productLabel, roleLabel, stateName, STATES_BY_NAME } from "@/lib/hub/catalog";
+import { activePlan, isProtectedName } from "@/lib/hub/rules";
+import { can } from "@/lib/permissions";
+import { programmeOverview, PROGRAMME_STATES } from "@/server/hub/field";
+import { assignVisitAction, decideVisitAction, markPaidAction, promoteListingAction, resolveReportAction, reviewBusinessAction, setBusinessPlanAction, setFieldAgentAction } from "@/app/actions/hub";
 import { EmptyState, Notice, PageHeader, Pill, SectionHeader } from "@/components/ui";
 import { HubForm } from "@/components/hub/HubForm";
-import { BusinessName, day, qty } from "@/components/hub/bits";
+import { BusinessName, day, naira, qty } from "@/components/hub/bits";
 
 export const metadata = { title: "Hub review" };
 
@@ -23,9 +25,27 @@ function Decide({ businessId, decisions }: { businessId: string; decisions: [str
   );
 }
 
+function AssignVisit({ businessId, open, agents }: { businessId: string; open?: string; agents: { id: string; name: string }[] }) {
+  if (open) return <p className="mt-2 text-sm text-ink-700">Field visit assigned to {open}.</p>;
+  if (!agents.length) return <p className="muted mt-2 text-sm">No field agent covers this state. Check by phone.</p>;
+  return (
+    <HubForm action={assignVisitAction} submit="Send an agent" buttonClass="btn-secondary btn-sm" className="mt-3 flex flex-wrap items-end gap-2">
+      <input type="hidden" name="businessId" value={businessId} />
+      <div><label className="label" htmlFor={`a-${businessId}`}>Field visit</label><select id={`a-${businessId}`} name="agentId" className="input w-auto">{agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
+    </HubForm>
+  );
+}
+
 export default async function ReviewPage() {
   const user = await requireRole("EDITOR");
-  const [{ pending, reports, suspended }, listings] = await Promise.all([reviewQueue(user), db.hubListing.findMany({ where: { active: true, expiresAt: { gt: new Date() } }, include: { business: true }, orderBy: { createdAt: "desc" }, take: 30 })]);
+  const isAdmin = can.manageUsers(user);
+  const [{ pending, reports, suspended }, listings, field, verified] = await Promise.all([
+    reviewQueue(user),
+    db.hubListing.findMany({ where: { active: true, expiresAt: { gt: new Date() } }, include: { business: true }, orderBy: { createdAt: "desc" }, take: 30 }),
+    programmeOverview(user),
+    isAdmin ? db.hubBusiness.findMany({ where: { verification: "VERIFIED" }, orderBy: { name: "asc" }, take: 100 }) : Promise.resolve([]),
+  ]);
+  const openVisit = new Map(field.open.map((v) => [v.businessId, v]));
   return (
     <>
       <PageHeader eyebrow="Staff" title="Trade hub review" subtitle="Verify businesses after checking CAC registration, licences and phone in person or by call. Keep it strict: never let an unverified business look official." />
@@ -40,12 +60,99 @@ export default async function ReviewPage() {
                 <p className="font-semibold"><BusinessName b={b} /> {isProtectedName(b.name) && <Pill className="bg-amber-100 text-amber-800">Uses a well-known name: “{b.name}”</Pill>}</p>
                 <p className="mt-1 text-sm text-ink-700">{b.roles.map(roleLabel).join(", ")} · {stateName(b.state)} · CAC <span className="num">{b.cacNumber}</span> · licences {b.licenceNumbers || "none stated"} · phone <span className="num">{b.phone}</span></p>
                 <p className="text-xs text-ink-600">Owner {b.owner.name} ({b.owner.email}) · asked {day(b.verificationAskedAt!)}</p>
+                <AssignVisit businessId={b.id} open={openVisit.get(b.id)?.agent.name} agents={field.agents.filter((a) => a.agentAreas.includes(b.state) && a.hubBusiness?.id !== b.id)} />
                 <Decide businessId={b.id} decisions={[["VERIFY", "Verify"], ["REJECT", "Not yet: send back with a note"], ["SUSPEND", "Suspend"]]} />
               </li>
             ))}
           </ul>
         ) : <EmptyState title="Nothing waiting" />}
       </section>
+
+      <section className="mb-10" aria-labelledby="visits-h">
+        <SectionHeader id="visits-h" title="Field visit reports" note={`${field.submitted.length} to review`} />
+        {field.submitted.length ? (
+          <ul className="space-y-3">
+            {field.submitted.map((v) => (
+              <li key={v.id} className="card">
+                <p className="font-semibold"><BusinessName b={v.business} /> · {stateName(v.business.state)}</p>
+                <p className="text-xs text-ink-600">{v.agent.name} visited {v.visitedOn ? day(v.visitedOn) : "-"}</p>
+                <ul className="mt-2 grid gap-1 text-sm sm:grid-cols-2">
+                  {([["CAC certificate seen", v.cacSeen], ["Licences seen", v.licenceSeen], ["Premises visited", v.premisesSeen], ["Phone answered", v.phoneAnswered], ["Product on site", v.productSeen]] as const).map(([l, ok]) => (
+                    <li key={l}>{ok ? "✓" : "✗"} {l}</li>
+                  ))}
+                </ul>
+                <p className="mt-2 whitespace-pre-line text-sm text-ink-700">{v.notes}</p>
+                <HubForm action={decideVisitAction} submit="Save decision" className="mt-3 grid gap-2 sm:grid-cols-[auto_1fr_auto] sm:items-end">
+                  <input type="hidden" name="visitId" value={v.id} />
+                  <div><label className="label" htmlFor={`vd-${v.id}`}>Decision</label><select id={`vd-${v.id}`} name="decision" className="input"><option value="ACCEPT">Accept and verify the business</option><option value="REJECT">Do not verify: send back</option></select></div>
+                  <div><label className="label" htmlFor={`vn-${v.id}`}>Note</label><input id={`vn-${v.id}`} name="note" className="input" maxLength={500} placeholder="Required to send back" /></div>
+                </HubForm>
+              </li>
+            ))}
+          </ul>
+        ) : <EmptyState title="No visit reports waiting" />}
+        {field.open.length > 0 && <p className="muted mt-3 text-sm">Out for a visit: {field.open.map((v) => `${v.business.name} (${v.agent.name})`).join(", ")}.</p>}
+      </section>
+
+      <section className="mb-10" aria-labelledby="agents-h">
+        <SectionHeader id="agents-h" title="Field agents" note={`Programme starts in ${PROGRAMME_STATES.map(stateName).join(" and ")}`} />
+        {field.agents.length ? (
+          <ul className="mb-4 space-y-2">
+            {field.agents.map((a) => (
+              <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink-100 p-3 text-sm">
+                <span>{a.name} · {a.email} · {a.agentAreas.map(stateName).join(", ")}</span>
+                <HubForm action={setFieldAgentAction} submit="Remove" buttonClass="btn-secondary btn-sm" inline><input type="hidden" name="email" value={a.email} /><input type="hidden" name="enabled" value="0" />{a.agentAreas.map((s) => <input key={s} type="hidden" name="areas" value={s} />)}</HubForm>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="muted mb-4">No agents yet.</p>}
+        <HubForm action={setFieldAgentAction} submit="Add or update agent" className="card space-y-3">
+          <input type="hidden" name="enabled" value="1" />
+          <div><label className="label" htmlFor="agent-email">Agent's account email</label><input id="agent-email" name="email" type="email" className="input" required /></div>
+          <fieldset><legend className="label">States they cover</legend>
+            <div className="grid grid-cols-2 gap-1 text-sm sm:grid-cols-4">{STATES_BY_NAME.map((s) => <label key={s.id} className="flex items-center gap-2"><input type="checkbox" name="areas" value={s.id} defaultChecked={(PROGRAMME_STATES as readonly string[]).includes(s.id)} /> {s.name}</label>)}</div>
+          </fieldset>
+        </HubForm>
+      </section>
+
+      {isAdmin && (
+        <section className="mb-10" aria-labelledby="payouts-h">
+          <SectionHeader id="payouts-h" title="Agent payouts" note="Pay by bank transfer, then mark it here." />
+          {field.accepted.length ? (
+            <ul className="space-y-2">
+              {field.accepted.map((v) => (
+                <li key={v.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink-100 p-3 text-sm">
+                  <span>{v.agent.name} · {v.business.name} · <span className="num">{naira(v.payoutNgn)}</span></span>
+                  {v.paidAt ? <span className="muted">Paid {day(v.paidAt)}</span> : <HubForm action={markPaidAction} submit="Mark paid" buttonClass="btn-secondary btn-sm" inline><input type="hidden" name="visitId" value={v.id} /></HubForm>}
+                </li>
+              ))}
+            </ul>
+          ) : <p className="muted">No accepted visits yet.</p>}
+        </section>
+      )}
+
+      {isAdmin && (
+        <section className="mb-10" aria-labelledby="plan-h">
+          <SectionHeader id="plan-h" title="Verified Business plan" note="Online payment is not switched on. Set the plan only after payment is agreed and received offline." />
+          {verified.length ? (
+            <ul className="space-y-2">
+              {verified.map((b) => {
+                const plan = activePlan(b);
+                return (
+                  <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink-100 p-3 text-sm">
+                    <span>{b.name} · {plan === "VERIFIED_BUSINESS" ? `Verified Business${b.planUntil ? ` until ${day(b.planUntil)}` : ""}` : "Free"}</span>
+                    <HubForm action={setBusinessPlanAction} submit="Save plan" buttonClass="btn-secondary btn-sm" className="flex flex-wrap items-end gap-2">
+                      <input type="hidden" name="businessId" value={b.id} />
+                      <select name="plan" aria-label={`Plan for ${b.name}`} className="input w-auto py-1 text-sm" defaultValue={plan}><option value="FREE">Free</option><option value="VERIFIED_BUSINESS">Verified Business</option></select>
+                      <select name="months" aria-label={`Months for ${b.name}`} className="input w-auto py-1 text-sm" defaultValue="12">{[1, 3, 6, 12, 24].map((m) => <option key={m} value={m}>{m} mo</option>)}</select>
+                    </HubForm>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : <p className="muted">No verified businesses yet.</p>}
+        </section>
+      )}
 
       <section className="mb-10" aria-labelledby="reports-h">
         <SectionHeader id="reports-h" title="Open reports" note={`${reports.length}`} />

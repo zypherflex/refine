@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/server/auth";
 import { listDirectory } from "@/server/hub/business";
 import { isState, PRODUCTS, productLabel, ROLES, roleLabel, stateName } from "@/lib/hub/catalog";
+import { hubT } from "@/server/hub/lang";
 import { EmptyState, PageHeader } from "@/components/ui";
 import { AdvanceWarning, BusinessName, ProductSelect, StateSelect } from "@/components/hub/bits";
 
@@ -11,6 +12,7 @@ type Search = Promise<{ role?: string; state?: string; product?: string; q?: str
 
 export default async function DirectoryPage({ searchParams }: { searchParams: Search }) {
   await requireUser();
+  const { t } = await hubT();
   const sp = await searchParams;
   const role = ROLES.some((r) => r.id === sp.role) ? sp.role! : "";
   const state = sp.state && isState(sp.state) ? sp.state : "";
@@ -21,7 +23,7 @@ export default async function DirectoryPage({ searchParams }: { searchParams: Se
 
   return (
     <>
-      <PageHeader eyebrow="Trade hub" title="Business directory" subtitle="Every business states its own details. The Verified badge means a RefineryLens reviewer checked its CAC registration, licences and phone. Names of well-known companies stay hidden until verified, so nobody can borrow them." />
+      <PageHeader eyebrow={t("hub.eyebrow")} title={t("tool.directory.title")} subtitle="Every business states its own details. The Verified badge means a RefineryLens reviewer checked its CAC registration, licences and phone. Names of well-known companies stay hidden until verified, so nobody can borrow them." />
       <form method="get" role="search" aria-label="Filter businesses" className="mb-5 grid gap-3 rounded-xl border border-ink-100 bg-ink-50 p-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1.3fr_auto] lg:items-end">
         <div>
           <label htmlFor="role" className="label">Role</label>
@@ -45,14 +47,14 @@ export default async function DirectoryPage({ searchParams }: { searchParams: Se
         <ul className="grid gap-3 md:grid-cols-2">
           {rows.map((b) => (
             <li key={b.id} className="card">
-              <p className="font-semibold"><BusinessName b={b} /></p>
+              <p className="font-semibold"><BusinessName b={b} t={t} /></p>
               <p className="mt-1 text-xs text-ink-600">{b.roles.map(roleLabel).join(" · ")} · {b.town ? `${b.town}, ` : ""}{stateName(b.state)}</p>
               {b.products.length > 0 && <p className="mt-1 text-xs text-ink-700">{b.products.map(productLabel).join(", ")}</p>}
             </li>
           ))}
         </ul>
       )}
-      <div className="mt-8"><AdvanceWarning /></div>
+      <div className="mt-8"><AdvanceWarning t={t} /></div>
     </>
   );
 }

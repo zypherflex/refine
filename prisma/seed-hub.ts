@@ -14,6 +14,7 @@ export async function seedHub(db: PrismaClient, opts: { passwordHash: string; ed
   const owner = (email: string, name: string) => db.user.create({ data: { email, name, passwordHash: opts.passwordHash, role: "USER", plan: "FREE" } });
   const trader = await owner("trader@refinerylens.test", "Tunde Trader");
   const haulier = await owner("haulier@refinerylens.test", "Hauwa Haulier");
+  const agent = await db.user.create({ data: { email: "agent@refinerylens.test", name: "Femi Field", passwordHash: opts.passwordHash, role: "USER", plan: "FREE", fieldAgent: true, agentAreas: ["LA", "OG"] } });
 
   type Spec = { key: string; name: string; roles: string[]; products: string[]; state: string; town: string; verification?: "VERIFIED" | "UNVERIFIED" | "PENDING"; description?: string; userId?: string };
   const specs: Spec[] = [
@@ -26,6 +27,7 @@ export async function seedHub(db: PrismaClient, opts: { passwordHash: string; ed
     { key: "eko", userId: haulier.id, name: "Eko Bobtail Logistics", roles: ["HAULIER"], products: ["LPG", "DIESEL"], state: "LA", town: "Orile", verification: "VERIFIED", description: "Six LPG bobtails and four 33,000-litre tankers. Lagos, Ogun and Oyo." },
     { key: "agbara", name: "Agbara Plastics and Packaging", roles: ["BUYER"], products: ["DIESEL", "LPG", "RESIN"], state: "OG", town: "Agbara", verification: "VERIFIED", description: "Sack and film maker buying diesel for generators and LPG for heaters." },
     { key: "sango", name: "Sango-Ota LPG Plant", roles: ["SELLER"], products: ["LPG"], state: "OG", town: "Sango-Ota", verification: "PENDING" },
+    { key: "badagry", name: "Badagry Gas Point", roles: ["SELLER"], products: ["LPG"], state: "LA", town: "Badagry", verification: "PENDING" },
     { key: "kanogas", name: "Kano Northern Gas", roles: ["SELLER"], products: ["LPG", "CNG"], state: "KN", town: "Kano", verification: "VERIFIED" },
     { key: "sabon", name: "Sabon Gari Fleet Haulage", roles: ["HAULIER"], products: ["LPG", "DIESEL", "PETROL"], state: "KN", town: "Sabon Gari", verification: "UNVERIFIED" },
     { key: "kaduna", name: "Kaduna Textile Works", roles: ["BUYER"], products: ["LPG", "CNG", "DIESEL"], state: "KD", town: "Kakuri", verification: "VERIFIED", description: "Textile mill switching boilers from diesel to gas." },
@@ -114,7 +116,23 @@ export async function seedHub(db: PrismaClient, opts: { passwordHash: string; ed
   await db.supplyDelivery.create({ data: { agreementId: kiosks.id, deliveredOn: dateOnly(1), quantity: 2000, buyerConfirmedAt: ago(1) } });
   await db.supplyAgreement.create({ data: { buyerId: b.kaduna!.id, sellerId: b.ikeja!.id, proposedById: b.kaduna!.id, product: "LPG", quantity: 12000, unit: "kg", frequency: "WEEKLY", deliverTo: "Kakuri, Kaduna", startsOn: dateOnly(-7) } });
 
+  // More confirmed hauls so Eko Bobtail has a reliability score; one was late.
+  for (const [poster, d, late] of [["lekki", 30, false], ["ikeja", 26, false], ["agbara", 20, true], ["lekki", 17, false], ["kaduna", 24, false]] as const) {
+    const j = await db.deliveryJob.create({ data: { posterId: b[poster]!.id, product: "LPG", quantity: 15000, unit: "kg", fromState: "LA", fromPlace: "Ikeja Gas Hub", toState: poster === "kaduna" ? "KD" : "LA", toPlace: "Sample delivery", readyBy: dateOnly(d), status: "DELIVERED", haulierConfirmedAt: ago(late ? d - 4 : d - 1), posterConfirmedAt: ago(d - 2), createdAt: ago(d + 3) } });
+    const q = await db.deliveryQuote.create({ data: { jobId: j.id, haulierId: b.eko!.id, priceNgn: 400000, days: 1, status: "ACCEPTED", createdAt: ago(d + 2) } });
+    await db.deliveryJob.update({ where: { id: j.id }, data: { acceptedQuoteId: q.id } });
+  }
+
+  // Ikeja Gas Hub is on the Verified Business plan (set by an administrator after offline payment).
+  await db.hubBusiness.update({ where: { id: b.ikeja!.id }, data: { plan: "VERIFIED_BUSINESS", planUntil: new Date(now + 300 * DAY) } });
+
+  // Field programme: Sango-Ota has a visit assigned; Badagry is waiting for one.
+  await db.fieldVisit.create({ data: { businessId: b.sango!.id, agentId: agent.id, assignedById: opts.editorId, createdAt: ago(1) } });
+
+  // Morning price alerts for the trader (in-app only until SMS or WhatsApp is switched on).
+  await db.priceAlertSubscription.create({ data: { userId: trader.id, states: ["LA", "OG"], products: ["LPG", "DIESEL"], channels: ["IN_APP"] } });
+
   await db.hubReport.create({ data: { businessId: b.mile2!.id, reporterId: haulier.id, reason: "ADVANCE_PAYMENT", details: "Sample report: asked for full payment before loading, then stopped answering for two days." } });
 
-  return { trader, haulier };
+  return { trader, haulier, agent };
 }

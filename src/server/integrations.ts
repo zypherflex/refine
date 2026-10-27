@@ -7,6 +7,18 @@ import { PROVIDERS, type ProviderId } from "./opendata/catalog";
 const SHIPPED_EMAIL_ADAPTERS = ["smtp"];
 const SHIPPED_PAYMENT_ADAPTERS: string[] = [];
 const SHIPPED_STORAGE_DRIVERS = ["local", "s3"];
+const SHIPPED_MESSAGING_ADAPTERS = ["twilio"];
+
+/** SMS and WhatsApp through Twilio. Each channel needs its own sender. */
+function messagingStatus() {
+  const provider = (process.env.MESSAGING_PROVIDER ?? "").toLowerCase();
+  const creds = SHIPPED_MESSAGING_ADAPTERS.includes(provider) && Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN);
+  return {
+    configured: Boolean(provider),
+    sms: creds && Boolean(process.env.TWILIO_SMS_FROM),
+    whatsapp: creds && Boolean(process.env.TWILIO_WHATSAPP_FROM),
+  };
+}
 
 function s3Configured() {
   return Boolean(process.env.S3_BUCKET && process.env.S3_REGION && process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY);
@@ -39,6 +51,7 @@ export function integrationStatus() {
     languageModel: Boolean(process.env.ANTHROPIC_API_KEY),
     email: { configured: Boolean(email), available: SHIPPED_EMAIL_ADAPTERS.includes(email) && emailCredentials },
     payments: { configured: Boolean(payment), available: SHIPPED_PAYMENT_ADAPTERS.includes(payment) },
+    messaging: messagingStatus(),
     openData: openDataStatus(),
   };
 }

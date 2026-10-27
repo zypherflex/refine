@@ -46,7 +46,7 @@ model User {
 
   sessions        Session[]
   theses          Thesis[]
-  documents       Document[]             @relation("DocumentOwner")
+  documents       Document[]              @relation("DocumentOwner")
   watchlists      Watchlist[]
   alerts          Alert[]
   conversations   Conversation[]
@@ -55,8 +55,13 @@ model User {
   opportunities   OpportunityBoardItem[]
   scenarios       OpportunityScenario[]
   businessProfile BusinessProfile?
-  hubBusiness     HubBusiness?           @relation("HubBusinessOwner")
+  hubBusiness     HubBusiness?            @relation("HubBusinessOwner")
   planInterests   PlanInterest[]
+  priceAlert      PriceAlertSubscription?
+  // Field verification programme: agents visit businesses and record what they saw.
+  fieldAgent      Boolean                 @default(false)
+  agentAreas      String[]                @default([])
+  fieldVisits     FieldVisit[]            @relation("VisitAgent")
 }
 
 model Session {
@@ -848,6 +853,9 @@ model HubBusiness {
   verifiedById        String?
   // Seeded sample businesses are labelled as such everywhere.
   isSample            Boolean         @default(false)
+  // FREE or VERIFIED_BUSINESS. Assigned by staff while online payment is not switched on; needs verification.
+  plan                String          @default("FREE")
+  planUntil           DateTime?
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
 
@@ -861,6 +869,7 @@ model HubBusiness {
   reports          HubReport[]       @relation("ReportedBusiness")
   enquiriesSent    HubEnquiry[]      @relation("EnquiryFrom")
   enquiriesIn      HubEnquiry[]      @relation("EnquiryTo")
+  fieldVisits      FieldVisit[]
 
   @@index([state])
   @@index([verification])
@@ -1064,4 +1073,77 @@ model PlanInterest {
   createdAt DateTime @default(now())
 
   @@unique([userId, line])
+}
+
+// Morning price alerts: medians for the user's states and products, sent once a day after 07:00 WAT.
+model PriceAlertSubscription {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  states           String[]  @default([])
+  products         String[]  @default([])
+  // IN_APP is always on. SMS and WHATSAPP need a confirmed phone and a configured messaging provider.
+  channels         String[]  @default(["IN_APP"])
+  language         String    @default("en")
+  phone            String    @default("")
+  phoneConfirmedAt DateTime?
+  // Hash of the 6-digit confirmation code; never stored in plain text.
+  phoneCodeHash    String    @default("")
+  phoneCodeSentAt  DateTime?
+  active           Boolean   @default(true)
+  lastSentOn       DateTime? @db.Date
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+// Every SMS or WhatsApp message RefineryLens tries to send, for audit and retries.
+model OutboundMessage {
+  id         String    @id @default(cuid())
+  userId     String?
+  channel    String
+  to         String
+  body       String
+  status     String    @default("QUEUED") // QUEUED | SENT | FAILED
+  providerId String    @default("")
+  error      String    @default("")
+  createdAt  DateTime  @default(now())
+  sentAt     DateTime?
+
+  @@index([status, createdAt])
+}
+
+enum VisitStatus {
+  ASSIGNED
+  SUBMITTED
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+// A field agent's in-person visit to a business asking for verification. Agents are paid per accepted visit.
+model FieldVisit {
+  id            String      @id @default(cuid())
+  businessId    String
+  business      HubBusiness @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  agentId       String
+  agent         User        @relation("VisitAgent", fields: [agentId], references: [id], onDelete: Cascade)
+  assignedById  String
+  status        VisitStatus @default(ASSIGNED)
+  cacSeen       Boolean     @default(false)
+  licenceSeen   Boolean     @default(false)
+  premisesSeen  Boolean     @default(false)
+  phoneAnswered Boolean     @default(false)
+  productSeen   Boolean     @default(false)
+  notes         String      @default("")
+  visitedOn     DateTime?   @db.Date
+  submittedAt   DateTime?
+  reviewedById  String?
+  reviewNote    String      @default("")
+  payoutNgn     Int         @default(0)
+  paidAt        DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([agentId, status])
+  @@index([businessId])
 }

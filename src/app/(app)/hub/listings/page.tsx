@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/server/auth";
 import { listListings } from "@/server/hub/market";
 import { isState, PRODUCTS, productLabel, stateName } from "@/lib/hub/catalog";
+import { hubT } from "@/server/hub/lang";
 import { EmptyState, PageHeader, Pill } from "@/components/ui";
 import { AdvanceWarning, BusinessName, ProductSelect, PromotedTag, StateSelect, day, qty } from "@/components/hub/bits";
 
@@ -11,6 +12,7 @@ type Search = Promise<{ kind?: string; state?: string; product?: string }>;
 
 export default async function ListingsPage({ searchParams }: { searchParams: Search }) {
   await requireUser();
+  const { t } = await hubT();
   const sp = await searchParams;
   const kind = sp.kind === "OFFER" || sp.kind === "REQUEST" ? sp.kind : "";
   const state = sp.state && isState(sp.state) ? sp.state : "";
@@ -18,7 +20,7 @@ export default async function ListingsPage({ searchParams }: { searchParams: Sea
   const rows = await listListings({ kind, state, product });
   return (
     <>
-      <PageHeader eyebrow="Trade hub" title="Offers and requests" subtitle="Product on offer and product wanted, posted by the businesses themselves. Listings expire after 30 days so the board stays current. Promoted listings are paid placements and are always labelled." actions={<Link href="/hub/my#listings" className="btn-primary btn-sm no-underline">Post a listing</Link>} />
+      <PageHeader eyebrow={t("hub.eyebrow")} title={t("tab.listings")} subtitle="Product on offer and product wanted, posted by the businesses themselves. Listings expire after 30 days so the board stays current. Promoted listings are paid placements and are always labelled." actions={<Link href="/hub/my#listings" className="btn-primary btn-sm no-underline">Post a listing</Link>} />
       <form method="get" role="search" aria-label="Filter listings" className="mb-5 grid gap-3 rounded-xl border border-ink-100 bg-ink-50 p-4 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
         <div>
           <label htmlFor="kind" className="label">Type</label>
@@ -35,20 +37,20 @@ export default async function ListingsPage({ searchParams }: { searchParams: Sea
           {rows.map((l) => (
             <li key={l.id} className="card">
               <div className="flex flex-wrap items-center gap-1.5">
-                <Pill className={l.kind === "OFFER" ? "bg-ink-950 text-white" : "bg-ink-100 text-ink-900"}>{l.kind === "OFFER" ? "Offer" : "Request"}</Pill>
-                {l.promoted && <PromotedTag />}
+                <Pill className={l.kind === "OFFER" ? "bg-ink-950 text-white" : "bg-ink-100 text-ink-900"}>{l.kind === "OFFER" ? t("offer") : t("request")}</Pill>
+                {l.promoted && <PromotedTag t={t} />}
                 <h2 className="text-base font-semibold">{productLabel(l.product)} · <span className="num">{qty(l.quantity)}</span> {l.unit} · {stateName(l.state)}</h2>
               </div>
               {l.details && <p className="mt-2 text-sm text-ink-700">{l.details}</p>}
               <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-ink-600">
-                <BusinessName b={l.business} />
+                <BusinessName b={l.business} t={t} />
                 <span>Posted {day(l.createdAt)} · <Link href={`/hub/business/${l.businessId}?listing=${l.id}#contact`}>Message</Link></span>
               </div>
             </li>
           ))}
         </ul>
       )}
-      <div className="mt-8"><AdvanceWarning /></div>
+      <div className="mt-8"><AdvanceWarning t={t} /></div>
     </>
   );
 }

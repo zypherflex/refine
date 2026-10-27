@@ -4,13 +4,16 @@ import { gasNetwork } from "@/server/hub/gas";
 import { GASES, isState, SITE_KINDS, stateName, STATES_BY_NAME } from "@/lib/hub/catalog";
 import { SITE_EXPIRED_DAYS, SITE_STALE_DAYS } from "@/lib/hub/rules";
 import { Notice, PageHeader, Pill, SectionHeader } from "@/components/ui";
-import { GasGridMap, STATUS_LABEL } from "@/components/hub/GasGridMap";
+import { GasGridMap } from "@/components/hub/GasGridMap";
 import { BusinessName, day } from "@/components/hub/bits";
+import { hubT } from "@/server/hub/lang";
+import type { HubKey } from "@/lib/i18n/hub";
 
 export const metadata = { title: "Gas network map" };
 
 export default async function GasMapPage({ searchParams }: { searchParams: Promise<{ gas?: string; state?: string }> }) {
   await requireUser();
+  const { t } = await hubT();
   const sp = await searchParams;
   const gas = GASES.some((g) => g.id === sp.gas) ? sp.gas! : "LPG";
   const state = sp.state && isState(sp.state) ? sp.state : "";
@@ -22,7 +25,7 @@ export default async function GasMapPage({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <PageHeader eyebrow="Trade hub" title="Gas network map" subtitle="Where gas is supplied, who delivers, and where buyers are waiting, by state. Every site is listed and kept current by the business that runs it." actions={<Link href="/hub/my#sites" className="btn-primary btn-sm no-underline">Add a site</Link>} />
+      <PageHeader eyebrow={t("hub.eyebrow")} title={t("gas.title")} subtitle={t("gas.subtitle")} actions={<Link href="/hub/my#sites" className="btn-primary btn-sm no-underline">Add a site</Link>} />
       <nav aria-label="Gas" className="mb-5 flex flex-wrap gap-2">
         {GASES.map((g) => <Link key={g.id} href={`/hub/gas-map?gas=${g.id}`} aria-current={g.id === gas ? "page" : undefined} className={`${g.id === gas ? "btn-primary" : "btn-secondary"} btn-sm no-underline`}>{g.label}</Link>)}
       </nav>
@@ -30,12 +33,12 @@ export default async function GasMapPage({ searchParams }: { searchParams: Promi
       <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr]">
         <section aria-labelledby="map-h" className="card">
           <h2 id="map-h" className="h-section mb-4">{GASES.find((g) => g.id === gas)!.label} by state</h2>
-          <GasGridMap cells={cells} gas={gas} selected={state} />
+          <GasGridMap cells={cells} gas={gas} selected={state} labels={Object.fromEntries((["SERVED", "DELIVERY_ONLY", "GAP", "NO_DATA"] as const).map((k) => [k, t(`gas.status.${k}` as HubKey)])) as never} />
           <p className="mt-4 text-xs text-ink-600">A tile map: each square is one state, placed roughly where it sits. Sites not reconfirmed in {SITE_STALE_DAYS} days are flagged; after {SITE_EXPIRED_DAYS} days they drop off.</p>
         </section>
 
         <section aria-labelledby="gaps-h">
-          <h2 id="gaps-h" className="h-section">Gaps: demand with no listed supply</h2>
+          <h2 id="gaps-h" className="h-section">{t("gas.gaps")}</h2>
           {gaps.length ? (
             <ul className="mt-3 space-y-2">
               {gaps.map((c) => (
@@ -74,7 +77,7 @@ export default async function GasMapPage({ searchParams }: { searchParams: Promi
         </form>
         {state && (
           <>
-            <SectionHeader id="sites-h" title={`${stateName(state)}: ${STATUS_LABEL[cells.find((c) => c.state === state)!.status]}`} />
+            <SectionHeader id="sites-h" title={`${stateName(state)}: ${t(`gas.status.${cells.find((c) => c.state === state)!.status}` as HubKey)}`} />
             {here.length ? (
               <ul className="grid gap-3 md:grid-cols-2">
                 {here.map((s) => (
@@ -85,7 +88,7 @@ export default async function GasMapPage({ searchParams }: { searchParams: Promi
                       <h3 className="font-semibold">{s.name}</h3>
                     </div>
                     <p className="mt-1 text-sm text-ink-700">{s.town ? `${s.town} · ` : ""}{s.capacityNote}</p>
-                    <p className="mt-2 text-xs text-ink-600">Stated by <BusinessName b={s.business} /> · last confirmed {day(s.lastConfirmedAt)}</p>
+                    <p className="mt-2 text-xs text-ink-600">Stated by <BusinessName b={s.business} t={t} /> · last confirmed {day(s.lastConfirmedAt)}</p>
                   </li>
                 ))}
               </ul>

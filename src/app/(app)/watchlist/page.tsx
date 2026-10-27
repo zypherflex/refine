@@ -10,8 +10,8 @@ import { EmptyState, Notice, PageHeader, Pill } from "@/components/ui";
 
 export const metadata = { title: "Watchlist and alerts" };
 
-const kindLabel: Record<string, string> = { NEW_ANNOUNCEMENT: "New", CORRECTION: "Correction", RETRACTION: "Retraction", SUPERSESSION: "Superseded", THESIS_MATCH: "Thesis evidence" };
-const kindStyle: Record<string, string> = { NEW_ANNOUNCEMENT: "bg-brand-100 text-brand-800", CORRECTION: "bg-amber-100 text-amber-800", RETRACTION: "bg-risk-100 text-risk-800", SUPERSESSION: "bg-ink-100 text-ink-800", THESIS_MATCH: "bg-ink-900 text-white" };
+const kindLabel: Record<string, string> = { NEW_ANNOUNCEMENT: "New", CORRECTION: "Correction", RETRACTION: "Retraction", SUPERSESSION: "Superseded", THESIS_MATCH: "Thesis evidence", PRICE_DIGEST: "Prices" };
+const kindStyle: Record<string, string> = { NEW_ANNOUNCEMENT: "bg-brand-100 text-brand-800", CORRECTION: "bg-amber-100 text-amber-800", RETRACTION: "bg-risk-100 text-risk-800", SUPERSESSION: "bg-ink-100 text-ink-800", THESIS_MATCH: "bg-ink-900 text-white", PRICE_DIGEST: "bg-ink-100 text-ink-900" };
 
 export default async function WatchlistPage() {
   const user = await requireUser();
@@ -47,7 +47,7 @@ export default async function WatchlistPage() {
                 <div>
                   <div className="flex flex-wrap items-center gap-2"><Pill className={kindStyle[a.kind] ?? ""}>{kindLabel[a.kind] ?? a.kind}</Pill><span className="text-xs text-ink-700">{fmtDateTime(a.createdAt)}</span>{!a.readAt && <span className="text-xs font-semibold text-brand-800">Unread</span>}</div>
                   <p className="mt-1 font-medium"><Link href={a.link} className="text-ink-950">{a.title}</Link></p>
-                  <p className="text-sm text-ink-800">{a.body}</p>
+                  <p className="whitespace-pre-line text-sm text-ink-800">{a.body}</p>
                 </div>
                 {!a.readAt && <form action={markReadAction}><input type="hidden" name="id" value={a.id} /><button className="btn-secondary btn-sm">Mark read</button></form>}
               </li>
