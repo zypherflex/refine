@@ -166,6 +166,16 @@ export async function seedHub(db: PrismaClient, opts: { passwordHash: string; ed
   const out = cyls.filter((c) => Number(c.serial.slice(4)) <= 10);
   await db.cylinderEvent.createMany({ data: out.flatMap((c) => [{ cylinderId: c.id, kind: "FILLED", byId: b.ikeja!.id, at: ago(3) }, { cylinderId: c.id, kind: "DISPATCHED", byId: b.ikeja!.id, toId: b.lekki!.id, at: ago(3) }]) });
 
+  // Compliance vault for Ikeja Gas Hub: one paper expiring soon and one expired, so reminders and warnings show.
+  const inDays = (d: number) => dateOnly(-d);
+  await db.complianceRecord.createMany({ data: [
+    { businessId: b.ikeja!.id, kind: "CAC", title: "CAC certificate of incorporation", number: "RC SAMPLE-1001", issuer: "Corporate Affairs Commission", issuedOn: dateOnly(2200) },
+    { businessId: b.ikeja!.id, kind: "NMDPRA", title: "LPG retail outlet licence, Ikeja", number: "NMDPRA/SAMPLE/LPG/0421", issuer: "NMDPRA", issuedOn: dateOnly(325), expiresOn: inDays(40), reminderStage: 60 },
+    { businessId: b.ikeja!.id, kind: "TCC", title: "Tax clearance certificate 2026", number: "TCC-SAMPLE-7781", issuer: "FIRS", issuedOn: dateOnly(200), expiresOn: inDays(165) },
+    { businessId: b.ikeja!.id, kind: "FIRE", title: "Fire safety certificate", number: "LSFS/SAMPLE/0932", issuer: "Lagos State Fire and Rescue Service", issuedOn: dateOnly(380), expiresOn: dateOnly(15), reminderStage: 0 },
+    { businessId: b.ikeja!.id, kind: "INSURANCE", title: "Plant and stock insurance", number: "POL-SAMPLE-55120", issuer: "Sample Insurance Plc", issuedOn: dateOnly(90), expiresOn: inDays(275), inVendorPack: false },
+  ] });
+
   await db.hubReport.create({ data: { businessId: b.mile2!.id, reporterId: haulier.id, reason: "ADVANCE_PAYMENT", details: "Sample report: asked for full payment before loading, then stopped answering for two days." } });
 
   return { trader, haulier, agent, lenderUser };

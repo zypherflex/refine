@@ -47,11 +47,11 @@ export const REVENUE_LINES = [
   },
   {
     id: "compliance-vault",
-    when: "NEXT" as LineWhen,
+    when: "NOW" as LineWhen,
     title: "Compliance vault",
     who: "Any business with licences to keep current",
-    summary: "Licence and certificate storage with renewal reminders and NCDMB-ready vendor packs.",
-    features: [],
+    summary: "Licence and certificate storage with renewal reminders and a vendor pack for buyers' supplier checks. Free while in pilot.",
+    features: ["Private scans of licences, permits and certificates", "Reminders 60, 30 and 7 days before expiry", "One-click vendor pack PDF", "You choose what the pack lists"],
   },
   {
     id: "escrow",

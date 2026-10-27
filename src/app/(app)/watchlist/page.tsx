@@ -10,8 +10,8 @@ import { EmptyState, Notice, PageHeader, Pill } from "@/components/ui";
 
 export const metadata = { title: "Watchlist and alerts" };
 
-const kindLabel: Record<string, string> = { NEW_ANNOUNCEMENT: "New", CORRECTION: "Correction", RETRACTION: "Retraction", SUPERSESSION: "Superseded", THESIS_MATCH: "Thesis evidence", PRICE_DIGEST: "Prices" };
-const kindStyle: Record<string, string> = { NEW_ANNOUNCEMENT: "bg-brand-100 text-brand-800", CORRECTION: "bg-amber-100 text-amber-800", RETRACTION: "bg-risk-100 text-risk-800", SUPERSESSION: "bg-ink-100 text-ink-800", THESIS_MATCH: "bg-ink-900 text-white", PRICE_DIGEST: "bg-ink-100 text-ink-900" };
+const kindLabel: Record<string, string> = { NEW_ANNOUNCEMENT: "New", CORRECTION: "Correction", RETRACTION: "Retraction", SUPERSESSION: "Superseded", THESIS_MATCH: "Thesis evidence", PRICE_DIGEST: "Prices", PRICE_THRESHOLD: "Price alert", COMPLIANCE: "Compliance", FINANCE: "Finance" };
+const kindStyle: Record<string, string> = { NEW_ANNOUNCEMENT: "bg-brand-100 text-brand-800", CORRECTION: "bg-amber-100 text-amber-800", RETRACTION: "bg-risk-100 text-risk-800", SUPERSESSION: "bg-ink-100 text-ink-800", THESIS_MATCH: "bg-ink-900 text-white", PRICE_DIGEST: "bg-ink-100 text-ink-900", PRICE_THRESHOLD: "bg-ink-100 text-ink-900", COMPLIANCE: "bg-amber-100 text-amber-800", FINANCE: "bg-brand-100 text-brand-800" };
 
 export default async function WatchlistPage() {
   const user = await requireUser();

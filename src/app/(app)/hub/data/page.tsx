@@ -2,11 +2,13 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireUser } from "@/server/auth";
 import { hasPriceData, listApiKeys, MAX_KEYS, METHODOLOGY } from "@/server/hub/priceindex";
-import { revokeApiKeyAction } from "@/app/actions/hub";
+import { addThresholdAction, removeThresholdAction, revokeApiKeyAction } from "@/app/actions/hub";
+import { listThresholds, MAX_THRESHOLDS } from "@/server/hub/thresholds";
+import { PRICED_PRODUCTS, productLabel, stateName, STATES_BY_NAME } from "@/lib/hub/catalog";
 import { EmptyState, Notice, PageHeader, Pill, SectionHeader } from "@/components/ui";
 import { HubForm } from "@/components/hub/HubForm";
 import { ApiKeyForm } from "@/components/hub/ApiKeyForm";
-import { day } from "@/components/hub/bits";
+import { day, naira } from "@/components/hub/bits";
 
 export const metadata = { title: "Price data and API" };
 
@@ -14,7 +16,7 @@ export default async function DataPage() {
   const user = await requireUser();
   const u = await db.user.findUniqueOrThrow({ where: { id: user.id } });
   const active = hasPriceData(u);
-  const keys = active ? await listApiKeys(user) : [];
+  const [keys, thresholds] = active ? await Promise.all([listApiKeys(user), listThresholds(user)]) : [[], []];
   const base = (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
   return (
     <>
@@ -43,6 +45,29 @@ export default async function DataPage() {
               ))}
             </ul>
           ) : <EmptyState title="No keys yet" />}
+        </section>
+      )}
+
+      {active && (
+        <section className="mb-10" aria-labelledby="thr-h">
+          <SectionHeader id="thr-h" title="Threshold alerts" note={`Up to ${MAX_THRESHOLDS}. Each fires once when the board median crosses your price, and again only after it crosses back.`} />
+          {thresholds.length > 0 && (
+            <ul className="mb-4 space-y-2">
+              {thresholds.map((t) => (
+                <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink-100 p-3 text-sm">
+                  <span>{productLabel(t.product)} in {stateName(t.state)} {t.direction === "ABOVE" ? "above" : "below"} <span className="num">{naira(t.priceNgn)}</span>{t.met ? <Pill className="ml-2 bg-ink-800 text-white">Crossed{t.lastFiredAt ? ` ${day(t.lastFiredAt)}` : ""}</Pill> : null}</span>
+                  <HubForm action={removeThresholdAction} submit="Remove" buttonClass="btn-secondary btn-sm" inline><input type="hidden" name="id" value={t.id} /></HubForm>
+                </li>
+              ))}
+            </ul>
+          )}
+          <HubForm action={addThresholdAction} submit="Add alert" className="card grid gap-3 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end">
+            <div><label htmlFor="t-product" className="label">Product</label><select id="t-product" name="product" className="input">{PRICED_PRODUCTS.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}</select></div>
+            <div><label htmlFor="t-state" className="label">State</label><select id="t-state" name="state" className="input" defaultValue="LA">{STATES_BY_NAME.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></div>
+            <div><label htmlFor="t-dir" className="label">When the median goes</label><select id="t-dir" name="direction" className="input"><option value="ABOVE">Above</option><option value="BELOW">Below</option></select></div>
+            <div><label htmlFor="t-price" className="label">Price (₦)</label><input id="t-price" name="priceNgn" className="input num w-32" inputMode="numeric" required /></div>
+          </HubForm>
+          <p className="muted mt-2 text-xs">Alerts arrive in the app, and by SMS or WhatsApp if you switched those on and confirmed your number under Price alerts.</p>
         </section>
       )}
 

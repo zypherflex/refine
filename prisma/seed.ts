@@ -23,6 +23,10 @@ async function main() {
   const analyst = await mk("analyst@refinerylens.test", "Ama Analyst", "ANALYST", "TEAM", org.id);
   const investor = await mk("investor@refinerylens.test", "Ivy Investor", "USER", "PRO");
   await db.user.update({ where: { id: investor.id }, data: { priceDataUntil: new Date(Date.now() + 365 * 86_400_000) } });
+  await db.priceThreshold.createMany({ data: [
+    { userId: investor.id, product: "LPG", state: "LA", direction: "ABOVE", priceNgn: 1300, met: true, lastFiredAt: new Date(Date.now() - 2 * 86_400_000) },
+    { userId: investor.id, product: "DIESEL", state: "LA", direction: "BELOW", priceNgn: 1900 },
+  ] });
   const other = await mk("other@refinerylens.test", "Obi Other", "USER", "FREE");
 
   const dangote = await seedDangote(db, editor.id);

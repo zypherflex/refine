@@ -67,6 +67,7 @@ model User {
   apiKeys          ApiKey[]
   financePartnerId String?
   financePartner   FinancePartner?         @relation(fields: [financePartnerId], references: [id], onDelete: SetNull)
+  priceThresholds  PriceThreshold[]
 }
 
 model Session {
@@ -864,21 +865,22 @@ model HubBusiness {
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
 
-  listings         HubListing[]
-  sites            GasSite[]
-  prices           PriceReport[]
-  postedJobs       DeliveryJob[]     @relation("JobPoster")
-  quotes           DeliveryQuote[]
-  buyerAgreements  SupplyAgreement[] @relation("AgreementBuyer")
-  sellerAgreements SupplyAgreement[] @relation("AgreementSeller")
-  reports          HubReport[]       @relation("ReportedBusiness")
-  enquiriesSent    HubEnquiry[]      @relation("EnquiryFrom")
-  enquiriesIn      HubEnquiry[]      @relation("EnquiryTo")
-  fieldVisits      FieldVisit[]
-  financeRequests  FinanceRequest[]
-  cylindersOwned   Cylinder[]        @relation("CylinderOwner")
-  cylindersHeld    Cylinder[]        @relation("CylinderHolder")
-  cylinderEvents   CylinderEvent[]   @relation("CylinderEventBy")
+  listings          HubListing[]
+  sites             GasSite[]
+  prices            PriceReport[]
+  postedJobs        DeliveryJob[]      @relation("JobPoster")
+  quotes            DeliveryQuote[]
+  buyerAgreements   SupplyAgreement[]  @relation("AgreementBuyer")
+  sellerAgreements  SupplyAgreement[]  @relation("AgreementSeller")
+  reports           HubReport[]        @relation("ReportedBusiness")
+  enquiriesSent     HubEnquiry[]       @relation("EnquiryFrom")
+  enquiriesIn       HubEnquiry[]       @relation("EnquiryTo")
+  fieldVisits       FieldVisit[]
+  financeRequests   FinanceRequest[]
+  cylindersOwned    Cylinder[]         @relation("CylinderOwner")
+  cylindersHeld     Cylinder[]         @relation("CylinderHolder")
+  cylinderEvents    CylinderEvent[]    @relation("CylinderEventBy")
+  complianceRecords ComplianceRecord[]
 
   @@index([state])
   @@index([verification])
@@ -1260,4 +1262,52 @@ model CylinderEvent {
   at         DateTime    @default(now())
 
   @@index([cylinderId, at])
+}
+
+/**
+ * A licence, permit or certificate in a business's compliance vault. Files are private to the owner; the vendor pack
+ * lists the record (kind, number, issuer, dates) but never includes the file.
+ */
+model ComplianceRecord {
+  id            String      @id @default(cuid())
+  businessId    String
+  business      HubBusiness @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  kind          String
+  title         String
+  number        String      @default("")
+  issuer        String      @default("")
+  issuedOn      DateTime?   @db.Date
+  expiresOn     DateTime?   @db.Date
+  inVendorPack  Boolean     @default(true)
+  storageKey    String?
+  fileName      String      @default("")
+  mimeType      String      @default("")
+  sizeBytes     Int         @default(0)
+  sha256        String      @default("")
+  // The last reminder stage sent for the current expiry date (60, 30, 7 or 0 days), so each goes out once.
+  reminderStage Int?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([businessId])
+  @@index([expiresOn])
+}
+
+/**
+ * "Tell me when the Lagos LPG median goes above ₦1,400." Fires once each time the condition becomes true.
+ */
+model PriceThreshold {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product     String
+  state       String
+  direction   String // ABOVE | BELOW
+  priceNgn    Int
+  active      Boolean   @default(true)
+  met         Boolean   @default(false)
+  lastFiredAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
 }

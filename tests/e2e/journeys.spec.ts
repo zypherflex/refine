@@ -481,3 +481,48 @@ test("cylinders: overdue cylinders cannot be filled, and anyone can check a seri
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+test("compliance vault: add a licence with a scan, see warnings, and download the vendor pack", async ({ page }) => {
+  await signIn(page, "trader@refinerylens.test");
+  await page.goto("/hub/compliance");
+  await expect(page.getByText("1 expired")).toBeVisible();
+  await expect(page.getByText("1 expire within 60 days")).toBeVisible();
+  await page.getByLabel("What it is").selectOption("NCDMB");
+  await page.getByLabel("Number", { exact: true }).fill("NOGIC-E2E-001");
+  await page.getByLabel(/Expires on/).fill(new Date(Date.now() + 400 * 86_400_000).toISOString().slice(0, 10));
+  await page.getByLabel("Scanned copy (optional)").setInputFiles({ name: "ncdmb.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4\n% e2e\n") });
+  await page.getByRole("button", { name: "Save to vault" }).click();
+  await expect(page.getByText("Saved to your vault.")).toBeVisible();
+  const item = page.locator("li.card", { hasText: "NOGIC-E2E-001" });
+  await expect(item.getByRole("link", { name: "Open copy" })).toBeVisible();
+  const href = await item.getByRole("link", { name: "Open copy" }).getAttribute("href");
+  expect((await page.request.get(href!)).status()).toBe(200);
+
+  const pack = await page.request.get("/api/hub/vendor-pack");
+  expect(pack.status()).toBe(200);
+  expect(pack.headers()["content-type"]).toBe("application/pdf");
+
+  await signIn(page, "haulier@refinerylens.test");
+  expect((await page.request.get(href!)).status()).toBe(404);
+});
+
+test("threshold alerts are listed for price data customers, and the hub speaks Yoruba and Igbo @mobile", async ({ page }) => {
+  await signIn(page, "investor@refinerylens.test");
+  await page.goto("/hub/data");
+  await expect(page.getByRole("heading", { name: "Threshold alerts" })).toBeVisible();
+  await expect(page.getByText(/LPG \(cooking gas\) in Lagos above/).first()).toBeVisible();
+  await page.getByLabel("Price (₦)").fill("2500");
+  await page.getByRole("button", { name: "Add alert" }).click();
+  await expect(page.getByText("Alert added.")).toBeVisible();
+
+  await page.goto("/hub");
+  await page.getByLabel("Language").selectOption("yo");
+  await page.getByRole("button", { name: "OK" }).click();
+  await expect(page.getByRole("link", { name: "Pátákó owó" }).first()).toBeVisible();
+  await page.getByLabel("Èdè").selectOption("ig");
+  await page.getByRole("button", { name: "OK" }).click();
+  await expect(page.getByRole("link", { name: "Bọọdụ ọnụahịa" }).first()).toBeVisible();
+  await page.getByLabel("Asụsụ").selectOption("en");
+  await page.getByRole("button", { name: "OK" }).click();
+  await expect(page.getByRole("link", { name: "Price board" }).first()).toBeVisible();
+});
