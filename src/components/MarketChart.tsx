@@ -18,7 +18,7 @@ export function MarketChart({ title, unit, points }: { title: string; unit: stri
             <XAxis dataKey="period" tick={{ fontSize: 10, fill: "#0f2f20" }} axisLine={{ stroke: "#d0ded6" }} tickLine={false} minTickGap={36} />
             <YAxis tick={{ fontSize: 10, fill: "#0f2f20" }} axisLine={false} tickLine={false} width={56} domain={["auto", "auto"]} tickFormatter={(v: number) => v.toLocaleString("en-GB", { maximumFractionDigits: 2, notation: v >= 1e6 ? "compact" : "standard" })} />
             <Tooltip formatter={(v) => [`${Number(v).toLocaleString("en-GB")} ${unit}`, title]} contentStyle={{ fontSize: 12 }} />
-            <Line type="monotone" dataKey="value" stroke="#1a47d1" strokeWidth={1.8} dot={points.length <= 30} isAnimationActive={false} />
+            <Line type="monotone" dataKey="value" stroke="#087c47" strokeWidth={1.8} dot={points.length <= 30} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>

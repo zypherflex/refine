@@ -79,7 +79,7 @@ async function sendFcm(token: string, msg: PushMessage): Promise<PushResult> {
           token,
           notification: { title: msg.title, body: msg.body },
           data: { link: msg.link },
-          android: { priority: "HIGH", notification: { channel_id: "trade", color: "#1a47d1" } },
+          android: { priority: "HIGH", notification: { channel_id: "trade", color: "#087c47" } },
         },
       }),
     });

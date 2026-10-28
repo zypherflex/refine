@@ -14,13 +14,14 @@ export default function PrivacyPage() {
         <li><b>Your business, if you set one up:</b> business name, roles, state and town, website, description, CAC registration number and licences you list. Your registration number is seen only by RefineryLens administrators who check it.</li>
         <li><b>What you post:</b> listings, gas sites, delivery jobs and quotes, supply agreements and deliveries, and reports. Prices you report are published only as medians across at least three sellers, never on their own.</li>
         <li><b>Station and gas shop reports:</b> prices you paid, whether a place was selling and its queue, and problems such as short measure, with any note you add. They are published without your name; prices appear on their own at the station and in state medians across at least three people. Places you add are listed publicly. If you flag a report or a place, administrators see your reason, note and account so they can act on misuse; flags are never published.</li>
-        <li><b>Gas orders:</b> your delivery address, area, phone number, cylinder size and any note. Only the seller you order from sees them, so their rider can reach you. If you send gas to someone else, you give us their name, phone and address for the same purpose; tell them you are doing so. Your rating of a delivery counts towards the seller&apos;s public average.</li>
+        <li><b>Gas orders:</b> your delivery address, area, phone number, cylinder size and any note. Only the seller you order from sees them, so their rider can reach you. Your rating of a delivery counts towards the seller&apos;s public average.</li>
         <li><b>Location, from drivers only:</b> if a business sends you a driver link and you tap &quot;Start sharing&quot;, your phone&apos;s precise position, speed and direction are sent every few seconds while that page is open, and shown to the customer or business receiving the delivery and to the business that sent the link. Sharing stops when you tap Stop, close the page, or the delivery ends. RefineryLens never collects anyone else&apos;s location and never tracks in the background.</li>
         <li><b>Cooking gas tracker:</b> your cylinders, refill dates and what you paid, visible to you alone. Your state, if you choose one, so we show its prices first.</li>
         <li><b>Messages</b> between your business and others. Only the two businesses in a conversation can read it; RefineryLens staff cannot.</li>
+        <li><b>Research you keep:</b> files you upload privately, theses, watchlists and questions to the research assistant. Private files and theses are visible to you alone.</li>
         <li><b>Optional contact details:</b> a phone number, if you turn on SMS or WhatsApp alerts, and a notification token for each phone where you turn on app notifications.</li>
         <li><b>RefineryLens Data customers:</b> your organisation, billing country, API keys (stored only as a scrambled hash) and how many requests each key made per day. The data you receive contains no personal information.</li>
-        <li><b>Payments:</b> a payment reference, amount and status, and for gas orders paid online, which order it paid. Card details go directly to Paystack or Stripe; RefineryLens never receives them.</li>
+        <li><b>Payments:</b> a payment reference, amount and status. Card details go directly to Paystack; RefineryLens never receives them.</li>
         <li><b>Security records:</b> a log of important actions (for example publishing, verifying or suspending), and temporary counts of sign-in attempts to stop abuse.</li>
       </ul>
       <p>We do not use advertising, we do not sell personal data, we do not use third-party tracking or analytics tools, and the apps do not access your location, contacts, camera or microphone.</p>
@@ -31,7 +32,7 @@ export default function PrivacyPage() {
         <li>To verify businesses and keep the hub safe, including handling reports and suspending businesses that break the rules.</li>
         <li>To publish today&apos;s prices and station reports, pass your gas order to the seller you chose, and remind you before your gas runs out.</li>
         <li>To send the alerts you asked for, in the app, by email, SMS, WhatsApp or phone notification.</li>
-        <li>To take payment for plans you buy on the website and for gas orders you pay online, and to pay sellers for them.</li>
+        <li>To take payment for plans you buy on the website.</li>
       </ul>
 
       <h2>Who else receives data</h2>
@@ -43,6 +44,7 @@ export default function PrivacyPage() {
         <li><b>Dojah</b> (company registry check): your CAC registration number, when you ask for verification.</li>
         <li><b>OpenStreetMap Nominatim</b> (map positions of gas sites and delivery drop-offs): a town, area and state, never your name or exact address.</li>
         <li><b>Map tile provider</b> (OpenStreetMap or the provider we configure): when you view a live map, your browser downloads map images for the area shown, as with any online map.</li>
+        <li><b>Anthropic</b> (research assistant): your question and the research passages used to answer it, if the assistant&apos;s language model is switched on.</li>
         <li>Our email provider and file storage provider, to send email and keep uploaded files.</li>
       </ul>
 

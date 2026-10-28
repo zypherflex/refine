@@ -1,0 +1,17 @@
+import Link from "next/link";
+import { fmtDate } from "@/lib/format";
+
+export function ConversationList({ conversations, current }: { conversations: { id: string; title: string; createdAt: Date }[]; current?: string }) {
+  return (
+    <nav aria-label="Previous conversations" className="card">
+      <div className="flex items-center justify-between"><h2 className="text-sm font-semibold">Your conversations</h2><Link href="/assistant" className="text-xs">New</Link></div>
+      {conversations.length === 0 ? <p className="mt-2 text-xs text-ink-700">None yet. Conversations are private to you.</p> : (
+        <ul className="mt-2 space-y-1">
+          {conversations.map((c) => (
+            <li key={c.id}><Link href={`/assistant/${c.id}`} aria-current={c.id === current ? "page" : undefined} className={`block rounded px-2 py-1 text-sm no-underline ${c.id === current ? "bg-brand-50 font-medium text-brand-800" : "text-ink-900 hover:bg-ink-50"}`}>{c.title}<span className="block text-xs text-ink-700">{fmtDate(c.createdAt)}</span></Link></li>
+          ))}
+        </ul>
+      )}
+    </nav>
+  );
+}

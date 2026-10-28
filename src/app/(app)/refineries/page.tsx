@@ -32,7 +32,7 @@ export default async function RefineriesPage({ searchParams }: { searchParams: P
 
   return (
     <>
-      <PageHeader eyebrow="Markets" title="Global refinery directory" subtitle="Refineries worldwide with type, capacity, owners and estimated emissions, from the Climate TRACE open inventory. Use it to size markets, competitors and partners." />
+      <PageHeader eyebrow="Research" title="Global refinery directory" subtitle="Refineries worldwide with type, capacity, owners and estimated emissions, from the Climate TRACE open inventory. Use it to size markets, competitors and partners." />
       <div className="mb-5"><Notice title="Modelled inventory, not company disclosures">Capacities and emissions are Climate TRACE estimates built from satellite and public data. They can differ from what a company reports, and a refinery&apos;s nameplate capacity is not its throughput.</Notice></div>
       {staff && unapproved && <div className="mb-5"><Notice tone="warn">The Climate TRACE source is awaiting editorial approval, so readers do not see this directory yet. <Link href="/editorial/sources">Review sources</Link>.</Notice></div>}
 

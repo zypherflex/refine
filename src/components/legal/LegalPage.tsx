@@ -5,7 +5,7 @@ import { Logo } from "../Logo";
 export function LegalPage({ title, updated, children }: { title: string; updated?: string; children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-white">
-      <div aria-hidden className="band-brand h-1 w-full" />
+      <div aria-hidden className="band-ng h-1 w-full" />
       <header className="mx-auto flex max-w-3xl items-center justify-between px-4 py-5 sm:px-8">
         <Link href="/" className="no-underline hover:no-underline"><Logo /></Link>
         <Link href="/login" className="btn-secondary btn-sm no-underline">Sign in</Link>

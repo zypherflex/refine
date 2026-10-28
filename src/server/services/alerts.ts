@@ -26,6 +26,42 @@ export async function createAlert(a: AlertInput, tx: Prisma.TransactionClient = 
 
 type AnnouncementLike = { id: string; companyId: string; headline: string; summary: string; topics: string[]; revision: number };
 
+/**
+ * Notifies watchers of a company. A watcher with topics only hears about matching announcements.
+ * Corrections, retractions and supersessions are delivered immediately regardless of frequency,
+ * because readers may be relying on the earlier version.
+ */
+export async function notifyWatchers(
+  ann: AnnouncementLike,
+  kind: "NEW_ANNOUNCEMENT" | "CORRECTION" | "RETRACTION" | "SUPERSESSION",
+  detail: string,
+  tx: Prisma.TransactionClient = db,
+) {
+  const watchers = await tx.watchlist.findMany({ where: { companyId: ann.companyId } });
+  const urgent = kind !== "NEW_ANNOUNCEMENT";
+  for (const w of watchers) {
+    if (w.topics.length > 0 && !w.topics.some((t) => ann.topics.includes(t))) continue;
+    const titles = {
+      NEW_ANNOUNCEMENT: `New: ${ann.headline}`,
+      CORRECTION: `Corrected: ${ann.headline}`,
+      RETRACTION: `Retracted: ${ann.headline}`,
+      SUPERSESSION: `Superseded: ${ann.headline}`,
+    } as const;
+    await createAlert(
+      {
+        userId: w.userId,
+        kind,
+        title: titles[kind],
+        body: detail || ann.summary,
+        link: `/announcements/${ann.id}`,
+        dedupeKey: `${kind}:${ann.id}:r${ann.revision}`,
+        visibleAt: urgent ? new Date() : digestTime(w.frequency),
+      },
+      tx,
+    );
+  }
+}
+
 export async function listAlerts(userId: string) {
   const now = new Date();
   const [visible, queued] = await Promise.all([

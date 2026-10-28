@@ -1,8 +1,7 @@
 import { requireRole } from "@/server/auth";
 import { jobHealth } from "@/server/admin/system";
 import { retryJobsAction } from "@/app/actions/admin-tools";
-import { approveSourceAction, refreshOpenDataAction } from "@/app/actions/opendata";
-import { db } from "@/lib/db";
+import { refreshOpenDataAction } from "@/app/actions/opendata";
 import { latestIngestionRuns } from "@/server/services/market";
 import { NOT_INGESTED, PROVIDERS } from "@/server/opendata/catalog";
 import { PROVIDER_ORDER } from "@/server/opendata/ingest";
@@ -16,10 +15,10 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminSystem() {
   const admin = await requireRole("ADMIN");
-  const [jobs, runs, sources] = await Promise.all([jobHealth(admin), latestIngestionRuns(), db.source.findMany({ where: { marketSeries: { some: {} } }, orderBy: [{ approved: "asc" }, { name: "asc" }], include: { _count: { select: { marketSeries: true } } } })]);
+  const [jobs, runs] = await Promise.all([jobHealth(admin), latestIngestionRuns()]);
   const st = integrationStatus();
   const groups: [string, [string, boolean, string?][]][] = [
-    ["Core", [["PostgreSQL database", st.database], ["Private file storage (local disk)", st.storage.driver === "local" && st.storage.available], ["S3-compatible object storage", st.storage.driver === "s3" && st.storage.available]]],
+    ["Core", [["PostgreSQL database", st.database], ["Private file storage (local disk)", st.storage.driver === "local" && st.storage.available], ["S3-compatible object storage", st.storage.driver === "s3" && st.storage.available], ["Language model for the research assistant", st.languageModel]]],
     ["Messages to people", [
       ["Email alerts", st.email.available, st.email.configured && !st.email.available ? "needs EMAIL_PROVIDER=smtp, SMTP_URL and EMAIL_FROM" : undefined],
       [`SMS / WhatsApp${st.text.provider ? ` (${st.text.provider})` : ""}`, !!st.text.provider, st.text.configured && !st.text.provider ? "provider set but keys missing" : undefined],
@@ -71,16 +70,6 @@ export default async function AdminSystem() {
                 </li>
               );
             })}
-          </ul>
-          <h3 className="mt-4 text-sm font-semibold">Sources</h3>
-          <p className="text-xs text-ink-600">Readers only see series from an approved source. Check the figures on the market page first.</p>
-          <ul className="mt-1 space-y-2 text-sm">
-            {sources.map((s) => (
-              <li key={s.id} className="flex flex-wrap items-center justify-between gap-2">
-                <span>{s.name} <span className="text-xs text-ink-600">· {s._count.marketSeries} series</span></span>
-                <form action={approveSourceAction} className="flex items-center gap-2"><input type="hidden" name="id" value={s.id} /><Badge tone={s.approved ? "good" : "plain"}>{s.approved ? "approved" : "awaiting approval"}</Badge><button name="approve" value={s.approved ? "0" : "1"} className="btn-secondary btn-sm">{s.approved ? "Revoke" : "Approve"}</button></form>
-              </li>
-            ))}
           </ul>
           <form action={refreshOpenDataAction} className="mt-3"><button className="btn-secondary btn-sm">Refresh open data now</button></form>
           <details className="mt-2 text-xs"><summary className="text-brand-700">Free sources checked and not ingested</summary><ul className="mt-1 space-y-1">{NOT_INGESTED.map((n) => <li key={n.name}><span className="font-medium">{n.name}:</span> {n.reason}</li>)}</ul></details>

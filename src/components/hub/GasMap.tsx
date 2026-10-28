@@ -13,10 +13,10 @@ const ROWS = 8;
 
 // Steps of the brand green ramp, light to dark, with the text colour that meets contrast on each.
 const STEPS = [
-  { min: 1, fill: "#dce5fd", text: "#0b1530" },
-  { min: 2, fill: "#96b0f6", text: "#0b1530" },
-  { min: 4, fill: "#1a47d1", text: "#ffffff" },
-  { min: 7, fill: "#0b2266", text: "#ffffff" },
+  { min: 1, fill: "#d2f2e0", text: "#0b1530" },
+  { min: 2, fill: "#7bdba7", text: "#0b1530" },
+  { min: 4, fill: "#087c47", text: "#ffffff" },
+  { min: 7, fill: "#053b22", text: "#ffffff" },
 ] as const;
 const EMPTY = { fill: "#f4f6fb", text: "#66759a" };
 const GAP_STYLE = { fill: "#fbefd5", text: "#7a4a05", stroke: "#b7791f" };

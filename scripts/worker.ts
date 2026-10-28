@@ -1,4 +1,4 @@
-/** Background worker: processes queued jobs, sends alert emails and refreshes open-data feeds. Run with `npm run worker`. */
+/** Background worker: processes queued jobs (document extraction), sends alert emails and refreshes open-data feeds. Run with `npm run worker`. */
 import { drainQueue } from "../src/server/jobs";
 import { jobHandlers } from "../src/server/job-handlers";
 import { sendDueAlertEmails } from "../src/server/services/alert-email";

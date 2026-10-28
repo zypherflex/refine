@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { SERIES } from "@/server/opendata/catalog";
-import { climateTraceUrl, eiaUrl, parseClimateTrace, parseEia, parseFx, parsePeriod, parseWorldBank, redactUrl, ProviderError } from "@/server/opendata/providers";
+import { climateTraceUrl, eiaUrl, gdeltUrl, parseClimateTrace, parseEia, parseFx, parseGdelt, parsePeriod, parseWorldBank, redactUrl, ProviderError } from "@/server/opendata/providers";
 import { crack321, latestChange } from "@/lib/market";
 import { openDataStatus } from "@/server/integrations";
 
@@ -45,6 +45,13 @@ describe("open-data parsers", () => {
     expect(b).toMatchObject({ capacityBpd: null, owners: [], emissionsTCo2e: 80000 });
   });
 
+  it("keeps only well-formed news leads", () => {
+    const leads = parseGdelt(fixture("gdelt.json"));
+    expect(leads.map((l) => l.url)).toEqual(["https://news.example.org/a", "https://news.example.org/b"]);
+    expect(leads[0].seenAt.toISOString()).toBe("2026-10-20T10:15:00.000Z");
+    expect(parseGdelt({})).toEqual([]);
+  });
+
   it("parses publisher period labels", () => {
     expect(parsePeriod("2025")?.periodEnd.toISOString().slice(0, 10)).toBe("2025-12-31");
     expect(parsePeriod("2024-02")?.periodEnd.toISOString().slice(0, 10)).toBe("2024-02-29");
@@ -72,6 +79,7 @@ describe("open-data requests", () => {
     expect(u.searchParams.get("subsectors")).toBe("oil-and-gas-refining");
     expect(u.searchParams.get("offset")).toBe("200");
     expect(u.searchParams.get("countries")).toBe("NGA");
+    expect(new URL(gdeltUrl('"Test Co refinery"')).searchParams.get("mode")).toBe("artlist");
   });
 });
 
@@ -107,7 +115,7 @@ describe("open-data status", () => {
   });
 
   it("honours OPEN_DATA_FEEDS", () => {
-    process.env.OPEN_DATA_FEEDS = "worldbank, climate-trace";
+    process.env.OPEN_DATA_FEEDS = "worldbank, gdelt";
     const s = openDataStatus();
     expect(s.worldbank.available).toBe(true);
     expect(s["exchangerate-api"]).toMatchObject({ enabled: false, available: false });

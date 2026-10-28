@@ -38,8 +38,6 @@ model User {
   passwordHash     String
   role             Role          @default(USER)
   plan             Plan          @default(FREE)
-  // RefineryLens Plus (stored as plan PRO) runs until this time; null means assigned by an administrator without an end.
-  planUntil        DateTime?
   organizationId   String?
   organization     Organization? @relation(fields: [organizationId], references: [id])
   // Opt-in to email copies of alerts. Only offered when an email provider is configured.
@@ -1232,8 +1230,6 @@ model Payment {
   dataAccountId String?
   planId        String?
   periodDays    Int?
-  // For GAS_ORDER payments, the order being paid; for SELLER_FEES, the business settling its commission.
-  gasOrderId    String?
   // Amount in the currency's minor unit: kobo for NGN, cents for USD.
   amountKobo    Int
   currency      String        @default("NGN")
@@ -1334,40 +1330,28 @@ enum GasOrderStatus {
 // A household orders an LPG refill from a verified seller that delivers. Paid in cash or transfer on delivery,
 // directly to the seller; RefineryLens records the order and its progress.
 model GasOrder {
-  id                  String         @id @default(cuid())
-  userId              String
-  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  businessId          String
-  business            HubBusiness    @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  cylinderKg          Float
-  cylinders           Int            @default(1)
-  state               String
-  area                String
-  address             String
-  phone               String
-  note                String         @default("")
+  id            String         @id @default(cuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessId    String
+  business      HubBusiness    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  cylinderKg    Float
+  cylinders     Int            @default(1)
+  state         String
+  area          String
+  address       String
+  phone         String
+  note          String         @default("")
   // Estimate from the seller's listed prices when ordered, and the price the seller confirmed on accepting.
-  estimateNaira       Float?
-  priceNaira          Float?
-  status              GasOrderStatus @default(PLACED)
-  sellerNote          String         @default("")
-  rating              Int?
-  // Set when someone orders for another person, e.g. a Nigerian abroad sending gas to family at home. The phone and
-  // address are then the recipient's.
-  recipientName       String         @default("")
-  // Paid online through RefineryLens (card, transfer or US dollars) instead of cash on delivery: the service fee
-  // charged on top, when the payment cleared, and when RefineryLens paid the seller (price less commission).
-  serviceFeeNaira     Float?
-  paidOnlineAt        DateTime?
-  payoutAt            DateTime?
-  // RefineryLens's commission on a delivered order, and when the seller settled it (cash orders) or it was kept
-  // from the payout (online orders).
-  commissionNaira     Float?
-  commissionSettledAt DateTime?
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  deliveredAt         DateTime?
-  trip                DriverTrip?
+  estimateNaira Float?
+  priceNaira    Float?
+  status        GasOrderStatus @default(PLACED)
+  sellerNote    String         @default("")
+  rating        Int?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deliveredAt   DateTime?
+  trip          DriverTrip?
 
   @@index([userId, createdAt])
   @@index([businessId, status])

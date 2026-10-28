@@ -31,10 +31,7 @@ Copy these into Google Play Console and App Store Connect. Character limits are 
 > Log your refills and RefineryLens works out how long your cylinder lasts, then reminds you a few days before it runs out.
 >
 > GAS REFILLS TO YOUR DOOR
-> Order from sellers RefineryLens has verified. The seller confirms the price, you follow the rider live on a map with an arrival time, and you pay in cash or by transfer when the gas arrives, or securely online.
->
-> SEND GAS HOME FROM ABROAD
-> Living in the UK, US, Canada or elsewhere? Order a full cylinder for your family in Nigeria, see the total in naira and US dollars, pay by card, and get an alert when it is delivered.
+> Order from sellers RefineryLens has verified. The seller confirms the price, you follow the rider live on a map with an arrival time, and you pay in cash or by transfer when the gas arrives. No payment in advance.
 >
 > SHOULD YOU CONVERT TO CNG?
 > Put in how far you drive and today's prices to see your monthly saving on a car, bus or keke, and how fast a conversion pays for itself.
@@ -42,7 +39,7 @@ Copy these into Google Play Console and App Store Connect. Character limits are 
 > FOR FUEL AND GAS BUSINESSES
 > A trade hub for depots, marketers, refill plants, hauliers and refineries: state price medians, verified suppliers, a map of the gas network, delivery jobs with quotes, regular supply agreements, private business messages, home-delivery orders from households, and live GPS tracking of your drivers and trucks.
 >
-> RefineryLens is free for households; paying online adds a small service fee, which RefineryLens Plus removes. Prices are reports from the public and sellers, not promises from any seller. RefineryLens is not affiliated with NNPC, Dangote or any company listed.
+> RefineryLens is free for households. Prices are reports from the public and sellers, not promises from any seller. RefineryLens is not affiliated with NNPC, Dangote or any company listed.
 
 **Graphics:** `mobile/store/screenshots/android-phone/*.png` (1080 × 1920), feature graphic `mobile/store/screenshots/feature-graphic-1024x500.png`, app icon `mobile/store/screenshots/app-icon-1024.png` (resize to 512 × 512 for the Play listing).
 
@@ -54,7 +51,7 @@ Copy these into Google Play Console and App Store Connect. Character limits are 
 
 **Promotional text** (170 characters max)
 
-> Today's fuel and cooking gas prices in your state, reminders before your gas runs out, and refills from verified sellers. Send gas to family in Nigeria from abroad.
+> Today's petrol, diesel and cooking gas prices in your state, reminders before your gas runs out, and refills delivered by verified sellers, paid on delivery.
 
 **Keywords** (100 characters max, comma separated)
 

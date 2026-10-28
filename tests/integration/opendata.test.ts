@@ -4,7 +4,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { runOpenDataIngestion, scheduleIngestionIfDue } from "@/server/opendata/ingest";
 import { getMarketSignals, listRefineryAssets, CRACK_KEY } from "@/server/opendata";
-import { listMarketSeries } from "@/server/services/market";
+import { listMarketSeries, reviewNewsLead } from "@/server/services/market";
 import { SERIES } from "@/server/opendata/catalog";
 import { company, resetDb, user } from "../helpers";
 
@@ -22,6 +22,7 @@ function fakeFetch(fail: string[] = [], overrides: Record<string, string> = {}) 
       : u.host === "api.worldbank.org" ? overrides.worldbank ?? text("worldbank.json")
       : u.host === "open.er-api.com" ? text("fx.json")
       : u.host === "api.climatetrace.org" ? text("climatetrace.json")
+      : u.host === "api.gdeltproject.org" ? text("gdelt.json")
       : "{}";
     return new Response(body, { status: 200, headers: { "content-type": "application/json" } });
   };
@@ -42,7 +43,7 @@ describe("open-data ingestion", () => {
   it("stores every series with provenance, behind an unapproved source until an editor approves it", async () => {
     const { impl, calls } = fakeFetch();
     const runs = await runOpenDataIngestion({ fetchImpl: impl, now });
-    expect(runs.map((r) => [r.provider, r.status])).toEqual([["eia", "OK"], ["worldbank", "OK"], ["exchangerate-api", "OK"], ["climate-trace", "OK"]]);
+    expect(runs.map((r) => [r.provider, r.status])).toEqual([["eia", "OK"], ["worldbank", "OK"], ["exchangerate-api", "OK"], ["climate-trace", "OK"], ["gdelt", "OK"]]);
     expect(await db.marketSeries.count()).toBe(SERIES.length);
 
     const obs = await db.marketObservation.findFirst({ where: { series: { key: "eia.brent_spot" }, period: "2026-10-20" }, include: { series: { include: { source: true } } } });
@@ -90,6 +91,23 @@ describe("open-data ingestion", () => {
     expect(runs.find((r) => r.provider === "worldbank")?.status).toBe("FAILED");
     expect(runs.find((r) => r.provider === "exchangerate-api")?.status).toBe("OK");
     expect(await db.ingestionRun.count({ where: { status: "FAILED" } })).toBe(1);
+  });
+
+  it("finds news leads only for real companies with a query, without duplicates, for editors to review", async () => {
+    const real = await db.company.create({ data: { slug: "real-co", name: "Real Co", shortName: "RC", country: "NG", sector: "Refining", description: "x", newsQuery: '"Real Co refinery"' } });
+    const fictional = await company();
+    await db.company.update({ where: { id: fictional.id }, data: { newsQuery: "anything" } });
+    const f = fakeFetch();
+    await runOpenDataIngestion({ fetchImpl: f.impl, now, providers: ["gdelt"] });
+    await runOpenDataIngestion({ fetchImpl: f.impl, now, providers: ["gdelt"] });
+    expect(f.calls.filter((c) => c.includes("gdeltproject"))).toHaveLength(2);
+    const leads = await db.newsLead.findMany();
+    expect(leads).toHaveLength(2);
+    expect(leads.every((l) => l.companyId === real.id && l.status === "NEW")).toBe(true);
+
+    await expect(reviewNewsLead(await user("USER"), leads[0].id, "DISMISSED")).rejects.toThrow(/permission/);
+    const analyst = await user("ANALYST");
+    expect((await reviewNewsLead(analyst, leads[0].id, "DRAFTED")).status).toBe("DRAFTED");
   });
 
   it("schedules one refresh job when feeds are due", async () => {

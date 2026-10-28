@@ -4,8 +4,7 @@ import { db } from "@/lib/db";
 import { saveBusiness, requestVerification } from "@/server/hub/business";
 import { createSite } from "@/server/hub/gas";
 import { reportPrices } from "@/server/hub/prices";
-import { handleWebhook, validWebhookSignature, verifyAndSettle } from "@/server/connect/paystack";
-import { startPlusCheckout } from "@/server/everyday/money";
+import { handleWebhook, startProCheckout, validWebhookSignature, verifyAndSettle } from "@/server/connect/paystack";
 import { getTextSender, normalisePhone } from "@/server/connect/text";
 import { lookupBusiness, namesMatch, parseRegistration } from "@/server/connect/registry";
 import { geocodeSite } from "@/server/connect/geocode";
@@ -35,12 +34,12 @@ afterEach(() => {
 });
 
 describe("Paystack", () => {
-  beforeEach(() => Object.assign(process.env, { PAYMENT_PROVIDER: "paystack", PAYSTACK_SECRET_KEY: "sk_test_x", PLUS_PRICE_NGN: "25000", APP_URL: "https://app.example" }));
+  beforeEach(() => Object.assign(process.env, { PAYMENT_PROVIDER: "paystack", PAYSTACK_SECRET_KEY: "sk_test_x", PRO_PLAN_PRICE_NGN: "25000", APP_URL: "https://app.example" }));
 
   it("starts a checkout in kobo and upgrades only after Paystack verifies the full amount", async () => {
     const u = await user();
     mockFetch(() => ({ status: true, data: { authorization_url: "https://checkout.paystack.com/abc" } }));
-    const url = await startPlusCheckout({ ...u, email: u.email }, "NGN");
+    const url = await startProCheckout({ ...u, email: u.email });
     expect(url).toBe("https://checkout.paystack.com/abc");
     const body = JSON.parse(String(calls[0].init.body));
     expect(calls[0].url).toBe("https://api.paystack.co/transaction/initialize");
@@ -55,9 +54,7 @@ describe("Paystack", () => {
     mockFetch(() => ({ status: true, data: { status: "success", amount: 2_500_000, currency: "NGN", reference: ref } }));
     expect(await verifyAndSettle(ref)).toMatchObject({ ok: true, already: false });
     expect(await handleWebhook({ event: "charge.success", data: { reference: ref } })).toMatchObject({ handled: true, ok: true, already: true });
-    const plus = await db.user.findUniqueOrThrow({ where: { id: u.id } });
-    expect(plus.plan).toBe("PRO");
-    expect(plus.planUntil!.getTime()).toBeGreaterThan(Date.now() + 29 * 86_400_000);
+    expect((await db.user.findUniqueOrThrow({ where: { id: u.id } })).plan).toBe("PRO");
     expect(await verifyAndSettle("not-a-reference")).toMatchObject({ ok: false });
   });
 

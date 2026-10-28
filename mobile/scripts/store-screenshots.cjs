@@ -39,8 +39,8 @@ const TARGETS = [
       const frame = await br.newPage({ viewport: { width: t.w, height: t.h } });
       const img = `data:image/png;base64,${raw.toString("base64")}`;
       const head = Math.round(t.h * 0.2);
-      await frame.setContent(`<html><body style="margin:0;width:${t.w}px;height:${t.h}px;overflow:hidden;background:linear-gradient(160deg,#0b1530 0%,#182a5a 60%,#1a47d1 140%);font-family:system-ui,-apple-system,sans-serif">
-        <div style="height:${Math.round(t.h * 0.006)}px;background:linear-gradient(90deg,#1a47d1 0 33.3%,#fff 33.3% 66.6%,#1a47d1 66.6%)"></div>
+      await frame.setContent(`<html><body style="margin:0;width:${t.w}px;height:${t.h}px;overflow:hidden;background:linear-gradient(160deg,#0b1530 0%,#182a5a 60%,#087c47 140%);font-family:system-ui,-apple-system,sans-serif">
+        <div style="height:${Math.round(t.h * 0.006)}px;background:linear-gradient(90deg,#087c47 0 33.3%,#fff 33.3% 66.6%,#087c47 66.6%)"></div>
         <div style="height:${head}px;display:flex;flex-direction:column;justify-content:center;padding:0 ${Math.round(t.w * 0.08)}px;color:#fff">
           <div style="font-weight:700;font-size:${Math.round(t.w * 0.064)}px;line-height:1.12">${title}</div>
           <div style="margin-top:${Math.round(t.w * 0.02)}px;font-size:${Math.round(t.w * 0.036)}px;color:#a3b4e6">${sub}</div>
@@ -55,7 +55,7 @@ const TARGETS = [
   // Google Play feature graphic, 1024 x 500.
   const fg = await br.newPage({ viewport: { width: 1024, height: 500 } });
   const svg = fs.readFileSync(process.argv[3], "utf8").replace(/<metadata>[\s\S]*?<\/metadata>/, "").replace("<svg", '<svg width="150" height="150"');
-  await fg.setContent(`<html><body style="margin:0;width:1024px;height:500px;background:linear-gradient(135deg,#0b1530,#182a5a 65%,#1a47d1);font-family:system-ui,sans-serif;color:#fff;display:flex;align-items:center;gap:48px;padding:0 80px;box-sizing:border-box">
+  await fg.setContent(`<html><body style="margin:0;width:1024px;height:500px;background:linear-gradient(135deg,#0b1530,#182a5a 65%,#087c47);font-family:system-ui,sans-serif;color:#fff;display:flex;align-items:center;gap:48px;padding:0 80px;box-sizing:border-box">
     ${svg}<div><div style="font-size:64px;font-weight:700">RefineryLens</div><div style="font-size:30px;color:#cbd5f2;margin-top:12px">Fuel and cooking gas prices near you</div></div></body></html>`);
   await fg.screenshot({ path: `${out}/feature-graphic-1024x500.png` });
   await br.close();

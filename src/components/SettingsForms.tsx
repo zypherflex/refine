@@ -43,14 +43,13 @@ export function TextSettingsForm({ phone, textAlerts, priceDigest, digestState, 
   );
 }
 
-export function CheckoutButton({ label, currency = "NGN", secondary = false }: { label: string; currency?: "NGN" | "USD"; secondary?: boolean }) {
+export function CheckoutButton({ label }: { label: string }) {
   const [s, a, p] = useActionState(startCheckoutAction, {});
   // App store rules require their own billing for in-app purchases, so plans are bought on the website only.
   if (useIsNativeApp()) return <div className="mt-4"><p className="rounded-xl bg-ink-50 px-3 py-2 text-xs text-ink-700">Plans are managed on the RefineryLens website, not in the app.</p></div>;
   return (
     <form action={a} className="mt-4">
-      <input type="hidden" name="currency" value={currency} />
-      <button className={`${secondary ? "btn-secondary" : "btn-primary"} w-full`} disabled={p}>{p ? "Opening secure payment…" : label}</button>
+      <button className="btn-primary w-full" disabled={p}>{p ? "Opening secure payment…" : label}</button>
       <FieldError message={s.error} />
     </form>
   );

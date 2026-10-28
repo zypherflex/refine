@@ -46,7 +46,7 @@ export function LiveMap({ kind, id, waitingText }: { kind: "gas-order" | "job"; 
       if (!map.current) {
         const m = L.map(box.current, { zoomControl: true, attributionControl: true }).setView([9.06, 7.49], 6);
         L.tileLayer(TILE_URL, { attribution: TILE_ATTRIBUTION, maxZoom: 19 }).addTo(m);
-        map.current = { m, driver: null, trail: L.polyline([], { color: "#1a47d1", weight: 4, opacity: 0.7 }).addTo(m), dest: L.layerGroup().addTo(m), fitted: false };
+        map.current = { m, driver: null, trail: L.polyline([], { color: "#087c47", weight: 4, opacity: 0.7 }).addTo(m), dest: L.layerGroup().addTo(m), fitted: false };
       }
       const st = map.current;
       st.trail.setLatLngs(view.trail ?? []);
@@ -54,8 +54,8 @@ export function LiveMap({ kind, id, waitingText }: { kind: "gas-order" | "job"; 
       if (view.dest) L.circleMarker([view.dest.lat, view.dest.lon], { radius: 9, color: "#182a5a", fillColor: "#4766be", fillOpacity: 0.9, weight: 3 }).bindTooltip(`Drop-off: ${view.dest.label}`).addTo(st.dest);
       if (view.last) {
         const ll: [number, number] = [view.last.lat, view.last.lon];
-        if (!st.driver) st.driver = L.circleMarker(ll, { radius: 10, color: "#ffffff", fillColor: view.live ? "#1a47d1" : "#8a94a6", fillOpacity: 1, weight: 3 }).bindTooltip(view.driverName ?? "Driver").addTo(st.m);
-        else st.driver.setLatLng(ll).setStyle({ fillColor: view.live ? "#1a47d1" : "#8a94a6" });
+        if (!st.driver) st.driver = L.circleMarker(ll, { radius: 10, color: "#ffffff", fillColor: view.live ? "#087c47" : "#8a94a6", fillOpacity: 1, weight: 3 }).bindTooltip(view.driverName ?? "Driver").addTo(st.m);
+        else st.driver.setLatLng(ll).setStyle({ fillColor: view.live ? "#087c47" : "#8a94a6" });
         // Keep the driver in view as they move; the person can still pan and zoom freely in between.
         if (st.fitted && !st.m.getBounds().pad(-0.1).contains(ll)) st.m.panTo(ll);
       }

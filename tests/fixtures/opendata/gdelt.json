@@ -1,0 +1,6 @@
+{"articles":[
+{"url":"https://news.example.org/a","url_mobile":"","title":"Test refinery ships first cargo","seendate":"20261020T101500Z","socialimage":"","domain":"news.example.org","language":"English","sourcecountry":"Nigeria"},
+{"url":"https://news.example.org/b","title":"Second test article","seendate":"20261021T080000Z","domain":"news.example.org","language":"English","sourcecountry":"Ghana"},
+{"url":"javascript:alert(1)","title":"Bad url","seendate":"20261021T080000Z"},
+{"url":"https://news.example.org/c","title":"Bad date","seendate":"yesterday"}
+]}

@@ -6,7 +6,6 @@ import { AppError } from "@/lib/errors";
 import { adminCancelJob, adminCloseListing } from "@/server/admin/hub";
 import { adminCancelOrder, adminEndTrip, mergeOutlets, setOutletHidden, updateOutlet } from "@/server/admin/everyday";
 import { hideOutletReport } from "@/server/everyday/outlets";
-import { markPaidOut } from "@/server/everyday/money";
 
 export type AdminState = { error?: string | null; ok?: string | null };
 
@@ -129,10 +128,4 @@ export async function toggleSponsorshipAction(form: FormData) {
   const { setSponsorshipActive } = await import("@/server/sponsor");
   await setSponsorshipActive(admin, s(form, "id"), s(form, "active") === "yes");
   revalidatePath("/admin/sponsors");
-}
-
-export async function markPaidOutAction(form: FormData) {
-  const admin = await requireRole("ADMIN");
-  await markPaidOut(admin, String(form.get("orderId") ?? ""));
-  revalidatePath("/admin/payments");
 }

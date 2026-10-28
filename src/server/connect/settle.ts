@@ -1,8 +1,6 @@
 import { db } from "@/lib/db";
 import { audit } from "../audit";
 import { applyPaidPeriod } from "../data/accounts";
-import { createAlert } from "../services/alerts";
-import { isPlus, PLUS_DAYS, serviceFee } from "@/lib/money";
 
 export const BUSINESS_PLAN_DAYS = 30;
 
@@ -28,26 +26,8 @@ export async function settle(reference: string, paid: { status: "success" | "fai
   const updated = await db.payment.updateMany({ where: { id: p.id, status: { not: "SUCCESS" } }, data: { status: "SUCCESS", paidAt: new Date() } });
   if (!updated.count) return { ok: true as const, already: true, purpose: p.purpose };
   if (p.purpose === "PLAN_PRO") {
-    // RefineryLens Plus: 30 days from today, or from the current end date if still running.
-    const u = await db.user.findUniqueOrThrow({ where: { id: p.userId }, select: { plan: true, planUntil: true } });
-    const from = u.plan === "PRO" && u.planUntil && u.planUntil > new Date() ? u.planUntil : new Date();
-    await db.user.update({ where: { id: p.userId }, data: { plan: u.plan === "TEAM" ? "TEAM" : "PRO", planUntil: new Date(from.getTime() + PLUS_DAYS * 86_400_000) } });
-    await audit(p.userId, "payment.plan_plus", "Payment", p.id, { reference, currency: p.currency });
-  }
-  if (p.purpose === "GAS_ORDER" && p.gasOrderId) {
-    const o = await db.gasOrder.findUnique({ where: { id: p.gasOrderId }, include: { business: { select: { ownerId: true, name: true } } } });
-    if (o && !o.paidOnlineAt && o.priceNaira) {
-      const payer = await db.user.findUniqueOrThrow({ where: { id: o.userId }, select: { plan: true, planUntil: true } });
-      await db.gasOrder.update({ where: { id: o.id }, data: { paidOnlineAt: new Date(), serviceFeeNaira: serviceFee(o.priceNaira, isPlus(payer)) } });
-      await createAlert({ userId: o.business.ownerId, kind: "GAS_ORDER", title: "Gas order paid online: do not collect cash", body: `${o.cylinders} × ${o.cylinderKg} kg to ${o.area}. RefineryLens pays you after delivery.`, link: "/hub/orders", dedupeKey: `order:paid:${o.id}` });
-      await createAlert({ userId: o.userId, kind: "GAS_ORDER", title: "Payment received", body: `${o.business.name} has been told the order is paid. Nothing to pay on delivery.`, link: `/orders/${o.id}`, dedupeKey: `order:paid-customer:${o.id}` });
-    }
-    await audit(p.userId, "payment.gas_order", "Payment", p.id, { reference, orderId: p.gasOrderId, currency: p.currency });
-  }
-  if (p.purpose === "SELLER_FEES" && p.businessId) {
-    // Settles the cash orders the fee was worked out from: delivered before the payment started.
-    const r = await db.gasOrder.updateMany({ where: { businessId: p.businessId, status: "DELIVERED", paidOnlineAt: null, commissionSettledAt: null, commissionNaira: { not: null }, deliveredAt: { lte: p.createdAt } }, data: { commissionSettledAt: new Date() } });
-    await audit(p.userId, "payment.seller_fees", "Payment", p.id, { reference, orders: r.count });
+    await db.user.update({ where: { id: p.userId }, data: { plan: "PRO" } });
+    await audit(p.userId, "payment.plan_pro", "Payment", p.id, { reference });
   }
   if (p.purpose === "BUSINESS_PLAN" && p.businessId) {
     await extendBusinessPlan(p.businessId, BUSINESS_PLAN_DAYS);
