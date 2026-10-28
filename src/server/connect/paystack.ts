@@ -8,7 +8,8 @@ import { settle } from "./settle";
 export { BUSINESS_PLAN_DAYS, extendBusinessPlan } from "./settle";
 
 /**
- * Paystack card payments for the Pro research plan, the trade hub Business plan and RefineryLens Data plans, in naira or,
+ * Paystack card payments for RefineryLens Plus, the trade hub Business plan, RefineryLens Data plans, gas orders paid
+ * online and sellers' commission, in naira or,
  * for customers billed outside Nigeria, in US dollars (Paystack must have enabled USD and a USD payout account). The plan changes only after Paystack confirms the charge, either through
  * the verify call when the customer returns or through the signed webhook, whichever comes first.
  * Docs: https://paystack.com/docs/api/transaction/ and https://paystack.com/docs/payments/webhooks/
@@ -20,12 +21,6 @@ export function paystackConfigured() {
   return (process.env.PAYMENT_PROVIDER ?? "").toLowerCase() === "paystack" && Boolean(process.env.PAYSTACK_SECRET_KEY);
 }
 
-/** Pro plan price in kobo, from PRO_PLAN_PRICE_NGN (default ₦25,000 a month). */
-export function proPriceKobo() {
-  const ngn = Number(process.env.PRO_PLAN_PRICE_NGN ?? 25_000);
-  return Math.round((Number.isFinite(ngn) && ngn > 0 ? ngn : 25_000) * 100);
-}
-
 /** Business plan price in kobo for 30 days, from BUSINESS_PLAN_PRICE_NGN (default ₦15,000). */
 export function businessPriceKobo() {
   const ngn = Number(process.env.BUSINESS_PLAN_PRICE_NGN ?? 15_000);
@@ -35,15 +30,10 @@ export function businessPriceKobo() {
 
 const auth = () => ({ Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`, "Content-Type": "application/json" });
 
-export type Purpose = "PLAN_PRO" | "BUSINESS_PLAN" | "DATA_PLAN";
+export type Purpose = "PLAN_PRO" | "BUSINESS_PLAN" | "DATA_PLAN" | "GAS_ORDER" | "SELLER_FEES";
 
 /** USD needs Paystack to have approved international payments with a Zenith Bank USD account for payouts. */
 export const paystackUsdEnabled = () => paystackConfigured() && process.env.PAYSTACK_USD_ENABLED === "true";
-
-/** Starts a checkout and returns the Paystack page to send the customer to. */
-export async function startProCheckout(actor: Actor & { email: string }) {
-  return startCheckout(actor, "PLAN_PRO", proPriceKobo(), "NGN", {});
-}
 
 /** Business plan checkout for the actor's own business, which must be verified. */
 export async function startBusinessCheckout(actor: Actor & { email: string }) {
@@ -53,7 +43,7 @@ export async function startBusinessCheckout(actor: Actor & { email: string }) {
   return startCheckout(actor, "BUSINESS_PLAN", businessPriceKobo(), "NGN", { businessId: b.id });
 }
 
-export type CheckoutExtra = { businessId?: string; dataAccountId?: string; planId?: string; periodDays?: number };
+export type CheckoutExtra = { businessId?: string; dataAccountId?: string; planId?: string; periodDays?: number; gasOrderId?: string };
 
 export async function startCheckout(actor: Actor & { email: string }, purpose: Purpose, amountKobo: number, currency: "NGN" | "USD", extra: CheckoutExtra) {
   if (!paystackConfigured()) throw new AppError("Card payments are not configured.");

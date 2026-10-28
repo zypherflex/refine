@@ -19,7 +19,7 @@ const headers = () => ({ Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}
 
 type Session = { id: string; url?: string; client_reference_id: string | null; payment_status: string; amount_total: number | null; currency: string | null; status: string };
 
-export async function startStripeCheckout(actor: Actor & { email: string }, purpose: Purpose, amountCents: number, productName: string, extra: CheckoutExtra) {
+export async function startStripeCheckout(actor: Actor & { email: string }, purpose: Purpose, amountCents: number, productName: string, extra: CheckoutExtra, cancelPath = "/account/data?payment=cancelled") {
   if (!stripeConfigured()) throw new AppError("US dollar card payments are not set up yet.");
   const reference = `rl_${crypto.randomBytes(12).toString("hex")}`;
   const base = (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
@@ -29,7 +29,7 @@ export async function startStripeCheckout(actor: Actor & { email: string }, purp
     client_reference_id: reference,
     customer_email: actor.email,
     success_url: `${base}/api/payments/stripe/return?ref=${reference}&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${base}/account/data?payment=cancelled`,
+    cancel_url: `${base}${cancelPath}`,
     "line_items[0][quantity]": "1",
     "line_items[0][price_data][currency]": "usd",
     "line_items[0][price_data][unit_amount]": String(amountCents),

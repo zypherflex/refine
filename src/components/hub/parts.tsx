@@ -92,7 +92,7 @@ export function ListingCard({ l, business, showBusiness = true }: { l: HubListin
 export function SafetyNote() {
   return (
     <p className="text-xs leading-relaxed text-ink-600">
-      RefineryLens introduces businesses and carries their messages. It does not take payments, hold goods or guarantee any party, and is not affiliated with Dangote or any refinery listed here. Check licences and product quality yourself, and never pay in advance to a business you have not verified.
+      RefineryLens introduces businesses and carries their messages. Apart from home gas orders paid online, it does not take payments between businesses, hold goods or guarantee any party, and is not affiliated with any refinery listed here. Check licences and product quality yourself, and never pay in advance to a business you have not verified.
     </p>
   );
 }

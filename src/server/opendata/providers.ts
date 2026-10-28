@@ -9,7 +9,6 @@ export type Fetch = (url: string, init?: RequestInit) => Promise<Response>;
 export type Observation = { period: string; periodStart: Date; periodEnd: Date; value: number };
 export type SeriesResult = { observations: Observation[]; requestUrl: string };
 export type Asset = { externalId: string; name: string; countryCode: string; assetType: string; capacityBpd: number | null; owners: string[]; lat: number | null; lon: number | null; emissionsTCo2e: number | null };
-export type Lead = { url: string; title: string; domain: string; language: string; sourceCountry: string; seenAt: Date };
 
 export class ProviderError extends Error {}
 
@@ -124,31 +123,6 @@ export function parseFx(json: unknown, quote: string): Observation[] {
   if (typeof rate !== "number" || !j.time_last_update_unix) throw new ProviderError(`ExchangeRate-API response had no ${quote} rate`);
   const o = observation(iso(new Date(j.time_last_update_unix * 1000)), rate);
   return o ? [o] : [];
-}
-
-// --- GDELT ---
-
-export function gdeltUrl(query: string): string {
-  const q = new URLSearchParams({ query, mode: "artlist", format: "json", maxrecords: "50", timespan: "7d", sort: "DateDesc" });
-  return `https://api.gdeltproject.org/api/v2/doc/doc?${q.toString()}`;
-}
-
-/** GDELT dates look like 20261020T101500Z. */
-function gdeltDate(s: unknown): Date | null {
-  const m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(String(s ?? ""));
-  return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6])) : null;
-}
-
-export function parseGdelt(json: unknown): Lead[] {
-  const articles = (json as { articles?: Record<string, unknown>[] })?.articles ?? [];
-  const out: Lead[] = [];
-  for (const a of articles) {
-    const url = String(a.url ?? "");
-    const seenAt = gdeltDate(a.seendate);
-    if (!/^https?:\/\//.test(url) || !seenAt) continue;
-    out.push({ url, title: String(a.title ?? "").trim().slice(0, 500) || url, domain: String(a.domain ?? ""), language: String(a.language ?? ""), sourceCountry: String(a.sourcecountry ?? ""), seenAt });
-  }
-  return out;
 }
 
 // --- Climate TRACE ---

@@ -26,11 +26,12 @@ export default async function EverydayLayout({ children }: { children: React.Rea
     <div className="flex min-h-screen flex-col bg-ink-50/60">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2">Skip to content</a>
       <header className="sticky top-0 z-30 border-b border-ink-100 bg-white/95 backdrop-blur">
-        <div aria-hidden className="band-ng h-1 w-full" />
+        <div aria-hidden className="band-brand h-1 w-full" />
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:px-6">
           <Link href="/today" className="no-underline hover:no-underline"><Logo size={26} /></Link>
           <nav aria-label="Everyday" className="ml-4 hidden gap-1 text-sm lg:flex">
             {NAV.map((n) => <Link key={n.href} href={n.href} className="rounded-lg px-2.5 py-1.5 font-medium text-ink-700 no-underline hover:bg-ink-50 hover:no-underline">{n.label}</Link>)}
+            <Link href="/order?for=family" className="rounded-lg px-2.5 py-1.5 font-medium text-amber-700 no-underline hover:bg-amber-50 hover:no-underline">Send gas home</Link>
           </nav>
           <div className="ml-auto flex items-center gap-2 text-sm">
             {user ? (

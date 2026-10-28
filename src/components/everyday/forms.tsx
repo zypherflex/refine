@@ -1,8 +1,8 @@
 "use client";
 import { useActionState, useMemo, useState } from "react";
 import {
-  addCylinderAction, addOutletAction, advanceOrderAction, cancelOrderAction, flagContentAction, logRefillAction, placeOrderAction, rateOrderAction, reportOutletAction,
-  saveHomeDeliveryAction,
+  addCylinderAction, addOutletAction, advanceOrderAction, cancelOrderAction, flagContentAction, logRefillAction, payOrderAction, paySellerFeesAction, placeOrderAction, rateOrderAction,
+  reportOutletAction, saveHomeDeliveryAction,
 } from "@/app/actions/everyday";
 import { NIGERIAN_STATES } from "@/lib/hub/catalog";
 import { naira, priceItem } from "@/lib/hub/prices";
@@ -100,11 +100,12 @@ export function ReportForm({ outletId, items }: { outletId: string; items: Every
 
 type Seller = { id: string; name: string; homePricePerKg: number | null; deliveryFeeNaira: number | null; delivered: number; rating: number | null; isDemo: boolean; city: string };
 
-export function OrderForm({ sellers, state: s, phone, defaultSeller }: { sellers: Seller[]; state: string; phone: string; defaultSeller?: string }) {
+export function OrderForm({ sellers, state: s, phone, defaultSeller, forSomeoneElse = false }: { sellers: Seller[]; state: string; phone: string; defaultSeller?: string; forSomeoneElse?: boolean }) {
   const [state, action, pending] = useActionState(placeOrderAction, {});
   const [sellerId, setSellerId] = useState(defaultSeller && sellers.some((x) => x.id === defaultSeller) ? defaultSeller : sellers[0]?.id ?? "");
   const [kg, setKg] = useState(12.5);
   const [count, setCount] = useState(1);
+  const [gift, setGift] = useState(forSomeoneElse);
   const seller = sellers.find((x) => x.id === sellerId);
   const est = seller?.homePricePerKg ? Math.round(seller.homePricePerKg * kg * count + (seller.deliveryFeeNaira ?? 0)) : null;
   return (
@@ -135,18 +136,27 @@ export function OrderForm({ sellers, state: s, phone, defaultSeller }: { sellers
           <label htmlFor="g-n" className="label">How many cylinders</label>
           <select id="g-n" name="cylinders" className="input" value={count} onChange={(e) => setCount(Number(e.target.value))}>{[1, 2, 3, 4].map((n) => <option key={n}>{n}</option>)}</select>
         </div>
+      </div>
+      <fieldset className="rounded-xl border border-ink-200 bg-white p-3">
+        <label className="flex items-start gap-2 text-sm font-medium text-ink-900">
+          <input type="checkbox" name="forSomeoneElse" checked={gift} onChange={(e) => setGift(e.target.checked)} className="mt-1" />
+          <span>Send gas to someone else<span className="block text-xs font-normal text-ink-600">For family or friends in Nigeria, including from abroad. You can pay online in naira or US dollars once the seller accepts.</span></span>
+        </label>
+        {gift && <div className="mt-3"><label htmlFor="g-recipient" className="label">Who is receiving it? *</label><input id="g-recipient" name="recipientName" required maxLength={80} className="input" placeholder="e.g. Mama Ngozi" /></div>}
+      </fieldset>
+      <div className="grid gap-3 sm:grid-cols-2">
         <div><label htmlFor="g-area" className="label">Area *</label><input id="g-area" name="area" required className="input" placeholder="e.g. Surulere" /></div>
-        <div><label htmlFor="g-phone" className="label">Phone for the rider *</label><input id="g-phone" name="phone" type="tel" required className="input" defaultValue={phone} placeholder="0803 123 4567" /></div>
+        <div><label htmlFor="g-phone" className="label">{gift ? "Their phone, for the rider *" : "Phone for the rider *"}</label><input id="g-phone" name="phone" type="tel" required className="input" defaultValue={gift ? "" : phone} placeholder="0803 123 4567" /></div>
       </div>
       <div><label htmlFor="g-address" className="label">Delivery address and landmark *</label><textarea id="g-address" name="address" required rows={2} className="input" placeholder="House number, street, and something the rider can find" /></div>
       <div><label htmlFor="g-note" className="label">Note for the seller</label><input id="g-note" name="note" className="input" placeholder="e.g. call when at the gate; cylinder valve is the old type" /></div>
       <div className="rounded-xl bg-ink-950 p-4 text-white">
         <p className="text-xs text-ink-300">Estimate from the seller&apos;s listed prices</p>
         <p className="num mt-1 text-2xl font-semibold">{est === null ? "–" : naira(est)}</p>
-        <p className="mt-1 text-xs text-ink-300">The seller confirms the final price when accepting. You pay the rider on delivery, by cash or transfer; RefineryLens never asks you to pay in advance.</p>
+        <p className="mt-1 text-xs text-ink-300">The seller confirms the final price when accepting. Then pay the rider on delivery, or pay securely online through RefineryLens (a small service fee applies; none on Plus).</p>
       </div>
       <Status state={state} />
-      <button className="btn-primary w-full py-3 text-base" disabled={pending || !sellerId}>{pending ? "Placing order…" : "Place order · pay on delivery"}</button>
+      <button className="btn-primary w-full py-3 text-base" disabled={pending || !sellerId}>{pending ? "Placing order…" : gift ? "Place order for them" : "Place order"}</button>
     </form>
   );
 }
@@ -186,6 +196,29 @@ export function OrderStepForm({ orderId, step, estimate }: { orderId: string; st
       {step === "accept" && <div><label className="label" htmlFor={`p-${orderId}`}>Total to collect, ₦</label><input id={`p-${orderId}`} name="price" inputMode="decimal" defaultValue={estimate ?? ""} className="input num w-32" required /></div>}
       {step === "decline" && <input name="note" className="input w-48" placeholder="Reason (optional)" aria-label="Reason" />}
       <button className={step === "decline" ? "btn-secondary btn-sm" : "btn-primary btn-sm"} disabled={pending}>{label}</button>
+      <Status state={state} />
+    </form>
+  );
+}
+
+/** Pay an accepted order online: naira by card or transfer, or US dollars from abroad. */
+export function PayOrderForm({ orderId, currency, label, secondary = false }: { orderId: string; currency: "NGN" | "USD"; label: string; secondary?: boolean }) {
+  const [state, action, pending] = useActionState(payOrderAction, {});
+  return (
+    <form action={action} className="space-y-1">
+      <input type="hidden" name="orderId" value={orderId} />
+      <input type="hidden" name="currency" value={currency} />
+      <button className={`${secondary ? "btn-secondary" : "btn-primary"} w-full`} disabled={pending}>{pending ? "Opening secure payment…" : label}</button>
+      <Status state={state} />
+    </form>
+  );
+}
+
+export function PaySellerFeesForm({ label }: { label: string }) {
+  const [state, action, pending] = useActionState(paySellerFeesAction, {});
+  return (
+    <form action={action} className="space-y-1">
+      <button className="btn-primary btn-sm" disabled={pending}>{pending ? "Opening secure payment…" : label}</button>
       <Status state={state} />
     </form>
   );

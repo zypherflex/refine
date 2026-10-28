@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Fuel, PiggyBank, ShoppingBag, Sun, Bell, BookOpen, Briefcase, Building2, Calculator, ClipboardCheck, Compass, Factory, FileStack, Flame, Gauge, Globe2, History, Inbox, LayoutDashboard, Lightbulb, Menu, MessagesSquare, Newspaper, Repeat, Settings, ShieldAlert, SquareKanban, Store, Tags, Truck, Users, Warehouse, ChevronRight } from "lucide-react";
+import { Fuel, Gift, PiggyBank, ShoppingBag, Sun, Bell, BookOpen, Briefcase, Building2, Calculator, ClipboardCheck, Compass, Factory, FileStack, Flame, Gauge, Globe2, History, Inbox, LayoutDashboard, Lightbulb, Menu, MessagesSquare, Newspaper, Repeat, Settings, ShieldAlert, SquareKanban, Store, Tags, Truck, Users, Warehouse, ChevronRight } from "lucide-react";
 
 const icons = {
   overview: LayoutDashboard,
@@ -37,6 +37,7 @@ const icons = {
   stations: Fuel,
   order: ShoppingBag,
   savings: PiggyBank,
+  gift: Gift,
 } as const;
 
 export type IconName = keyof typeof icons;

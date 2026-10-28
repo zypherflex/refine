@@ -4,9 +4,9 @@ import { audit } from "../audit";
 import { enqueue } from "../jobs";
 import { openDataStatus } from "../integrations";
 import { PROVIDERS, SERIES, type ProviderId, type SeriesDef } from "./catalog";
-import { CLIMATE_TRACE_PAGE, climateTraceUrl, eiaUrl, fxUrl, parseClimateTrace, gdeltUrl, getJson, parseEia, parseFx, parseGdelt, parseWorldBank, redactUrl, worldBankUrl, type Fetch, type SeriesResult } from "./providers";
+import { CLIMATE_TRACE_PAGE, climateTraceUrl, eiaUrl, fxUrl, parseClimateTrace, getJson, parseEia, parseFx, parseWorldBank, redactUrl, worldBankUrl, type Fetch, type SeriesResult } from "./providers";
 
-export const PROVIDER_ORDER: ProviderId[] = ["eia", "worldbank", "exchangerate-api", "climate-trace", "gdelt"];
+export const PROVIDER_ORDER: ProviderId[] = ["eia", "worldbank", "exchangerate-api", "climate-trace"];
 
 export type RunSummary = { provider: ProviderId; status: "OK" | "FAILED" | "SKIPPED"; message: string; itemsUpserted: number };
 
@@ -96,26 +96,6 @@ async function ingestRefineries(fetchImpl: Fetch, now: Date) {
   return { status: "OK", message: `${items} refineries checked (emissions year ${year}).`, items } as const;
 }
 
-async function ingestNewsLeads(fetchImpl: Fetch, now: Date) {
-  await ensureSource("gdelt");
-  // Fictional demo companies never get real-world news.
-  const companies = await db.company.findMany({ where: { isFictional: false, NOT: { newsQuery: "" } } });
-  if (companies.length === 0) return { status: "OK", message: "No company has a news query set.", items: 0 } as const;
-  let items = 0;
-  const failures: string[] = [];
-  for (const c of companies) {
-    try {
-      const leads = parseGdelt(await getJson(fetchImpl, gdeltUrl(c.newsQuery)));
-      const r = await db.newsLead.createMany({ data: leads.map((l) => ({ ...l, companyId: c.id, provider: "gdelt", retrievedAt: now })), skipDuplicates: true });
-      items += r.count;
-    } catch (e) {
-      failures.push(`${c.shortName}: ${(e as Error).message.slice(0, 300)}`);
-    }
-  }
-  const status = failures.length === companies.length ? "FAILED" : "OK";
-  return { status, message: failures.length ? failures.join(" | ") : `${items} new leads for ${companies.length} companies.`, items } as const;
-}
-
 /**
  * Pulls every available open-data feed once. Each provider runs independently, so one failing API never blocks the
  * others, and every attempt is recorded as an IngestionRun.
@@ -133,7 +113,7 @@ export async function runOpenDataIngestion(opts: { providers?: ProviderId[]; fet
       result = { status: "SKIPPED", message: status[id].reason, items: 0 };
     } else {
       try {
-        result = id === "gdelt" ? await ingestNewsLeads(fetchImpl, now) : id === "climate-trace" ? await ingestRefineries(fetchImpl, now) : await ingestSeriesProvider(id, fetchImpl, now);
+        result = id === "climate-trace" ? await ingestRefineries(fetchImpl, now) : await ingestSeriesProvider(id, fetchImpl, now);
       } catch (e) {
         result = { status: "FAILED", message: (e as Error).message.slice(0, 1000), items: 0 };
       }

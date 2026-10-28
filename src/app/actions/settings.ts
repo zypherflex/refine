@@ -6,7 +6,7 @@ import { deleteAccount } from "@/server/services/account";
 import { changePassword } from "@/server/services/users";
 import { AppError } from "@/lib/errors";
 import { saveTextSettings } from "@/server/services/alert-text";
-import { startProCheckout } from "@/server/connect/paystack";
+import { startPlusCheckout } from "@/server/everyday/money";
 
 export type SettingsState = { error?: string | null; ok?: string | null };
 
@@ -40,11 +40,11 @@ export async function saveTextSettingsAction(_: SettingsState, form: FormData): 
   return r;
 }
 
-export async function startCheckoutAction(): Promise<SettingsState> {
+export async function startCheckoutAction(_: SettingsState, form: FormData): Promise<SettingsState> {
   const user = await requireUser();
   let url: string;
   try {
-    url = await startProCheckout(user);
+    url = await startPlusCheckout(user, form.get("currency") === "USD" ? "USD" : "NGN");
   } catch (e) {
     if (e instanceof AppError) return { error: e.message };
     console.error("checkout", e);

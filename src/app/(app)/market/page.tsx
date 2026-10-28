@@ -38,7 +38,7 @@ function SeriesCard({ def, s, staff, available, reason }: { def: SeriesDef; s?: 
         <Pill className="bg-ink-50 text-ink-700 ring-1 ring-inset ring-ink-100">{def.frequency.toLowerCase()}</Pill>
         {s && <ProvenanceBadge p={s.source.provenance} />}
         {demo && <Pill className="bg-amber-100 text-amber-800">Demo values, not real data</Pill>}
-        {s && !s.source.approved && <Pill className="bg-amber-100 text-amber-800">Source awaiting editorial approval: hidden from readers</Pill>}
+        {s && !s.source.approved && <Pill className="bg-amber-100 text-amber-800">Source awaiting approval: hidden from readers</Pill>}
       </div>
       <h3 id={`h-${def.key}`} className="mt-2 font-semibold text-ink-950">{def.label}</h3>
       <p className="muted mt-0.5">{def.description}</p>
@@ -62,7 +62,7 @@ function SeriesCard({ def, s, staff, available, reason }: { def: SeriesDef; s?: 
           ) : s ? (
             <Unavailable title="No data retrieved yet">{staff && s.lastError ? `Last attempt failed: ${s.lastError}` : "The feed is connected but has not returned values for this series yet."}</Unavailable>
           ) : (
-            <Unavailable title="Not available yet">{staff ? "No data has been retrieved. Run the ingestion from Administration or with npm run ingest." : "Not yet retrieved, or its source is still being reviewed by an editor."}</Unavailable>
+            <Unavailable title="Not available yet">{staff ? "No data has been retrieved. Run the ingestion from Administration or with npm run ingest." : "Not yet retrieved, or its source is still being reviewed."}</Unavailable>
           )}
         </div>
       )}
@@ -87,8 +87,8 @@ export default async function MarketPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Research" title="Market & macro context" subtitle="Oil benchmarks, product prices and Nigerian macro data from free public sources, each with its publisher, period, units and retrieval time." />
-      <div className="mb-6"><Notice title="Context, not company data">This page is the same whichever company you are researching. Benchmark prices, national statistics and exchange rates describe the market a refinery operates in. They are not disclosures by Dangote or any other company and are never mixed into company figures.</Notice></div>
+      <PageHeader eyebrow="Markets" title="Market & macro context" subtitle="Oil benchmarks, product prices and Nigerian macro data from free public sources, each with its publisher, period, units and retrieval time." />
+      <div className="mb-6"><Notice title="Context for what you pay">World oil benchmarks, Nigerian statistics and the naira exchange rate, from public sources. They explain why prices at the pump move; they are not prices you can buy at.</Notice></div>
 
       <h2 className="h-section mb-3">Global oil market</h2>
       <section className="card mb-4" aria-labelledby="h-crack">

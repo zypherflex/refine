@@ -16,10 +16,10 @@ const glyph = (s, color) => `<svg width="${s}" height="${s}" viewBox="0 0 64 64"
     await p.setContent(`<html><body style="margin:0;width:${w}px;height:${h}px;background:${bg};display:grid;place-items:center">${body}</body></html>`);
     await p.screenshot({ path: `${out}/${file}`, omitBackground: bg === "transparent" });
   };
-  await shot(1024, 1024, mark(1024), "icon-only.png", "#076339");
+  await shot(1024, 1024, mark(1024), "icon-only.png", "#1339ad");
   await shot(1024, 1024, glyph(560, "#ffffff"), "icon-foreground.png");
-  await shot(1024, 1024, "", "icon-background.png", "#076339");
-  const splash = (bg, word) => `<div style="display:flex;flex-direction:column;align-items:center;gap:56px">${mark(420)}<div style="font:600 112px system-ui,sans-serif;color:${word}">Refinery<span style="color:#087c47;font-weight:300">Lens</span></div></div>`;
+  await shot(1024, 1024, "", "icon-background.png", "#1339ad");
+  const splash = (bg, word) => `<div style="display:flex;flex-direction:column;align-items:center;gap:56px">${mark(420)}<div style="font:600 112px system-ui,sans-serif;color:${word}">Refinery<span style="color:#1a47d1;font-weight:300">Lens</span></div></div>`;
   await shot(2732, 2732, splash("#ffffff", "#0b1530"), "splash.png", "#ffffff");
   await shot(2732, 2732, splash("#0b1530", "#ffffff"), "splash-dark.png", "#0b1530");
   await br.close();

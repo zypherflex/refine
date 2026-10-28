@@ -16,16 +16,15 @@ Answers for Google Play's **Data safety** form and the App Store's **App Privacy
 | Personal info: Phone number | Yes | Yes, with the seller a user orders gas from | Optional (SMS or WhatsApp alerts; required to order gas) | App functionality |
 | Personal info: Address | Yes | Yes, with the seller a user orders gas from | Optional (only to order gas delivery) | App functionality |
 | Personal info: Other info (business name, CAC number, licences) | Yes | No | Optional (trade hub) | App functionality, fraud prevention and security |
-| Financial info: Purchase history | Yes, website purchases only | No | Optional | Account management |
+| Financial info: Purchase history | Yes (plans bought on the website; gas orders paid online) | No | Optional | Account management, app functionality |
 | Messages: Other in-app messages | Yes | No | Optional | App functionality |
-| Photos, videos, files: Files and docs | Yes (research uploads) | No | Optional | App functionality |
 | App activity: Other user-generated content (listings, sites, prices, jobs, agreements, station reports, gas tracker) | Yes | No | Optional | App functionality |
 | Financial info: Other financial info (gas order amounts, refill prices on the tracker) | Yes | No | Optional | App functionality |
 | Device or other IDs (push notification token) | Yes | No | Optional | App functionality |
 
 Location is collected only from a driver who opens a driver link and taps "Start sharing", in the foreground, and is deleted 7 days after the delivery ends. Approximate location is not collected separately. Not collected: contacts, calendar, photos from the camera, audio, health, web browsing, app interactions for analytics, crash logs through a third-party SDK, advertising ID.
 
-"Shared" means transferred to a third party for its own use. A gas order's address and phone go to the seller the user chose, to deliver it, which Google counts as sharing initiated by the user; declare it as shared for app functionality. Paystack, the SMS and WhatsApp providers, Dojah, Firebase/APNs and OpenStreetMap act as service providers processing data on RefineryLens's behalf, which Google's form does not count as sharing.
+"Shared" means transferred to a third party for its own use. A gas order's address and phone go to the seller the user chose, to deliver it, which Google counts as sharing initiated by the user; declare it as shared for app functionality. Paystack, Stripe, the SMS and WhatsApp providers, Dojah, Firebase/APNs and OpenStreetMap act as service providers processing data on RefineryLens's behalf, which Google's form does not count as sharing.
 
 ## App Store: App Privacy
 

@@ -10,6 +10,7 @@ import { addOutlet, reportOutlet } from "@/server/everyday/outlets";
 import { advanceOrder, cancelOrder, placeOrder, rateOrder, saveHomeDelivery } from "@/server/everyday/orders";
 import { addCylinder, deleteCylinder, logRefill, setReminder } from "@/server/everyday/cylinders";
 import { flagContent, resolveFlags, setReportingBlocked, type Resolution } from "@/server/everyday/moderation";
+import { startOrderPayment, startSellerFeesPayment } from "@/server/everyday/money";
 
 export type ActionState = { error?: string | null; ok?: string | null };
 
@@ -78,6 +79,7 @@ export async function placeOrderAction(_: ActionState, form: FormData): Promise<
       address: text(form, "address"),
       phone: text(form, "phone"),
       note: text(form, "note"),
+      recipientName: form.get("forSomeoneElse") === "on" ? text(form, "recipientName") : "",
     });
     id = o.id;
   } catch (e) {
@@ -192,4 +194,26 @@ export async function setReportingBlockedAction(form: FormData) {
   await setReportingBlocked(admin, text(form, "userId"), text(form, "blocked") === "yes");
   revalidatePath("/admin/everyday");
   revalidatePath(`/admin/users/${text(form, "userId")}`);
+}
+
+export async function payOrderAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  let url: string;
+  try {
+    url = await startOrderPayment(user, text(form, "orderId"), text(form, "currency") === "USD" ? "USD" : "NGN");
+  } catch (e) {
+    return { error: message(e) };
+  }
+  redirect(url);
+}
+
+export async function paySellerFeesAction(_: ActionState): Promise<ActionState> {
+  const user = await requireUser();
+  let url: string;
+  try {
+    url = await startSellerFeesPayment(user);
+  } catch (e) {
+    return { error: message(e) };
+  }
+  redirect(url);
 }

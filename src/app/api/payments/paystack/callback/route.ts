@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { verifyAndSettle } from "@/server/connect/paystack";
+import { returnPage } from "@/server/connect/return-page";
 
 /** Paystack sends the customer back here with ?reference=; the plan changes only after verifying with Paystack. */
 export async function GET(req: NextRequest) {
@@ -7,7 +8,7 @@ export async function GET(req: NextRequest) {
   const base = (process.env.APP_URL ?? req.nextUrl.origin).replace(/\/$/, "");
   try {
     const r = await verifyAndSettle(reference);
-    const page = "purpose" in r && r.purpose === "BUSINESS_PLAN" ? "/hub/me" : "/settings";
+    const page = await returnPage(reference, "purpose" in r ? r.purpose : undefined);
     return NextResponse.redirect(`${base}${page}?payment=${r.ok ? "success" : "failed"}`);
   } catch {
     return NextResponse.redirect(`${base}/settings?payment=failed`);

@@ -18,11 +18,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <ul className="mt-1 list-disc pl-4">
           <li>tunde@refinerylens.test (household: gas tracker and orders)</li>
           <li>seller@refinerylens.test (gas seller with home delivery)</li>
-          <li>investor@refinerylens.test (investor with a saved thesis)</li>
-          <li>editor@refinerylens.test (editor)</li>
-          <li>analyst@refinerylens.test (analyst)</li>
+          <li>data@refinerylens.test (data API customer)</li>
           <li>admin@refinerylens.test (administrator)</li>
-          <li>other@refinerylens.test (second investor, for isolation checks)</li>
         </ul>
       </details>
     </>

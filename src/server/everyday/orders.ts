@@ -3,7 +3,8 @@ import type { GasOrder, GasOrderStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { AppError, ForbiddenError, NotFoundError } from "@/lib/errors";
 import type { Actor } from "@/lib/permissions";
-import { isPubliclyVisible, NIGERIAN_STATES } from "@/lib/hub/catalog";
+import { isFeatured, isPubliclyVisible, NIGERIAN_STATES } from "@/lib/hub/catalog";
+import { commission } from "@/lib/money";
 import { naira } from "@/lib/hub/prices";
 import { HOME_CYLINDER_SIZES } from "@/lib/everyday";
 import { audit } from "../audit";
@@ -60,11 +61,16 @@ export const orderInput = z.object({
   address: z.string().trim().min(8, "Give the full delivery address with a landmark").max(300),
   phone: z.string().trim().regex(/^(\+?234|0)[789][01]\d{8}$/, "Use a Nigerian mobile number, e.g. 0803 123 4567").transform((p) => p.replace(/^0/, "+234").replace(/^234/, "+234")),
   note: z.string().trim().max(300).default(""),
+  // Ordering for someone else, e.g. family at home: their name; the phone and address are theirs too.
+  recipientName: z.string().trim().max(80).default(""),
 });
 
 const OPEN: GasOrderStatus[] = ["PLACED", "ACCEPTED", "OUT_FOR_DELIVERY"];
 
-/** A household orders a refill. Pay on delivery, so the only check is that the seller is verified and delivers there. */
+/**
+ * A household orders a refill, for itself or for someone else (a Nigerian abroad sending gas to family at home).
+ * Payment is on delivery, or online once the seller has confirmed the price.
+ */
 export async function placeOrder(actor: Actor, raw: z.input<typeof orderInput>) {
   const input = orderInput.parse({ ...raw, phone: String(raw.phone ?? "").replace(/[\s-]/g, "") });
   const seller = await db.hubBusiness.findUnique({ where: { id: input.businessId } });
@@ -78,14 +84,14 @@ export async function placeOrder(actor: Actor, raw: z.input<typeof orderInput>) 
   });
   await createAlert({
     userId: seller.ownerId, kind: "GAS_ORDER", title: `New gas order: ${input.cylinders} × ${input.cylinderKg} kg`,
-    body: `${input.area}, ${input.state}. Accept or decline it in Gas orders.`, link: `/hub/orders`, dedupeKey: `order:new:${order.id}`,
+    body: `${input.area}, ${input.state}${input.recipientName ? `, for ${input.recipientName}` : ""}. Accept or decline it in Gas orders.`, link: `/hub/orders`, dedupeKey: `order:new:${order.id}`,
   });
   await audit(actor.id, "gas_order.place", "GasOrder", order.id);
   return order;
 }
 
 async function loadOrder(id: string) {
-  const o = await db.gasOrder.findUnique({ where: { id }, include: { business: { select: { id: true, name: true, ownerId: true, city: true, state: true } } } });
+  const o = await db.gasOrder.findUnique({ where: { id }, include: { business: { select: { id: true, name: true, ownerId: true, city: true, state: true, verification: true, planUntil: true } } } });
   if (!o) throw new NotFoundError("Order not found");
   return o;
 }
@@ -103,7 +109,7 @@ export async function myOrders(actor: Actor) {
 
 export async function sellerOrders(actor: Actor) {
   const b = await requireMyBusiness(actor);
-  return db.gasOrder.findMany({ where: { businessId: b.id }, orderBy: [{ createdAt: "desc" }], take: 100, include: { user: { select: { name: true } }, trip: { select: { status: true } } } });
+  return db.gasOrder.findMany({ where: { businessId: b.id }, orderBy: [{ createdAt: "desc" }], take: 100, include: { user: { select: { name: true, plan: true, planUntil: true } }, trip: { select: { status: true } } } });
 }
 
 const STEP: Record<string, { from: GasOrderStatus[]; to: GasOrderStatus; title: string }> = {
@@ -126,11 +132,16 @@ export async function advanceOrder(actor: Actor, id: string, step: keyof typeof 
     if (!price || price <= 0 || price > 1_000_000) throw new AppError("Enter the total the customer will pay on delivery.");
     data.priceNaira = Math.round(price);
   }
-  if (step === "deliver") data.deliveredAt = new Date();
+  if (step === "deliver") {
+    data.deliveredAt = new Date();
+    // RefineryLens's commission, lower on the Business plan; kept from the payout or settled by the seller.
+    const price = o.priceNaira ?? o.estimateNaira;
+    if (price) data.commissionNaira = commission(price, isFeatured(o.business));
+  }
   const updated = await db.gasOrder.update({ where: { id }, data });
   if (step === "deliver" || step === "decline") await endTripFor({ kind: "GAS_ORDER", id });
   const body =
-    step === "accept" ? `${o.business.name} will deliver. Pay ${naira(data.priceNaira!)} on delivery.`
+    step === "accept" ? `${o.business.name} will deliver. Pay ${naira(data.priceNaira!)} on delivery, or pay online now.`
     : step === "decline" ? `${o.business.name} cannot deliver this order${data.sellerNote ? `: ${data.sellerNote}` : "."} Try another seller.`
     : step === "dispatch" ? `${o.business.name} is bringing your gas now.`
     : `Rate ${o.business.name} to help your neighbours choose.`;
@@ -144,6 +155,7 @@ export async function cancelOrder(actor: Actor, id: string) {
   const o = await loadOrder(id);
   if (o.userId !== actor.id) throw new ForbiddenError();
   if (!["PLACED", "ACCEPTED"].includes(o.status)) throw new AppError("This order can no longer be cancelled here. Call the seller.");
+  if (o.paidOnlineAt) throw new AppError("This order is paid. Contact RefineryLens support to cancel it and get a refund.");
   await db.gasOrder.update({ where: { id }, data: { status: "CANCELLED" } });
   await endTripFor({ kind: "GAS_ORDER", id });
   await createAlert({ userId: o.business.ownerId, kind: "GAS_ORDER", title: "A gas order was cancelled", body: `${o.cylinders} × ${o.cylinderKg} kg to ${o.area}.`, link: "/hub/orders", dedupeKey: `order:cancel:${o.id}` });

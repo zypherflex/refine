@@ -29,7 +29,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
     <>
       {welcome && <div className="mb-4"><Notice tone="ok" title="Welcome to RefineryLens">Check prices before you buy, report what you paid, and track your cooking gas so it never runs out mid-cooking.</Notice></div>}
       <section className="relative overflow-hidden rounded-3xl bg-ink-950 p-6 text-white sm:p-8">
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_90%_0%,rgba(47,191,120,0.18),transparent_60%)]" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_90%_0%,rgba(91,130,240,0.18),transparent_60%)]" />
         <div className="relative">
           <p className="text-xs font-semibold uppercase tracking-eyebrow text-brand-300">Today in {state}</p>
           <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-white sm:text-4xl">Know the price before you buy.</h1>

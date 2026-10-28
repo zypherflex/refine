@@ -6,7 +6,7 @@ export default function DataLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen bg-white">
       <header className="border-b border-ink-100 bg-white">
-        <div aria-hidden className="band-ng h-1 w-full" />
+        <div aria-hidden className="band-brand h-1 w-full" />
         <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-4 sm:px-8">
           <Link href="/" className="no-underline hover:no-underline"><Logo size={26} /></Link>
           <span className="rounded-full bg-navy-100 px-2 py-0.5 text-xs font-semibold text-navy-800">Data</span>

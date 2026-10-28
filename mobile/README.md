@@ -13,7 +13,7 @@ both apps update, without a store release, except when native code or settings c
 | iOS project | `ios/App/App.xcodeproj` (open in Xcode on a Mac) |
 | Bridge between the site and the apps | `src/components/native/` |
 | Push notifications (server) | `src/server/connect/push.ts`, `src/server/services/alert-push.ts` |
-| Icon and splash source art | `mobile/assets/` (regenerate with `node mobile/scripts/native-assets.cjs public/icon.svg mobile/assets`, then `npx capacitor-assets generate --assetPath mobile/assets --iconBackgroundColor "#076339" --splashBackgroundColor "#ffffff" --splashBackgroundColorDark "#0b1530"`) |
+| Icon and splash source art | `mobile/assets/` (regenerate with `node mobile/scripts/native-assets.cjs public/icon.svg mobile/assets`, then `npx capacitor-assets generate --assetPath mobile/assets --iconBackgroundColor "#1339ad" --splashBackgroundColor "#ffffff" --splashBackgroundColorDark "#0b1530"`) |
 | Store text and privacy answers | `mobile/store/listing.md`, `mobile/store/privacy-answers.md` |
 | Store screenshots and feature graphic | `mobile/store/screenshots/` (retake with `mobile/scripts/store-screenshots.cjs`) |
 | Cloud builds | `.github/workflows/mobile-android.yml`, `.github/workflows/mobile-ios.yml` |

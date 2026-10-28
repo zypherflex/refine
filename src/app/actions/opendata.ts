@@ -1,22 +1,20 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { db } from "@/lib/db";
 import { requireRole } from "@/server/auth";
 import { enqueue, drainQueue } from "@/server/jobs";
 import { jobHandlers } from "@/server/job-handlers";
 import { audit } from "@/server/audit";
-import { reviewNewsLead } from "@/server/services/market";
 
-export async function newsLeadAction(form: FormData) {
-  const user = await requireRole("ANALYST");
+/** Approves or revokes an open-data source; readers only see series from approved sources. */
+export async function approveSourceAction(form: FormData) {
+  const admin = await requireRole("ADMIN");
   const id = String(form.get("id"));
-  const op = String(form.get("op"));
-  if (op === "draft") {
-    await reviewNewsLead(user, id, "DRAFTED");
-    redirect(`/editorial/announcements/new?lead=${encodeURIComponent(id)}`);
-  }
-  await reviewNewsLead(user, id, op === "restore" ? "NEW" : "DISMISSED");
-  revalidatePath("/editorial/news-leads");
+  const approve = form.get("approve") === "1";
+  await db.source.update({ where: { id }, data: { approved: approve, approvedById: admin.id, approvedAt: new Date() } });
+  await audit(admin.id, approve ? "source.approve" : "source.revoke", "Source", id);
+  revalidatePath("/admin/system");
+  revalidatePath("/market");
 }
 
 /** Queues a refresh of every open-data feed. With inline jobs (the default) it runs straight away in this process. */

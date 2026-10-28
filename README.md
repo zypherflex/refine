@@ -1,14 +1,27 @@
 # RefineryLens
 
-Independent business intelligence on **opportunities around Dangote**, for businesses of every size. **Find the opportunity. Examine the evidence. Size it with your own numbers.**
+Fuel and cooking gas for **Nigerians everywhere**: mainly people living in Nigeria, and Nigerians abroad who look after family at home.
 
-RefineryLens turns company disclosures, filings and news into reviewed, plain-language research. Every figure carries its source, page, period, scope, units and provenance label; missing data is shown as missing; conflicting sources stay visible; AI-drafted content stays a draft until an editor reviews it.
+**For households in Nigeria (free).** Today's prices for petrol, diesel, kerosene, cooking gas and CNG in every state, shown only as medians of several people's reports; stations and gas shops with queues and problems such as short measure; a cooking gas tracker with refill reminders; and gas refills delivered by sellers RefineryLens has verified, paid on delivery or online.
 
-The **business opportunities hub** maps 14 ways for businesses from micro to enterprise scale to plug into Dangote's Lekki complex: fuel retail and depots, tanker haulage, CNG and LPG, polypropylene conversion and resin distribution, Jet A-1, regional export, crude supply, modular refining, marine logistics and plant services. Each opportunity shows the company-stated facts it rests on, dated independent reports that help or hurt the case, questions to answer and licences to check, plus a sizing tool with visible formulas. Users keep a private opportunity board and saved scenarios. **Find my fit** asks for business size, areas of interest and assets the business already has, then ranks matching opportunities and shows why each is listed. Each opportunity has a **readiness checklist** (progress shows on the board), every sizing tool shows a **what-if table** (each key input moved ±10%), and users can download a **one-page PDF brief** with sources, readiness answers and a saved scenario. The **trade hub** connects **sellers, buyers, delivery partners and refineries**: businesses post product offers, buy requests and delivery capacity, see matching listings from the other side of the deal, and message each other privately. Anyone can post straight away; a *Verified* badge appears once an administrator has checked the business's CAC registration and licences, and names of well-known refiners stay hidden until verified. The hub's **gas network** maps LPG and CNG supply across Nigeria's 36 states and the FCT: businesses list their terminals, depots, refill plants, cylinder retail points, CNG stations and gas truck bases, and the map shows supply points, delivery coverage, buyer demand and gaps (demand with no supply or delivery) by state, with the nearest supply elsewhere. Site details are as stated by each business and are flagged as possibly out of date when not confirmed for 90 days. The **price board** shows what sellers charged for LPG, CNG, diesel, petrol and kerosene by state, only as medians across at least three sellers, with week-on-week change. **Delivery jobs** let any business post a load, delivery partners quote, the poster accepts one and both sides confirm delivery. **Supply agreements** record standing arrangements; the seller logs each delivery and the buyer confirms or disputes it, building each seller's public delivery record. Sellers who report prices on at least two days a fortnight get a **Reports prices** badge. Verified businesses can buy the **Business plan** (30 days): their listings come first in search, matches and the refinery list, always labelled ★ Featured, with up to 200 live listings instead of 50. An administrator can add plan days for payments taken offline. RefineryLens only introduces businesses and carries their messages: it takes no payments, holds no goods and guarantees no one. Behind it sits the evidence-first research layer (announcements, metrics, conflicts, theses, assistant), built from Dangote's public website.
+**For Nigerians abroad.** **Send gas home**: order a refill for family anywhere a verified seller delivers, see the total in naira and in US dollars at a dated exchange rate, pay by card in dollars or naira, and follow the delivery.
 
-Product copy says "Dangote", never "Dangote refinery" or the company's full refinery name; that is a standing product decision. The only exception is the hidden news search query in `prisma/seed-dangote.ts`. RefineryLens is not affiliated with, endorsed by or sponsored by Dangote or any Dangote company, the opportunities are analysis rather than offers, and nothing in it is investment or financial advice.
+**For businesses.** The **trade hub** connects sellers, buyers, delivery partners and refineries: offers and buy requests with matching, private messages, a *Verified* badge after an administrator checks registration and licences, a **gas network** map of LPG and CNG supply and gaps by state, a **price board** of seller medians, **delivery jobs** with quotes and **supply agreements** with a delivery record. Gas sellers receive home gas orders. The **business opportunities** section sizes fuel and gas business models with visible formulas.
+
+**How RefineryLens earns** (all prices set in `.env`):
+
+| Stream | Who pays | Default |
+| --- | --- | --- |
+| Service fee on gas orders paid online | Households, and Nigerians abroad sending gas home | 3% (min ₦200, max ₦2,500) |
+| Commission on delivered gas orders | Sellers: kept from the payout for online orders, settled by card for cash orders | 2.5%, or 1.5% on the Business plan |
+| **RefineryLens Plus** (no service fee) | Households, in naira or US dollars | ₦1,500 or $3 per 30 days |
+| **Business plan** (featured placement, lower commission) | Verified businesses: naira in Nigeria, US dollars for international suppliers | ₦15,000 or $99 per 30 days |
+| **RefineryLens Data** (price index by API) | Traders, banks, researchers, worldwide | From $49 a month |
+| Sponsored placements | Brands selling to Nigerian households and businesses | Invoiced in US dollars |
 
 ---
+
+## Contents---
 
 ## Contents
 
@@ -41,14 +54,14 @@ cp .env.example .env
 createdb refinerylens            # or create it any way you like
 npm run db:migrate
 
-# 4. Load the Dangote source facts and the fictional demo company
+# 4. Load demo users, businesses, stations and prices
 npm run db:seed
 
 # 5. Run
 npm run dev                      # http://localhost:3000
 ```
 
-Production build: `npm run build && npm start`. Optionally run `npm run worker` as a separate process for background document extraction, alert emails and open-data refreshes (see [Background jobs](#background-jobs)). `npm run ingest` pulls the [open data feeds](#open-data-feeds) once.
+Production build: `npm run build && npm start`. Optionally run `npm run worker` as a separate process for alert emails, texts, reminders, the price index and open-data refreshes (see [Background jobs](#background-jobs)). `npm run ingest` pulls the [open data feeds](#open-data-feeds) once.
 
 `npm run db:reset` drops and recreates the schema and reseeds. The seed **truncates every table**, so never run it against a database with real users.
 
@@ -58,10 +71,10 @@ Production build: `npm run build && npm start`. Optionally run `npm run worker` 
 | --- | --- |
 | `npm run dev` | Next.js dev server |
 | `npm run build` / `npm start` | Production build and server |
-| `npm run worker` | Background job worker (document extraction, alert emails, open-data refreshes) |
+| `npm run worker` | Background job worker (alert emails and texts, refill reminders, price index, open-data refreshes) |
 | `npm run ingest` | Pull every available open-data feed once and print the result |
 | `npm run db:migrate` | Apply Prisma migrations (`prisma migrate deploy`) |
-| `npm run db:seed` | Truncate and load demo users, Dangote source facts and fictional demo data |
+| `npm run db:seed` | Truncate and load demo users, businesses, stations, prices and orders |
 | `npm run db:reset` | Reset schema and reseed |
 | `npm run typecheck` | TypeScript check |
 | `npm test` | Unit and integration tests (needs a `refinerylens_test` database) |
@@ -75,11 +88,10 @@ All demo accounts use the password **`RefineryLens-demo-2026`**.
 
 | Email | Role | Use it to see |
 | --- | --- | --- |
-| `investor@refinerylens.test` | Investor (Pro plan) | Dashboard, saved thesis with pending evidence suggestions, alerts, private upload, assistant |
-| `other@refinerylens.test` | Investor (Free plan) | A second investor, for checking that private files and theses are isolated |
-| `analyst@refinerylens.test` | Analyst | Drafting announcements and metrics in the editorial desk |
-| `editor@refinerylens.test` | Editor | Reviewing, publishing, correcting and retracting; approving sources and resolving conflicts |
-| `admin@refinerylens.test` | Administrator | Users, roles, plans, jobs, audit log and integration status (but **not** users' private files); trade hub verification and reports |
+| `tunde@refinerylens.test` | Household | Today's prices, a cylinder with refill history, gas orders |
+| `kemi@`, `emeka@`, `halima@`, `joy@refinerylens.test` | Households | Station reports that give Lagos enough people for a median |
+| `data@refinerylens.test` | Data customer | RefineryLens Data on the Professional plan, API keys, demo USD payments |
+| `admin@refinerylens.test` | Administrator | The administration console: users, verification, moderation, payments and payouts, broadcast, audit log (but **not** business conversations) |
 | `seller@refinerylens.test` | Trade hub seller | Ikeja Energy Supplies (demo), verified: LPG and diesel offers, an enquiry from Kano Gas to answer |
 | `buyer@refinerylens.test` | Trade hub buyer | Kano Gas Kiosks (demo), verification requested: an LPG buy request and an unread reply |
 | `haulier@refinerylens.test` | Trade hub delivery partner | Northern Corridor Haulage (demo), verified: tanker and LPG truck capacity |
@@ -90,12 +102,6 @@ All demo accounts use the password **`RefineryLens-demo-2026`**.
 
 Every trade hub business in the seed (`prisma/seed-hub.ts`) is fictional, named "(demo)", flagged as a demo account in the UI, and its prices are labelled as demo figures.
 
-### Two companies, deliberately different
-
-**Dangote (Lekki complex)** (`prisma/seed-dangote.ts`, slug `dangote`): facts taken from the company's public website, retrieved 25 October 2026, labelled *Company-disclosed* with URLs and retrieval times. They are loaded **as drafts awaiting editorial review**, not as published content, because the spec requires AI-prepared summaries to stay drafts until a human checks them. Financial metrics the company has not published are stored as *Not publicly disclosed*. Two source conflicts found on the site (an offer described as open versus a page saying there are no active public offerings; processing versus capacity wording) are recorded for an editor to review. No Dangote branding, logos or imagery are used. Sign in as the editor to review and publish them.
-
-**Lagoon Coast Refining Co. (fictional demo)** (`prisma/seed-demo.ts`): an invented company that exercises every feature with realistic-looking data, including generated PDF reports stamped *FICTIONAL DEMONSTRATION DOCUMENT - NOT A REAL COMPANY - NOT DANGOTE RESULTS*, published, corrected, retracted and superseded announcements, an unresolved conflict and a risk register. Every page for it shows a fictional-data banner.
-
 ---
 
 ## What works now and what needs credentials
@@ -104,26 +110,22 @@ Every trade hub business in the seed (`prisma/seed-hub.ts`) is fictional, named 
 
 | Capability | Notes |
 | --- | --- |
-| Accounts, sign-in, roles (User, Analyst, Editor, Admin) | Custom auth: bcrypt (cost 12) password hashes, DB-backed sessions with hashed tokens, httpOnly cookies, rate-limited sign-in |
-| Private and public document storage | Local disk outside the web root (`STORAGE_DIR`), owner-only access for private files |
-| PDF and text upload, page extraction, figure suggestions | `unpdf` text extraction; figures become *draft* metrics for review |
+| Accounts, sign-in, roles | Custom auth: bcrypt (cost 12) password hashes, DB-backed sessions with hashed tokens, httpOnly cookies, rate-limited sign-in |
+| Everyday prices, stations, gas tracker, gas orders | Medians only from 3+ people; flags and moderation; refill reminders |
+| Gas order money | Service fee, commission, seller ledger, admin payouts; amounts checked against the provider before anything changes |
 | Background jobs | PostgreSQL-backed queue (`FOR UPDATE SKIP LOCKED`) |
-| Editorial workflow | Draft, review, publish, correct, retract, supersede, duplicate; public corrections log |
-| Thesis tracking | Assumptions, indicators with thresholds, evidence suggestions, version history |
-| In-app alerts | Immediate, daily and weekly digests; corrections and retractions always immediate |
-| Research assistant, **evidence mode** | Retrieval plus extractive, fully cited answers with no language model |
-| Calculations | Growth, margins, free cash flow, net debt, utilization, cash conversion, with comparability checks |
+| In-app alerts | Orders, deliveries, trade hub messages, jobs, supply, data plans, broadcasts |
 
 ### Needs credentials or a commercial agreement
 
 | Integration | Status in this release | What is needed |
 | --- | --- | --- |
-| **Claude language model** for the assistant | Implemented; switches on when a key is present | `ANTHROPIC_API_KEY` (optional `ANTHROPIC_MODEL`, default `claude-opus-5-5`). Answers are structured output, and claims whose citations do not match retrieved evidence are dropped |
 | **S3-compatible object storage** (AWS S3, Cloudflare R2, MinIO) | Implemented and verified against a local S3 server; private, server-side encrypted objects | A bucket and credentials: `STORAGE_DRIVER=s3` plus `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` (and `S3_ENDPOINT` for non-AWS providers) |
 | **Email alert delivery** (SMTP) | Implemented and verified against a local mail server. Users opt in on the alerts page; immediate alerts and daily or weekly digests are emailed by the worker, failed sends are retried | An SMTP account with any provider: `EMAIL_PROVIDER=smtp`, `SMTP_URL`, `EMAIL_FROM`, and `npm run worker` running. Until all are set, the UI says alerts are in-app only |
 | **Push notifications** (Google Play and App Store apps) | Implemented for FCM v1 and APNs; tested against mocked services. See `mobile/README.md` | `FCM_SERVICE_ACCOUNT_JSON`; `APNS_KEY_P8`, `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_BUNDLE_ID` |
 | **Live driver tracking** (gas orders and delivery jobs) | Implemented. The seller or carrier sends its driver a private link; the driver's phone shares GPS from the browser or app while the page is open (no background tracking); the customer or job poster sees a live Leaflet map with distance and a rough arrival time. Positions are deleted 7 days after the trip ends | Nothing to run it. For production traffic, a map tile provider: `NEXT_PUBLIC_MAP_TILE_URL` and `NEXT_PUBLIC_MAP_TILE_ATTRIBUTION`. The geocoder above improves the drop-off pin |
-| **Card payments** (Pro plan and trade hub Business plan, Paystack) | Implemented and tested against mocked Paystack responses; the plan changes only after Paystack verifies the full amount, through the return verify call or the HMAC-signed webhook | A Paystack account: `PAYMENT_PROVIDER=paystack`, `PAYSTACK_SECRET_KEY`, optional `PRO_PLAN_PRICE_NGN` and `BUSINESS_PLAN_PRICE_NGN`; webhook URL `{APP_URL}/api/payments/paystack/webhook`. Team plans are still assigned by an administrator |
+| **Card and transfer payments** (Plus, Business plan, gas orders paid online, seller commission; Paystack) | Implemented and tested against mocked Paystack responses; nothing changes until Paystack verifies the full amount, through the return verify call or the HMAC-signed webhook. Gas orders can be paid only after the seller confirms the price; paid orders cannot be cancelled in the app (support refunds them) | A Paystack account: `PAYMENT_PROVIDER=paystack`, `PAYSTACK_SECRET_KEY`; prices and fees in `.env.example`; webhook URL `{APP_URL}/api/payments/paystack/webhook` |
+| **Send gas home in US dollars** | Implemented: the order total is converted at the latest approved naira rate, rounded up, and charged through Stripe or Paystack USD; tested | The USD setup below and an approved exchange-rate source |
 | **SMS and WhatsApp alerts, morning price digest** | Implemented for Termii, Africa's Talking (SMS) and WhatsApp Cloud API (template messages); tested against mocked APIs. Users add a phone and opt in under Account; the worker sends trade hub alerts and one digest a day | One provider's account and keys: `TEXT_PROVIDER` plus `TERMII_*`, `AT_*` or `WHATSAPP_*` (see `.env.example`); WhatsApp needs an approved template with one body parameter |
 | **USSD price check** | Implemented for Africa's Talking USSD; tested | An Africa's Talking USSD code pointed at `{APP_URL}/api/ussd?token={USSD_TOKEN}` |
 | **CAC registry lookup** for verification | Implemented with Dojah's CAC lookup; results appear in the verification queue, never verify on their own | A Dojah account: `CAC_LOOKUP_PROVIDER=dojah`, `DOJAH_APP_ID`, `DOJAH_SECRET_KEY` |
@@ -131,7 +133,7 @@ Every trade hub business in the seed (`prisma/seed-hub.ts`) is fictional, named 
 | **US dollar revenue: RefineryLens Data** | Implemented: a daily price index by state, product and source (built hourly by the worker, only from 3+ reporters, demo contributions flagged), a REST API (`/api/v1/meta`, `latest`, `prices`, `national`) with hashed API keys, per-day metering and plan history limits, a CSV download, a public page (`/data`) and docs (`/data/docs`), 14-day trials, and plans in USD for foreign customers and naira for Nigerian ones; tested | For USD: `PAYSTACK_USD_ENABLED=true` (after Paystack approves USD with a Zenith USD account) or `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` (through a non-Nigerian entity). Naira works with the Paystack keys above |
 | **US dollar revenue: sponsored placements** | Implemented: labelled, rel="sponsored" cards on the CNG calculator, stations, today's prices, gas network and hub, targeted by state, rotated by exposure, with views and clicks; sold and invoiced in USD and entered under Administration → Sponsorships; tested | Nothing; sales and invoicing are done by the team |
 | **Escrow and trade finance** | Not shipped | A licensed payment or lending partner (see the strategy playbook) |
-| **Free open-data feeds** (oil and product prices, Nigerian macro data, global refinery inventory, news leads) | Implemented; see [Open data feeds](#open-data-feeds). Keyless feeds are on by default; EIA needs a free key | `EIA_API_KEY` for EIA; nothing for the rest. An editor approves each source before readers see it |
+| **Free open-data feeds** (oil and product prices, the naira exchange rate, Nigerian macro data, global refinery inventory) | Implemented; see [Open data feeds](#open-data-feeds). Keyless feeds are on by default; EIA needs a free key | `EIA_API_KEY` for EIA; nothing for the rest. An administrator approves each source (Health & jobs) before readers see it |
 | **Exchange or regulator data feeds** (share prices, filings) | Not connected; no share prices or tickers are shown | Licensed feeds from the relevant exchange or regulator |
 | **Paywalled news** | Not ingested; only openly available sources, linked rather than copied | Content licences with publishers |
 | **Live plant data** | Not available; the UI states there is no access to live plant systems | Would require a direct agreement with the company |
@@ -140,7 +142,7 @@ The admin screen shows the live status of each integration.
 
 ### Open data feeds
 
-Free public APIs that give sector-wide and country context. They are cached in PostgreSQL (`MarketSeries`, `MarketObservation`, `RefineryAsset`, `NewsLead`, with every attempt in `IngestionRun`), refreshed by the worker every `OPEN_DATA_INTERVAL_HOURS` (default 12) or with `npm run ingest`, and never fetched by a page. Each provider creates an **unapproved** `Source` carrying its licence notes; readers only see a feed's data after an editor approves that source. Every value keeps its publisher, publisher period label, units, retrieval time and request URL (API keys removed). None of it is company data, and the UI says so.
+Free public APIs that give sector-wide and country context. They are cached in PostgreSQL (`MarketSeries`, `MarketObservation`, `RefineryAsset`, with every attempt in `IngestionRun`), refreshed by the worker every `OPEN_DATA_INTERVAL_HOURS` (default 12) or with `npm run ingest`, and never fetched by a page. Each provider creates an **unapproved** `Source` carrying its licence notes; readers only see a feed's data after an administrator approves that source. Every value keeps its publisher, publisher period label, units, retrieval time and request URL (API keys removed).
 
 | Feed | What RefineryLens takes | Scope | Key | Licence and conditions |
 | --- | --- | --- | --- | --- |
@@ -148,7 +150,6 @@ Free public APIs that give sector-wide and country context. They are cached in P
 | [World Bank Indicators API](https://data.worldbank.org/) | Nigeria: official NGN/USD annual average, inflation, GDP, fuel share of imports and exports | Nigeria macro | None | CC BY 4.0; attribute "The World Bank: World Development Indicators" |
 | [ExchangeRate-API open access](https://www.exchangerate-api.com/docs/free) | Daily USD/NGN reference rate (not the CBN official rate) | Nigeria macro | None | Attribution link required on pages showing rates; no redistribution of raw rates, so they are never exported |
 | [Climate TRACE](https://climatetrace.org/) | Global oil and gas refining assets: name, country, type, capacity (bbl/day), owners, coordinates, estimated CO₂e | Global refinery directory | None | CC BY 4.0, commercial use allowed with attribution; modelled estimates, not disclosures |
-| [GDELT DOC 2.0](https://www.gdeltproject.org/) | Headlines and links mentioning covered companies (from `Company.newsQuery`), as editor-only **news leads** | Company news discovery | None | Free with citation; only headline, link, outlet and date are stored |
 
 RefineryLens also shows an **indicative 3-2-1 crack spread** calculated from the EIA prices, labelled as an estimate with its formula; it is a benchmark, not any refiner's margin.
 
@@ -163,39 +164,31 @@ Other features reuse the cached data through `src/server/opendata/index.ts`: `ge
 | Layer | Choice |
 | --- | --- |
 | Framework | Next.js 15 (App Router, React Server Components, server actions), React 19, TypeScript |
-| Styling | Tailwind CSS 3 with a green-and-white brand palette (`ink` neutrals, `brand` green), a green-white-green band and an adire-inspired pattern; Inter and Source Serif 4 self-hosted via Fontsource; Lucide icons. Times are shown in West Africa Time (Lagos) |
+| Styling | Tailwind CSS 3 with a global deep blue and amber palette (`ink` navy neutrals, `brand` deep blue, `amber` accent), a blue-and-amber band and a faint meridian (globe grid) pattern; Inter and Source Serif 4 self-hosted via Fontsource; Lucide icons. Times are shown in West Africa Time (Lagos) |
 | Charts | Recharts, always with an accessible table alternative |
 | Database | PostgreSQL via Prisma 6; migrations in `prisma/migrations` |
 | Auth | Custom, see above. Chosen over an auth library to keep sessions server-side and auditable with no third-party dependency |
-| AI | `@anthropic-ai/sdk`, optional |
 | Tests | Vitest (unit and integration against a real Postgres test database), Playwright (browser) |
 
 ### Permissions
 
-Role checks live in `src/lib/permissions.ts` and are enforced in server actions and services, not only in the UI. Private documents and theses are filtered by `ownerId` at the query level and again in code, so not even administrators can read them. Trade hub conversations are readable only by the user who made the enquiry and the owner of the business it went to; administrators verify, suspend and handle reports (`can.moderateHub`) without access to messages. The assistant's retrieval applies the same rule, which is covered by integration and browser tests.
+Role checks live in `src/lib/permissions.ts` and are enforced in server actions and services, not only in the UI. Gas orders are visible only to the customer and the seller. Trade hub conversations are readable only by the user who made the enquiry and the owner of the business it went to; administrators verify, suspend and handle reports (`can.moderateHub`) without access to messages.
 
 ### Background jobs
 
-Uploads enqueue a `document.extract` job. By default the web process drains the queue right after an upload (`INLINE_JOBS` unset). In production set `INLINE_JOBS=false` and run `npm run worker` as its own process. The worker also queues an `opendata.ingest` job whenever the open-data feeds are due, and administrators can queue one from the admin screen. The worker also sends alert emails once a minute when email is configured: one message per user, covering every alert that has become visible (digest alerts become visible at 07:00 UTC daily, or Monday for weekly).
-
-### Research assistant
-
-1. Retrieval scores published announcements, published metrics, unresolved conflicts, approved public documents, and **only the asking user's** private pages and theses.
-2. The question is classified (what changed, explain a report, general concept, challenge my thesis, what is missing, lookup).
-3. Evidence mode composes a structured answer: direct answer, general explanation kept separate from company evidence, supporting evidence with citations, RefineryLens calculations with formulas, possible implications (never buy or sell advice), uncertainties and missing information.
-4. With an API key, Claude produces the same structure. Document text is passed as untrusted data, and text that looks like instructions is flagged rather than followed.
+Jobs such as registry lookups and geocoding are queued in PostgreSQL. By default the web process drains the queue straight away (`INLINE_JOBS` unset). In production set `INLINE_JOBS=false` and run `npm run worker` as its own process. The worker also queues an `opendata.ingest` job whenever the open-data feeds are due, and administrators can queue one from the admin screen. The worker also sends alert emails once a minute when email is configured: one message per user, covering every alert that has become visible (digest alerts become visible at 07:00 UTC daily, or Monday for weekly).
 
 ---
 
 ## Screens
 
-Landing, sign-in and registration (signing in opens the trade hub); **Business opportunities** explorer with size and area filters, opportunity detail pages, **Sizing tools** (resale margin and payback, tanker haulage, polypropylene converter, import parity, modular refinery margin) and **My opportunity board** (private pipeline and saved scenarios); **Trade hub** (browse offers, buy requests and delivery capacity by product, location and verification; listing pages with matches; business profiles; **Gas network** (schematic state map with supply, delivery, demand and gap layers for bulk LPG, LPG cylinders and CNG; per-state sites and nearest supply; site pages; add and confirm sites); **Price board**; **Delivery jobs** (open jobs, post a job, quotes, award, confirmation); **Supply agreements** (propose, accept, log and confirm deliveries, delivery record); **Refineries**; **Hub inbox** with private conversations; **My business** with profile, verification and listings; **Trade hub moderation** for administrators); **Overview** dashboard; **Company profile**; **Announcements and news** with detail pages; **Financial reports**; **Operational indicators**; **Risk center**; **Market & macro context** (benchmarks, crack spread, Nigerian macro data); **Global refineries** (directory with West Africa filter); **My investment thesis** (list, create, edit, detail with versions and evidence review); **Research assistant** with saved conversations; **Watchlist and alerts**; **Source library** and document viewer; **Corrections log**; **Account and plan**; **Editorial desk** (announcements, documents, news leads, sources, conflicts); **Administration**.
+Landing page; sign-in and registration (households land on today's prices, businesses on the trade hub); **Today's prices**; **Stations & gas shops** with reports and flags; **My cooking gas** tracker; **Order gas** and **Send gas home**, with order pages showing progress, a live delivery map and **Pay online** in naira or US dollars; **CNG savings** calculator; **Trade hub** (offers, buy requests and delivery capacity with matching; business profiles; **Gas network**; **Price board**; **Delivery jobs**; **Supply agreements**; **Refineries**; **Hub inbox**; **Home gas orders** with the seller's commission and payouts; **My business**); **Business opportunities**, sizing tools and a private board; **Markets** (oil prices, the naira rate, global refineries); **Alerts**; **Account and plan** with RefineryLens Plus; **RefineryLens Data** pages and API docs; **Administration**.
 
 **Google Play and App Store apps.** Native Android and iPhone apps (Capacitor shells around the live site) live in `android/` and `ios/`, with push notifications for trade alerts, native sharing, app links, in-app account deletion and a public privacy policy. Store listings, privacy answers, screenshots, cloud build workflows and the release steps are in [`mobile/README.md`](mobile/README.md).
 
-**Web and mobile app.** RefineryLens is an installable web app (PWA): on Android and desktop Chrome or Edge an "Install the RefineryLens app" button appears in the menu; on iPhone and iPad use Safari's Share, then Add to Home Screen. It opens full screen on the trade hub, with shortcuts to prices, the gas network, jobs and the inbox. On phones a bottom tab bar keeps Hub, Prices, Gas map, Jobs and Inbox one tap away. The service worker (`public/sw.js`) always loads pages from the network; offline, it shows the last copy of a page opened on that device, or an offline page. Private pages (inbox, settings, admin, documents, theses, assistant) are never stored, and signing out clears stored pages. Installing needs HTTPS in production.
+**Web and mobile app.** RefineryLens is an installable web app (PWA): on Android and desktop Chrome or Edge an "Install the RefineryLens app" button appears in the menu; on iPhone and iPad use Safari's Share, then Add to Home Screen. It opens full screen on the trade hub, with shortcuts to prices, the gas network, jobs and the inbox. On phones a bottom tab bar keeps Hub, Prices, Gas map, Jobs and Inbox one tap away. The service worker (`public/sw.js`) always loads pages from the network; offline, it shows the last copy of a page opened on that device, or an offline page. Private pages (inbox, settings, admin, orders) are never stored, and signing out clears stored pages. Installing needs HTTPS in production.
 
-Colour system: Atlantic navy (`#0B1530`, the `ink` and `navy` scales in `tailwind.config.ts`) carries structure, Naija green (`brand`) marks actions, links and verified businesses, white is the page, and amber is kept for warnings. A thin green-white-green band is the one flag reference.
+Colour system: Atlantic navy (`#0B1530`, the `ink` and `navy` scales in `tailwind.config.ts`) carries structure, deep blue (`brand`, `#1A47D1`) marks actions, links and verified businesses, amber (`#F5A524`) highlights prices, Plus and calls to action on dark backgrounds, and white is the page. A thin blue-and-amber band and the amber dot on the lens mark are the brand's signatures.
 
 All screens are responsive from phone to desktop widths, keyboard navigable with visible focus and a skip link, and use semantic headings and labels.
 
@@ -203,7 +196,7 @@ All screens are responsive from phone to desktop widths, keyboard navigable with
 
 ## Administration console
 
-Administrators open **Administration** (`/admin`). Every section shares one navigation, grouped by area, with a count on any section that has work waiting. Every tool checks the administrator role on the server (`src/server/admin/guard.ts`), and every change is written to the audit log. Administrators cannot read private files, theses or business conversations.
+Administrators open **Administration** (`/admin`). Every section shares one navigation, grouped by area, with a count on any section that has work waiting. Every tool checks the administrator role on the server (`src/server/admin/guard.ts`), and every change is written to the audit log. Administrators cannot read business conversations.
 
 | Area | Section | What it does |
 | --- | --- | --- |
@@ -218,7 +211,7 @@ Administrators open **Administration** (`/admin`). Every section shares one navi
 | | Price watch | Public medians by state and product, and the week's reports 30% or more from their state median, with a hide button |
 | | Gas orders | All orders with counts by status; stuck orders (no answer in 2 hours, or open over a day); cancel with a reason both sides are told |
 | | Live trips | Drivers sharing location, silent trips, end a trip left running (no exact positions shown) |
-| Money | Payments & plans | Payments in naira and US dollars (Paystack, Paystack USD, Stripe) with status and purpose filters, revenue by month per currency, Business plans ending within 14 days |
+| Money | Payments & plans | Service fees and commission earned, commission owed by sellers, **payouts due to sellers** for orders paid online (mark paid out), payments in naira and US dollars with filters, revenue by month per currency (gas order pass-through left out), Business plans ending within 14 days |
 | | Data customers | Data accounts, recurring revenue in USD and naira at list price, set Enterprise or invoiced terms, rebuild the price index |
 | | Sponsorships | Add labelled sponsorships with placements, states, dates and USD price; pause, resume; views, clicks and click rate |
 | Communication | Broadcast | Count a group (everyone, households, business accounts, sellers, buyers, delivery partners, refineries, home-delivery sellers; optionally one state), then send an in-app alert and push notification. The count is confirmed when sending; links must stay inside RefineryLens; never sent by SMS |
@@ -232,14 +225,12 @@ Administrators open **Administration** (`/admin`). Every section shares one navi
 
 These are enforced in code and covered by tests:
 
-- Only **published** content reaches readers or the assistant. Drafts, including AI drafts, need editor review.
-- Every announcement and metric carries a provenance label: company-disclosed, regulator or exchange, independent report, analyst estimate, user assumption or unverified.
-- Group, refinery and sector figures are never combined without a stated reconciliation; incomparable periods are refused rather than calculated.
-- Conflicts stay visible until an editor resolves them, with the resolution recorded.
-- Corrections and retractions are logged publicly and alert watchers immediately.
-- Evidence suggestions never edit a user's thesis; the user accepts or dismisses them.
-- No share prices, tickers or offer deadlines are shown unless an editor has verified them against a primary source.
-- Opportunities are RefineryLens analysis, never presented as Dangote offers. Their anchors are company-stated facts with page links; their context notes are dated reports with provenance labels. The catalogue states no opportunity sizes; sizing tools start empty, label example numbers as placeholders, prefill market data only from approved open-data series with attribution, and refuse inconsistent inputs. Saved scenarios store inputs only and are recalculated on display.
+- A public price appears only once at least three different people (or sellers) have reported it, as a median; one report never shows on its own.
+- Demo data is labelled as demo wherever it appears, including dollar amounts at a demo exchange rate.
+- Gas orders go only to verified sellers; the customer's address and phone go only to that seller.
+- Online payment is possible only after the seller confirms the price; the seller is told not to collect cash; money changes nothing until the provider confirms the full amount.
+- Fees and commission are shown before anyone pays, on the landing page, the order page and the seller's orders page.
+- Market data appears only from sources an administrator has approved, with attribution.
 
 ---
 
@@ -257,7 +248,7 @@ npm run test:e2e
 PLAYWRIGHT_CHROMIUM_PATH=/path/to/chromium npm run test:e2e
 ```
 
-Current results: **59 unit and integration tests** and **10 browser tests** (desktop and mobile) passing. They cover calculations and comparability, upload validation and extraction, permissions, the publication and correction workflow (including an editor publishing and correcting in the browser, and the update reaching a reader's thesis), alerts, email delivery and digests, S3 storage, private-file isolation (database, assistant and HTTP), assistant citations and insufficient-evidence handling, honest unavailable states for Dangote, and no horizontal scrolling on mobile.
+They cover prices and medians, moderation, gas orders and tracking, online payments, fees, commission, payouts and Plus, the trade hub, the data API and USD checkout, alerts, email and text delivery, S3 storage, permissions, and no horizontal scrolling on mobile.
 
 ---
 
@@ -267,9 +258,9 @@ Current results: **59 unit and integration tests** and **10 browser tests** (des
 2. `npm ci && npm run db:migrate && npm run build`.
 3. Do **not** run the seed. Create the first administrator by registering and then promoting the account in the database (`UPDATE "User" SET role='ADMIN' WHERE email='…'`).
 4. Run `npm start` behind HTTPS, and `npm run worker` as a second process with `INLINE_JOBS=false`.
-5. Put `STORAGE_DIR` on persistent, backed-up storage, or set `STORAGE_DRIVER=s3` with a private bucket.
 6. To email alerts, set `EMAIL_PROVIDER=smtp`, `SMTP_URL` and `EMAIL_FROM`.
-7. Before publishing third-party content, confirm the licence for each source in the editorial desk.
+6. Before approving an open-data source under Health & jobs, confirm its licence.
+7. Pay sellers for online orders from Administration → Payments, and mark each one paid out.
 
 ---
 
@@ -279,19 +270,18 @@ Current results: **59 unit and integration tests** and **10 browser tests** (des
 prisma/
   schema.prisma          data model
   migrations/            SQL migrations
-  seed.ts                demo users, theses, watchlists, private uploads
-  seed-dangote.ts        Dangote website facts (drafts awaiting review)
-  seed-demo.ts           fictional demo company and generated PDFs
+  seed.ts                demo users and data (hub, everyday, revenue, exchange rate)
 scripts/worker.ts        background job worker
 scripts/ingest.ts        one-off open-data refresh
 src/
   app/                   routes: (auth), (app) screens, actions/, api/
   components/            UI components
-  lib/                   permissions, calculations, labels, formatting, plans
-  server/                auth, storage (local, S3), email, extraction, jobs, integrations
-    services/            announcements, metrics, documents, thesis, alerts, users, market
+  lib/                   permissions, money rules, labels, formatting, plans
+  server/                auth, storage (local, S3), email, jobs, integrations, fx
+    everyday/            prices, stations, gas orders, cylinders, money (payments, ledger, payouts)
+    hub/                 trade hub
+    services/            alerts, users, account, market
     opendata/            open-data catalogue, provider adapters, ingestion, read API
-    assistant/           retrieval, intent classification, answer composition
 tests/
   unit/  integration/    Vitest
   e2e/                   Playwright

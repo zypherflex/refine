@@ -5,7 +5,7 @@ import type { ContextScope, Provenance } from "@prisma/client";
  * Licence notes are written to the Source record so editors see them before approving the source.
  * Everything here is sector or country context. None of it is a company figure.
  */
-export type ProviderId = "eia" | "worldbank" | "exchangerate-api" | "climate-trace" | "gdelt";
+export type ProviderId = "eia" | "worldbank" | "exchangerate-api" | "climate-trace";
 
 export type ProviderDef = {
   id: ProviderId;
@@ -62,16 +62,6 @@ export const PROVIDERS: Record<ProviderId, ProviderDef> = {
     licenseNotes: "CC BY 4.0, commercial use allowed with attribution to Climate TRACE and a note of any changes. Capacities and emissions are modelled estimates from satellite and public data, not company disclosures. No key required.",
     attribution: "Refinery inventory and emissions estimates: Climate TRACE (CC BY 4.0)",
     attributionUrl: "https://climatetrace.org/terms",
-  },
-  gdelt: {
-    id: "gdelt",
-    name: "GDELT DOC 2.0 news search",
-    publisher: "The GDELT Project",
-    homepageUrl: "https://www.gdeltproject.org/",
-    provenance: "INDEPENDENT_REPORT",
-    licenseNotes: "Free for commercial use with a citation of the GDELT Project and a link to gdeltproject.org. Only headline, link, outlet and date are stored; article text is never copied. Leads are for editors and are not shown to readers.",
-    attribution: "News discovery by the GDELT Project",
-    attributionUrl: "https://www.gdeltproject.org/",
   },
 };
 

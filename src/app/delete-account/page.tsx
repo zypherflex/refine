@@ -16,9 +16,9 @@ export default function DeleteAccountInfoPage() {
       </ul>
       <p>If you cannot sign in, <SupportContact /> from the email address on your account and we will delete it for you.</p>
       <h2>What is deleted</h2>
-      <p>Your account, private files, theses, alerts, your trade hub business with its listings, gas sites, price reports, delivery jobs, quotes, supply agreements and messages, and the phones registered for notifications. Deletion happens straight away and cannot be undone.</p>
+      <p>Your account, alerts, your gas tracker and orders, your trade hub business with its listings, gas sites, price reports, delivery jobs, quotes, supply agreements and messages, and the phones registered for notifications. Deletion happens straight away and cannot be undone.</p>
       <h2>What is kept</h2>
-      <p>Security log entries, without your name, and payment records that Paystack keeps under its own rules. Public research documents stay in the library without your name.</p>
+      <p>Security log entries, without your name, and payment records that Paystack keeps under its own rules.</p>
       <p><Link href="/privacy">Read the privacy policy</Link></p>
     </LegalPage>
   );
