@@ -15,10 +15,10 @@ function initials(name: string) {
 function UserCard({ user }: { user: CurrentUser }) {
   return (
     <div className="flex items-center gap-3">
-      <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-500/15 text-xs font-semibold text-brand-300 ring-1 ring-inset ring-brand-400/30">{initials(user.name)}</span>
+      <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700 ring-1 ring-inset ring-brand-200">{initials(user.name)}</span>
       <div className="min-w-0 text-xs">
-        <p className="truncate font-medium text-white">{user.name}</p>
-        <p className="truncate capitalize text-ink-300">{user.role.toLowerCase()} · {user.plan.toLowerCase()} plan</p>
+        <p className="truncate font-medium text-ink-950">{user.name}</p>
+        <p className="truncate capitalize text-ink-500">{user.role.toLowerCase()} · {user.plan.toLowerCase()} plan</p>
       </div>
     </div>
   );
@@ -84,14 +84,14 @@ export function Shell({ user, children, companies, current, unread, company }: {
   return (
     <div className="min-h-screen lg:flex">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2">Skip to content</a>
-      <div className="hidden w-[17rem] shrink-0 bg-ink-950 lg:block">
-      <aside className="relative sticky top-0 flex h-screen flex-col text-ink-200">
+      <div className="hidden w-[17rem] shrink-0 border-r border-brand-100 bg-white lg:block">
+      <aside className="relative sticky top-0 flex h-screen flex-col text-ink-700">
         <div aria-hidden className="band-ng h-[3px] w-full" />
-        <div className="relative px-5 pb-4 pt-5"><Link href="/dashboard" className="no-underline hover:no-underline"><Logo light /></Link></div>
+        <div className="relative px-5 pb-4 pt-5"><Link href="/dashboard" className="no-underline hover:no-underline"><Logo /></Link></div>
         <nav aria-label="Main" className="relative flex-1 overflow-y-auto px-3 pb-4"><NavLinks groups={groups} /></nav>
-        <div className="relative border-t border-white/5 px-5 py-4">
+        <div className="relative border-t border-brand-100 px-5 py-4">
           <UserCard user={user} />
-          <form action={logoutAction} className="mt-3"><button className="text-xs font-medium text-ink-300 transition hover:text-white">Sign out</button></form>
+          <form action={logoutAction} className="mt-3"><button className="text-xs font-medium text-ink-500 transition hover:text-brand-700">Sign out</button></form>
         </div>
       </aside>
       </div>
@@ -105,10 +105,10 @@ export function Shell({ user, children, companies, current, unread, company }: {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden><path d="M4 7h16M4 12h16M4 17h16" /></svg>
                   Menu
                 </summary>
-                <div className="absolute left-0 z-40 mt-2 max-h-[78vh] w-[18rem] overflow-y-auto rounded-xl bg-ink-950 p-3 shadow-lift ring-1 ring-white/10">
+                <div className="absolute left-0 z-40 mt-2 max-h-[78vh] w-[18rem] overflow-y-auto rounded-xl bg-white p-3 shadow-lift ring-1 ring-brand-100">
                   <nav aria-label="Main"><NavLinks groups={groups} /></nav>
-                  <div className="mt-2 border-t border-white/10 px-2 pt-3"><UserCard user={user} />
-                    <form action={logoutAction} className="mt-2"><button className="text-xs font-medium text-ink-300">Sign out</button></form>
+                  <div className="mt-2 border-t border-brand-100 px-2 pt-3"><UserCard user={user} />
+                    <form action={logoutAction} className="mt-2"><button className="text-xs font-medium text-ink-500">Sign out</button></form>
                   </div>
                 </div>
               </details>

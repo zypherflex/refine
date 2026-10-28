@@ -26,12 +26,12 @@ export function ScaleTiles({ facts, dark = false }: { facts: CompanyFact[]; dark
   const tiles = facts.filter((f) => f.figure);
   if (tiles.length === 0) return null;
   return (
-    <ul className={`grid grid-cols-1 gap-px overflow-hidden rounded-2xl min-[420px]:grid-cols-2 lg:grid-cols-4 ${dark ? "bg-white/10 ring-1 ring-white/10" : "bg-ink-100 ring-1 ring-ink-100"}`}>
+    <ul className={`grid grid-cols-1 gap-px overflow-hidden rounded-2xl min-[420px]:grid-cols-2 lg:grid-cols-4 ${dark ? "bg-white/20 ring-1 ring-white/20" : "bg-ink-100 ring-1 ring-ink-100"}`}>
       {tiles.map((f) => (
-        <li key={f.label} className={dark ? "bg-ink-950/60 p-5" : "bg-white p-5"}>
+        <li key={f.label} className={dark ? "bg-white/10 p-5 backdrop-blur-sm" : "bg-white p-5"}>
           <p className={`num font-serif text-3xl font-semibold tracking-tight sm:text-4xl ${dark ? "text-white" : "text-ink-950"}`}>{f.figure}</p>
-          <p className={`mt-1 text-sm ${dark ? "text-ink-200" : "text-ink-600"}`}>{f.unit}</p>
-          <a href={f.sourceUrl} target="_blank" rel="noopener noreferrer nofollow" className={`mt-3 inline-block text-[11px] font-medium ${dark ? "text-brand-300" : "text-brand-700"}`}>
+          <p className={`mt-1 text-sm ${dark ? "text-white/85" : "text-ink-600"}`}>{f.unit}</p>
+          <a href={f.sourceUrl} target="_blank" rel="noopener noreferrer nofollow" className={`mt-3 inline-block text-[11px] font-medium ${dark ? "text-white underline decoration-white/50" : "text-brand-700"}`}>
             Company-stated · source ↗<span className="sr-only"> (opens the company page in a new tab)</span>
           </a>
         </li>

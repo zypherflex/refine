@@ -65,7 +65,7 @@ export default async function HubPage() {
           {TOOLS.map(({ href, icon: Icon, key }) => (
             <li key={href}>
               <Link href={href} className="card-link h-full">
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-ink-950 text-white" aria-hidden><Icon size={17} strokeWidth={1.8} /></span>
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-brand-600 to-sun-500 text-white" aria-hidden><Icon size={17} strokeWidth={1.8} /></span>
                 <p className="mt-3 font-semibold text-ink-950">{t(`tool.${key}.title` as HubKey)}</p>
                 <p className="mt-1 text-sm text-ink-600">{t(`tool.${key}.body` as HubKey)}</p>
               </Link>
