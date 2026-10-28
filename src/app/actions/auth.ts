@@ -48,8 +48,9 @@ export async function registerAction(_: FormState, form: FormData): Promise<Form
     if (e instanceof AppError) return { error: e.message };
     throw e;
   }
-  const next = safeNext(form.get("next"));
-  redirect(personal ? (next === "/hub" ? "/today?welcome=1" : next) : "/hub?welcome=1");
+  // Anyone who signed up on the way somewhere (e.g. "Start free trial" on /data) goes back there.
+  const next = String(form.get("next") ?? "");
+  redirect(next ? safeNext(next) : personal ? "/today?welcome=1" : "/hub?welcome=1");
 }
 
 export async function logoutAction() {

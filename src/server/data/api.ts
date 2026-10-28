@@ -7,6 +7,7 @@ import { EVERYDAY_ITEMS } from "@/lib/everyday";
 import { authenticateKey, meter } from "./accounts";
 import { utcDay } from "./index-builder";
 import type { DataPlan } from "@/lib/data-plans";
+import { fxHistory } from "../fx";
 
 const DAY = 86_400_000;
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}) => NextResponse.json(body, { status, headers: { "Cache-Control": "no-store", ...headers } });
@@ -63,10 +64,27 @@ function filters(plan: DataPlan, q: URLSearchParams) {
   return { where, historyFrom: min };
 }
 
-const shape = (r: { day: Date; state: string; item: string; source: string; median: number; low: number; high: number; reporters: number; includesDemo: boolean }) => ({
-  date: r.day.toISOString().slice(0, 10), state: r.state, item: r.item, unit: priceItem(r.item)?.unit ?? "", source: r.source, currency: "NGN",
-  median: r.median, low: r.low, high: r.high, reporters: r.reporters, ...(r.includesDemo ? { demo: true } : {}),
-});
+type IndexRow = { day: Date; state: string; item: string; source: string; median: number; low: number; high: number; reporters: number; includesDemo: boolean };
+type FxAt = Awaited<ReturnType<typeof fxHistory>>;
+const round = (v: number) => Math.round(v * 10_000) / 10_000;
+
+/** One index row. With currency=USD, adds the same figures in US dollars at the rate for that day (or the last before it). */
+const shape = (r: IndexRow, fx?: FxAt | null) => {
+  const base = {
+    date: r.day.toISOString().slice(0, 10), state: r.state, item: r.item, unit: priceItem(r.item)?.unit ?? "", source: r.source, currency: "NGN",
+    median: r.median, low: r.low, high: r.high, reporters: r.reporters, ...(r.includesDemo ? { demo: true } : {}),
+  };
+  if (!fx) return base;
+  const rate = fx(r.day);
+  return { ...base, usd: rate ? { median: round(r.median / rate.rate), low: round(r.low / rate.rate), high: round(r.high / rate.rate), ngnPerUsd: rate.rate, rateDate: rate.period, ...(rate.demo ? { demo: true } : {}) } : null };
+};
+
+async function fxFor(q: URLSearchParams) {
+  const c = q.get("currency")?.toUpperCase();
+  if (!c || c === "NGN") return null;
+  if (c !== "USD") throw new BadRequest("currency must be NGN or USD.");
+  return fxHistory();
+}
 
 export async function pricesEndpoint(plan: DataPlan, q: URLSearchParams) {
   const { where, historyFrom } = filters(plan, q);
@@ -76,7 +94,8 @@ export async function pricesEndpoint(plan: DataPlan, q: URLSearchParams) {
     db.priceIndexDaily.count({ where }),
     db.priceIndexDaily.findMany({ where, orderBy: [{ day: "desc" }, { state: "asc" }, { item: "asc" }, { source: "asc" }], skip: offset, take: limit }),
   ]);
-  return { data: rows.map(shape), meta: { total, limit, offset, plan: plan.id, historyFrom: historyFrom?.toISOString().slice(0, 10) ?? null } };
+  const fx = await fxFor(q);
+  return { data: rows.map((r) => shape(r, fx)), meta: { total, limit, offset, plan: plan.id, historyFrom: historyFrom?.toISOString().slice(0, 10) ?? null, ...(fx ? { usdRate: "ExchangeRate-API reference rate, not the CBN official rate" } : {}) } };
 }
 
 /** The most recent row for each state, item and source. */
@@ -85,7 +104,8 @@ export async function latestEndpoint(plan: DataPlan, q: URLSearchParams) {
   const rows = await db.priceIndexDaily.findMany({ where, orderBy: { day: "desc" }, take: 5000 });
   const seen = new Map<string, (typeof rows)[number]>();
   for (const r of rows) if (!seen.has(`${r.state}|${r.item}|${r.source}`)) seen.set(`${r.state}|${r.item}|${r.source}`, r);
-  return { data: [...seen.values()].map(shape), meta: { plan: plan.id } };
+  const fx = await fxFor(q);
+  return { data: [...seen.values()].map((r) => shape(r, fx)), meta: { plan: plan.id, ...(fx ? { usdRate: "ExchangeRate-API reference rate, not the CBN official rate" } : {}) } };
 }
 
 /** A daily national figure: the median of the state medians that day, with how many states contributed. */

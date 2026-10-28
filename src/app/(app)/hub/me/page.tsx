@@ -8,7 +8,8 @@ import { closeListingAction, renewListingAction } from "@/app/actions/hub";
 import { isProtectedName, isPubliclyVisible, kindLabel } from "@/lib/hub/catalog";
 import { fmtDate } from "@/lib/format";
 import { BusinessForm, BusinessPlanButton, RequestVerificationForm } from "@/components/hub/forms";
-import { businessPriceKobo, paystackConfigured } from "@/server/connect/paystack";
+import { businessPlanPrice, checkoutAvailable } from "@/server/data/billing";
+import { fmtMoney } from "@/lib/data-plans";
 import { isFeatured } from "@/lib/hub/catalog";
 import { DemoTag, VerificationBadge } from "@/components/hub/parts";
 import { Notice, PageHeader } from "@/components/ui";
@@ -70,8 +71,8 @@ export default async function MyBusinessPage({ searchParams }: { searchParams: P
               </ul>
               {business.verification !== "VERIFIED" ? (
                 <p className="text-xs text-ink-600">Available once RefineryLens has verified your business, so paid placement only goes to checked businesses.</p>
-              ) : paystackConfigured() ? (
-                <BusinessPlanButton label={`${business.planUntil && business.planUntil > new Date() ? "Add 30 days" : "Start"} for ₦${(businessPriceKobo() / 100).toLocaleString("en-GB")}`} />
+              ) : checkoutAvailable(businessPlanPrice(business.state).currency) ? (
+                <BusinessPlanButton label={`${business.planUntil && business.planUntil > new Date() ? "Add 30 days" : "Start"} for ${fmtMoney(businessPlanPrice(business.state).minor, businessPlanPrice(business.state).currency)}`} />
               ) : (
                 <p className="text-xs text-ink-600">Card payments are not set up in this installation yet. Contact RefineryLens to start a plan.</p>
               )}

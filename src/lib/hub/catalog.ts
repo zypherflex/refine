@@ -43,7 +43,7 @@ export const NIGERIAN_STATES = [
   "Osun", "Oyo", "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara",
 ] as const;
 /** Outside Nigeria, for regional trade, import and export. */
-export const OTHER_LOCATIONS = ["Benin", "Cameroon", "Chad", "Ghana", "Niger Republic", "Togo", "Elsewhere in West Africa", "Outside Africa"] as const;
+export const OTHER_LOCATIONS = ["Benin", "Cameroon", "Chad", "Ghana", "Niger Republic", "Togo", "Elsewhere in West Africa", "United States", "Outside Africa"] as const;
 export const LOCATIONS: readonly string[] = [...NIGERIAN_STATES, ...OTHER_LOCATIONS];
 
 /** How long a new listing stays live before its owner must renew it, so stale offers drop off. */

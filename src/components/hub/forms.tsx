@@ -83,8 +83,8 @@ export function BusinessForm({ business }: { business: HubBusiness | null }) {
       )}
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label htmlFor="b-reg" className="label">CAC registration number</label>
-          <input id="b-reg" name="registrationNumber" className="input" maxLength={40} defaultValue={business?.registrationNumber ?? ""} placeholder="e.g. RC 1234567" />
+          <label htmlFor="b-reg" className="label">Company registration number (CAC, or your country's registry)</label>
+          <input id="b-reg" name="registrationNumber" className="input" maxLength={40} defaultValue={business?.registrationNumber ?? ""} placeholder="e.g. RC 1234567, or a US state file number" />
           <p className="hint">Needed for verification. Only RefineryLens administrators see it.</p>
         </div>
         <div>

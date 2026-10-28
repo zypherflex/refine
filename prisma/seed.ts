@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { seedDangote } from "./seed-dangote";
 import { seedDemo } from "./seed-demo";
 import { seedHub } from "./seed-hub";
-import { seedEveryday, seedRevenueDemo } from "./seed-everyday";
+import { seedFxDemo, seedEveryday, seedRevenueDemo } from "./seed-everyday";
 import { createThesis } from "../src/server/services/thesis";
 import { suggestEvidenceForTheses } from "../src/server/services/thesis-matching";
 import { notifyWatchers } from "../src/server/services/alerts";
@@ -30,6 +30,7 @@ async function main() {
   const hub = await seedHub(db, (email, name) => mk(email, name, "USER"), admin.id);
   await seedEveryday(db, (email, name) => mk(email, name, "USER"), { ikejaId: hub.ikeja.id, surulereId: hub.surulere.id });
   await seedRevenueDemo(db, (email, name) => mk(email, name, "USER"));
+  await seedFxDemo(db);
 
   await db.watchlist.create({ data: { userId: investor.id, companyId: demo.company.id, topics: [], frequency: "IMMEDIATE" } });
   await db.watchlist.create({ data: { userId: investor.id, companyId: dangote.id, topics: [], frequency: "DAILY" } });

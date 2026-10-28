@@ -7,10 +7,11 @@ import { myCylinders } from "@/server/everyday/cylinders";
 import { NIGERIAN_STATES } from "@/lib/hub/catalog";
 import { naira, priceItem } from "@/lib/hub/prices";
 import { EVERYDAY_LABEL, FRESH_HOURS, MIN_REPORTERS } from "@/lib/everyday";
-import { fmtDateTime } from "@/lib/format";
+import { fmtDateTime, fmtUsd } from "@/lib/format";
 import { Notice } from "@/components/ui";
 import { ShareButton } from "@/components/native/ShareButton";
 import { setHomeStateAction } from "@/app/actions/everyday";
+import { latestFx } from "@/server/fx";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Today's fuel and gas prices", description: "What people paid for petrol, diesel, cooking gas and CNG in your state in the last three days." };
@@ -21,7 +22,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
   const { state: q, welcome } = await searchParams;
   const user = await getCurrentUser();
   const state = isState(q) ? q : isState(user?.homeState) ? user!.homeState! : "Lagos";
-  const [{ rows, includesDemo }, cylinders] = await Promise.all([todayPrices(state), user ? myCylinders(user) : Promise.resolve([])]);
+  const [{ rows, includesDemo }, cylinders, fx] = await Promise.all([todayPrices(state), user ? myCylinders(user) : Promise.resolve([]), latestFx()]);
   const due = cylinders.find((c) => c.outlook.daysLeft !== null && c.outlook.daysLeft <= 5);
 
   return (
@@ -57,7 +58,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
                 <p className="text-sm font-medium text-ink-700">{EVERYDAY_LABEL[r.item]} <span className="text-xs font-normal text-ink-500">{it.unit}</span></p>
                 {r.people.median !== null ? (
                   <>
-                    <p className="num mt-1 text-3xl font-semibold text-ink-950">{naira(r.people.median)}</p>
+                    <p className="num mt-1 flex items-baseline gap-2 text-3xl font-semibold text-ink-950">{naira(r.people.median)}{fx && <span className="text-sm font-medium text-ink-500">≈ {fmtUsd(r.people.median / fx.value)}</span>}</p>
                     <p className="mt-1 text-xs text-ink-600">{naira(r.people.low!)}–{naira(r.people.high!)} · {r.people.reporters} people · {fmtDateTime(r.people.updated)}</p>
                   </>
                 ) : (
@@ -71,7 +72,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
             );
           })}
         </ul>
-        <p className="mt-2 text-xs text-ink-600">Each figure is the median of the latest price each person reported, shown once at least {MIN_REPORTERS} different people have reported. Not checked by RefineryLens.</p>
+        <p className="mt-2 text-xs text-ink-600">Each figure is the median of the latest price each person reported, shown once at least {MIN_REPORTERS} different people have reported. Not checked by RefineryLens.{fx && <> Dollar amounts use ₦{fx.value.toLocaleString("en-GB", { maximumFractionDigits: 2 })} per US dollar ({fx.demo ? "a demo value" : "ExchangeRate-API reference rate, not the CBN official rate"}, {fx.period}).</>}</p>
       </section>
 
       <section aria-labelledby="do-h" className="mt-8">

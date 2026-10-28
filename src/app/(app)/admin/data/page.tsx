@@ -39,7 +39,8 @@ export default async function AdminData() {
                   <p className="text-xs text-ink-600"><Link href={`/admin/users/${a.user.id}`}>{a.user.name}</Link> ({a.user.email}) · billed in {a.billingCountry} · until {fmtDate(a.paidUntil)} · {a.keys.filter((k) => !k.revokedAt).length} active keys · {a.requests30.toLocaleString("en-GB")} requests in 30 days</p>
                 </div>
                 <details className="text-xs"><summary className="cursor-pointer font-medium text-brand-700">Set plan (after an invoice is paid)…</summary>
-                  <AdminForm action={setDataPlanAction} submit="Set plan" className="mt-2 flex flex-wrap items-end gap-2">
+                  {/* Keyed on the plan so the form shows the new plan after saving, not the one it was opened with. */}
+                  <AdminForm key={`${a.plan}-${a.paidUntil.getTime()}`} action={setDataPlanAction} submit="Set plan" className="mt-2 flex flex-wrap items-end gap-2">
                     <input type="hidden" name="id" value={a.id} />
                     <Field label="Plan"><Select name="plan" value={a.plan} options={dataPlans().map((p) => [p.id, p.name] as const)} all={null} /></Field>
                     <Field label="Days to add"><input name="days" type="number" min={1} max={800} defaultValue={365} className="input w-24 py-1 text-sm" /></Field>

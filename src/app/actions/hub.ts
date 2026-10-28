@@ -12,7 +12,8 @@ import { acceptQuote, cancelJob, confirmDelivered, postJob, submitQuote, withdra
 import { logDelivery, proposeAgreement, respond, reviewDelivery, setStatus } from "@/server/hub/supply";
 import { closeReport, decideVerification, reinstateBusiness, reportBusiness, suspendBusiness } from "@/server/hub/moderation";
 import { AppError } from "@/lib/errors";
-import { BUSINESS_PLAN_DAYS, extendBusinessPlan, startBusinessCheckout } from "@/server/connect/paystack";
+import { BUSINESS_PLAN_DAYS, extendBusinessPlan } from "@/server/connect/paystack";
+import { startBusinessPlanCheckout } from "@/server/data/billing";
 import { audit } from "@/server/audit";
 
 export type ActionState = { error?: string | null; ok?: string | null };
@@ -335,7 +336,7 @@ export async function startBusinessCheckoutAction(): Promise<ActionState> {
   const user = await requireUser();
   let url: string;
   try {
-    url = await startBusinessCheckout(user);
+    url = await startBusinessPlanCheckout(user);
   } catch (e) {
     if (e instanceof AppError) return { error: e.message };
     console.error("business checkout", e);

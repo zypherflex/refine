@@ -102,3 +102,27 @@ export async function seedRevenueDemo(db: PrismaClient, mk: (email: string, name
     },
   });
 }
+
+/**
+ * A sample naira exchange rate for the dollar amounts, because a fresh installation has not fetched the real feed yet.
+ * It comes from a source named as demo data and is marked with requestUrl "demo-seed", which every page labels.
+ * The worker's real exchange-rate data replaces it over time.
+ */
+export async function seedFxDemo(db: PrismaClient) {
+  const { SERIES } = await import("../src/server/opendata/catalog");
+  const source = await db.source.create({ data: { name: "Demo market data (sample values, not real)", publisher: "RefineryLens demo seed", provenance: "UNVERIFIED", approved: true, licenseNotes: "Sample values for a demo installation." } });
+  const values: Record<string, number> = { "fx.usd_ngn": 1480 };
+  for (const [key, base] of Object.entries(values)) {
+    const def = SERIES.find((s) => s.key === key)!;
+    const series = await db.marketSeries.create({
+      data: { key, provider: def.provider, externalId: def.externalId, label: def.label, description: def.description, unit: def.unit, frequency: def.frequency, contextScope: def.contextScope, geography: def.geography, sourceId: source.id, sourcePageUrl: def.sourcePageUrl, attribution: "Demo values", lastRetrievedAt: new Date() },
+    });
+    await db.marketObservation.createMany({
+      data: Array.from({ length: 14 }, (_, i) => {
+        const d = new Date(Date.now() - (13 - i) * DAY);
+        const day = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+        return { seriesId: series.id, period: day.toISOString().slice(0, 10), periodStart: day, periodEnd: day, value: +(base * (1 + Math.sin(i / 2) * 0.01)).toFixed(4), retrievedAt: new Date(), requestUrl: "demo-seed" };
+      }),
+    });
+  }
+}

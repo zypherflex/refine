@@ -19,7 +19,7 @@ export default async function HubModerationPage() {
       <PageHeader eyebrow="Administration" title="Trade hub moderation" subtitle="Check registration and licence details before verifying, and act on reports. Administrators cannot read conversations between businesses." />
       <section aria-labelledby="q-h" className="mb-8">
         <h2 id="q-h" className="h-section">Verification requests ({queue.length})</h2>
-        <p className="muted">Check the CAC number on the CAC public search and each licence with the issuing regulator (e.g. NMDPRA) before verifying. The badge tells users these details were checked; it is not a guarantee.</p>
+        <p className="muted">Check the CAC number on the CAC public search and each licence with the issuing regulator (e.g. NMDPRA) before verifying. For an international supplier, check its registration in its own country instead: for a US company, the Secretary of State business search of the state it was formed in. The badge tells users these details were checked; it is not a guarantee.</p>
         {queue.length === 0 ? (
           <EmptyState title="Nothing waiting" />
         ) : (

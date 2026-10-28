@@ -602,3 +602,18 @@ test("sponsored placement is labelled, and admins see data customers and sponsor
   await expect(page.getByText("Demo CNG Conversions (demo)")).toBeVisible();
   await expect(page.getByText(/views · \d+ clicks/).first()).toBeVisible();
 });
+
+test("a business that signs up from the data page goes back to it and can start a trial", async ({ page }) => {
+  await page.context().clearCookies();
+  await page.goto("/register?next=/account/data&for=business");
+  await page.getByLabel("Name").fill("Lena Keller");
+  await page.getByLabel("Email").fill(`trial-${Date.now()}-${Math.random().toString(36).slice(2, 6)}@example.com`);
+  await page.getByLabel("Password").fill("geneva-trading-2026");
+  await page.getByLabel("My business").check();
+  await Promise.all([page.waitForURL(/\/account\/data/), page.getByRole("button", { name: "Create free account" }).click()]);
+  await page.getByLabel("Organisation").fill("Geneva Trading SA");
+  await page.getByLabel("Billing country").selectOption("CH");
+  await page.getByRole("button", { name: "Start 14-day free trial" }).click();
+  await expect(page.getByText("Plans · prices in US dollars")).toBeVisible();
+  await expect(page.getByText("Billing: Switzerland (USD)")).toBeVisible();
+});

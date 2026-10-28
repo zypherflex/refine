@@ -10,8 +10,8 @@ const Code = ({ children }: { children: string }) => <pre className="mt-2 overfl
 export default function Docs() {
   const endpoints: [string, string, string][] = [
     ["GET /api/v1/meta", "Products, states and the two sources, with how each is calculated.", ""],
-    ["GET /api/v1/latest", "The most recent figure for every state, product and source.", "item, state, source"],
-    ["GET /api/v1/prices", "Daily history, newest first, up to 1,000 rows a page.", "item, state, source, from, to (YYYY-MM-DD), limit, offset"],
+    ["GET /api/v1/latest", "The most recent figure for every state, product and source.", "item, state, source, currency"],
+    ["GET /api/v1/prices", "Daily history, newest first, up to 1,000 rows a page.", "item, state, source, from, to (YYYY-MM-DD), limit, offset, currency"],
     ["GET /api/v1/national", "A daily national figure: the median of the state medians, with how many states contributed.", "item (required), source, from, to"],
   ];
   return (
@@ -34,6 +34,7 @@ export default function Docs() {
         <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-ink-700">
           <li><code>median</code>, <code>low</code>, <code>high</code>: naira, in the product&apos;s <code>unit</code> (per litre, per kg, per refill, per scm).</li>
           <li><code>reporters</code>: distinct people or sellers behind the figure.</li>
+          <li>With <code>currency=USD</code>, each row also carries <code>usd</code>: the median, low and high in US dollars at that day&apos;s naira rate (or the last rate before it), with <code>ngnPerUsd</code> and <code>rateDate</code>. The rate is the ExchangeRate-API reference rate, not the CBN official rate; <code>usd</code> is null when no rate is loaded.</li>
           <li><code>demo: true</code>: the figure includes demonstration data and is not market data. Production data never carries it.</li>
         </ul>
       </section>

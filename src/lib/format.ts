@@ -30,6 +30,8 @@ export function fmtMoney(value: number, currency: string | null | undefined, sca
   return `${currency ? currency + " " : ""}${fmtNumber(value)}${s}`;
 }
 
+export const fmtUsd = (v: number, digits = 2) => `$${v.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
+
 export function daysBetween(a: Date, b: Date): number {
   return Math.round((b.getTime() - a.getTime()) / 86_400_000);
 }

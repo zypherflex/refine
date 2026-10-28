@@ -29,12 +29,15 @@ function SeriesCard({ def, s, staff, available, reason }: { def: SeriesDef; s?: 
   const provider = PROVIDERS[def.provider];
   const pts = s ? points(s) : [];
   const last = pts[pts.length - 1];
+  // Values written by the demo seed are never credited to the real publisher.
+  const demo = !!s?.source.name.startsWith("Demo market data");
   return (
     <section className="card" aria-labelledby={`h-${def.key}`}>
       <div className="flex flex-wrap items-center gap-1.5">
         <Pill className="bg-ink-100 text-ink-800">{def.geography}</Pill>
         <Pill className="bg-ink-50 text-ink-700 ring-1 ring-inset ring-ink-100">{def.frequency.toLowerCase()}</Pill>
         {s && <ProvenanceBadge p={s.source.provenance} />}
+        {demo && <Pill className="bg-amber-100 text-amber-800">Demo values, not real data</Pill>}
         {s && !s.source.approved && <Pill className="bg-amber-100 text-amber-800">Source awaiting editorial approval: hidden from readers</Pill>}
       </div>
       <h3 id={`h-${def.key}`} className="mt-2 font-semibold text-ink-950">{def.label}</h3>
@@ -43,9 +46,13 @@ function SeriesCard({ def, s, staff, available, reason }: { def: SeriesDef; s?: 
         <>
           <p className="mt-3 flex flex-wrap items-baseline gap-x-3"><span className="num text-2xl font-semibold tracking-tight text-ink-950">{fmtValue(last.value, def.unit)}</span><span className="text-xs text-ink-700">{last.period}</span><Change pts={pts} unit={def.unit} /></p>
           <MarketChart title={def.label} unit={def.unit} points={pts} />
-          <p className="mt-2 text-xs text-ink-700">
-            <SourceLink href={s!.sourcePageUrl || provider.homepageUrl}>{provider.publisher}</SourceLink> · retrieved {fmtDateTime(s!.lastRetrievedAt)} · <a href={provider.attributionUrl} target="_blank" rel="noopener noreferrer">{provider.attribution}</a>
-          </p>
+          {demo ? (
+            <p className="mt-2 text-xs text-amber-800">Sample values written by the demo seed, not published by {provider.publisher}. Real values replace them once the feed runs.</p>
+          ) : (
+            <p className="mt-2 text-xs text-ink-700">
+              <SourceLink href={s!.sourcePageUrl || provider.homepageUrl}>{provider.publisher}</SourceLink> · retrieved {fmtDateTime(s!.lastRetrievedAt)} · <a href={provider.attributionUrl} target="_blank" rel="noopener noreferrer">{provider.attribution}</a>
+            </p>
+          )}
           {staff && s!.lastError && <p className="mt-1 text-xs text-risk-800">Last refresh failed: {s!.lastError}</p>}
         </>
       ) : (
