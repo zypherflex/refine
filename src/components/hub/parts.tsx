@@ -7,7 +7,7 @@ import { Pill } from "../ui";
 const verificationStyle: Record<HubVerification, string> = {
   UNVERIFIED: "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/40",
   PENDING_REVIEW: "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/40",
-  VERIFIED: "bg-teal-600 text-white",
+  VERIFIED: "bg-brand-600 text-white",
   SUSPENDED: "bg-risk-100 text-risk-800",
 };
 
@@ -34,7 +34,7 @@ export function RolePills({ roles }: { roles: string[] }) {
   return <>{roles.map((r) => <Pill key={r} className="bg-navy-50 text-navy-700 ring-1 ring-inset ring-navy-100">{roleLabel(r)}</Pill>)}</>;
 }
 
-const kindStyle = { OFFER: "bg-teal-100 text-teal-800", REQUEST: "bg-navy-900 text-white", DELIVERY: "bg-amber-100 text-amber-900" } as const;
+const kindStyle = { OFFER: "bg-brand-100 text-brand-800", REQUEST: "bg-sun-100 text-sun-700", DELIVERY: "bg-amber-100 text-amber-900" } as const;
 
 export function KindPill({ kind }: { kind: HubListing["kind"] }) {
   return <Pill className={kindStyle[kind]}>{kindLabel(kind)}</Pill>;

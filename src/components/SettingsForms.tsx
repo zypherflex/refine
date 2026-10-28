@@ -9,7 +9,7 @@ export function ProfileForm({ name }: { name: string }) {
     <form action={a} className="flex flex-wrap items-end gap-2">
       <div className="flex-1"><label className="label" htmlFor="name">Name</label><input id="name" name="name" defaultValue={name} className="input" /></div>
       <button className="btn-primary" disabled={p}>Save</button>
-      <div className="w-full"><FieldError message={s.error} />{s.ok && <p className="text-sm text-teal-800" role="status">{s.ok}</p>}</div>
+      <div className="w-full"><FieldError message={s.error} />{s.ok && <p className="text-sm text-brand-800" role="status">{s.ok}</p>}</div>
     </form>
   );
 }

@@ -35,7 +35,7 @@ export function LinkEvidenceForm({ announcementId, theses }: { announcementId: s
       </div>
       <div className="sm:col-span-2">
         <FieldError message={state.error} />
-        {state.ok && <p className="text-sm text-teal-800" role="status">{state.ok}</p>}
+        {state.ok && <p className="text-sm text-brand-800" role="status">{state.ok}</p>}
         <button className="btn-primary mt-1" disabled={pending}>Add as evidence</button>
       </div>
     </form>
@@ -102,7 +102,7 @@ export function ThesisEditor({ initial, companies, topics, metricOptions }: { in
               <input id={`as-${i}`} className="input" value={a.statement} placeholder="e.g. Improved utilization should support operating cash flow." onChange={(e) => upd({ assumptions: t.assumptions.map((x, j) => (j === i ? { ...x, statement: e.target.value } : x)) })} />
               <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label={`Topics for assumption ${i + 1}`}>
                 {topics.map((tp) => (
-                  <label key={tp.value} className={`cursor-pointer rounded-full border px-2 py-0.5 text-xs ${a.topics.includes(tp.value) ? "border-teal-700 bg-teal-50 text-teal-800" : "border-navy-100"}`}>
+                  <label key={tp.value} className={`cursor-pointer rounded-full border px-2 py-0.5 text-xs ${a.topics.includes(tp.value) ? "border-brand-700 bg-brand-50 text-brand-800" : "border-navy-100"}`}>
                     <input type="checkbox" className="sr-only" checked={a.topics.includes(tp.value)} onChange={(e) => upd({ assumptions: t.assumptions.map((x, j) => (j === i ? { ...x, topics: e.target.checked ? [...x.topics, tp.value] : x.topics.filter((y) => y !== tp.value) } : x)) })} />
                     {tp.label}
                   </label>

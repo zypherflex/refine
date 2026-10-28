@@ -26,7 +26,7 @@ export default async function EditorialPage() {
       <PageHeader eyebrow="Editorial desk" title="Editorial dashboard" subtitle={`Signed in as ${user.role.toLowerCase()}. ${can.publish(user) ? "You can review, publish and correct." : "You can draft and submit for review; an editor publishes."}`} />
       <EditorialNav />
       <ol className="mb-6 grid gap-2 sm:grid-cols-3 lg:grid-cols-6" aria-label="Editorial workflow">
-        {steps.map(([t, d], i) => <li key={t} className="rounded-xl border border-navy-100 bg-white p-3 text-xs shadow-card"><p className="num font-serif text-sm font-semibold text-teal-700">0{i + 1}</p><p className="mt-1 font-semibold text-navy-950">{t}</p><p className="mt-0.5 leading-relaxed text-navy-600">{d}</p></li>)}
+        {steps.map(([t, d], i) => <li key={t} className="rounded-xl border border-navy-100 bg-white p-3 text-xs shadow-card"><p className="num font-serif text-sm font-semibold text-brand-700">0{i + 1}</p><p className="mt-1 font-semibold text-navy-950">{t}</p><p className="mt-0.5 leading-relaxed text-navy-600">{d}</p></li>)}
       </ol>
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Link href="/editorial/documents" className="card-link"><p className="num text-3xl font-semibold tracking-tight text-navy-950">{docs}</p><p className="mt-1 text-sm text-navy-600">documents to review</p></Link>

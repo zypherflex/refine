@@ -60,7 +60,7 @@ export default async function AdminPage() {
         <aside className="space-y-6">
           <section className="card">
             <h2 className="h-section">Integrations</h2>
-            <ul className="mt-2 space-y-1 text-sm">{integrations.map(([n, ok]) => <li key={n} className="flex justify-between gap-2"><span>{n}</span><Pill className={ok ? "bg-teal-100 text-teal-800" : "bg-navy-100 text-navy-800"}>{ok ? "Working" : "Not configured"}</Pill></li>)}</ul>
+            <ul className="mt-2 space-y-1 text-sm">{integrations.map(([n, ok]) => <li key={n} className="flex justify-between gap-2"><span>{n}</span><Pill className={ok ? "bg-brand-100 text-brand-800" : "bg-navy-100 text-navy-800"}>{ok ? "Working" : "Not configured"}</Pill></li>)}</ul>
           </section>
           <section className="card">
             <h2 className="h-section">Background jobs</h2>

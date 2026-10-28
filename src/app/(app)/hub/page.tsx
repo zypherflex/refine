@@ -53,7 +53,7 @@ export default async function HubPage({ searchParams }: { searchParams: Search }
 
       <nav aria-label="Listing type" className="mb-4 flex flex-wrap gap-2">
         {[null, ...LISTING_KINDS.map((k) => k.id)].map((k) => (
-          <Link key={k ?? "all"} href={qs(k)} aria-current={kind === k ? "page" : undefined} className={`rounded-full px-3 py-1.5 text-sm font-medium no-underline hover:no-underline ${kind === k ? "bg-navy-950 text-white" : "bg-white text-navy-800 ring-1 ring-inset ring-navy-100 hover:bg-navy-50"}`}>
+          <Link key={k ?? "all"} href={qs(k)} aria-current={kind === k ? "page" : undefined} className={`rounded-full px-3 py-1.5 text-sm font-medium no-underline hover:no-underline ${kind === k ? "bg-brand-600 text-white shadow-sm shadow-brand-600/25" : "bg-white text-navy-800 ring-1 ring-inset ring-navy-100 hover:bg-navy-50"}`}>
             {k ? kindLabel(k) : "All listings"}
           </Link>
         ))}

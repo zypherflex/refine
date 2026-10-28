@@ -57,7 +57,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
               <li key={d.id} className="card">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <ProvenanceBadge p={d.provenance} />
-                  <Pill className={d.status === "APPROVED" ? "bg-teal-100 text-teal-800" : "bg-amber-100 text-amber-800"}>{d.status === "APPROVED" ? "Approved source" : `${d.status.toLowerCase()} (staff only)`}</Pill>
+                  <Pill className={d.status === "APPROVED" ? "bg-brand-100 text-brand-800" : "bg-amber-100 text-amber-800"}>{d.status === "APPROVED" ? "Approved source" : `${d.status.toLowerCase()} (staff only)`}</Pill>
                   {d.isFictional && <FictionTag />}
                 </div>
                 <p className="mt-1 font-medium"><Link href={`/documents/${d.id}`} className="text-navy-950">{d.title}</Link></p>

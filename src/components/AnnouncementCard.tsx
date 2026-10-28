@@ -31,7 +31,7 @@ export function AnnouncementCard({ a, compact = false }: { a: A; compact?: boole
       {!compact && (
         <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-teal-800">Why it could matter</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-800">Why it could matter</p>
             <p className="mt-0.5">{a.whyItMatters}</p>
           </div>
           <div>

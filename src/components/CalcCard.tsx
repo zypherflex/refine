@@ -3,8 +3,8 @@ import { fmtNumber } from "@/lib/format";
 
 export function CalcCard({ name, result, plain }: { name: string; result: CalcResult; plain?: string }) {
   return (
-    <div className={`rounded-md border p-3 text-sm ${result.ok ? "border-teal-600/30 bg-white" : "border-dashed border-navy-600/30 bg-navy-50/50"}`}>
-      <p className="text-xs font-semibold uppercase tracking-wide text-teal-800">Calculated by RefineryLens</p>
+    <div className={`rounded-md border p-3 text-sm ${result.ok ? "border-brand-600/30 bg-white" : "border-dashed border-navy-600/30 bg-navy-50/50"}`}>
+      <p className="text-xs font-semibold uppercase tracking-wide text-brand-800">Calculated by RefineryLens</p>
       <p className="mt-0.5 font-medium">{name}</p>
       {result.ok ? (
         <>

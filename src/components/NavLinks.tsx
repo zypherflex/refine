@@ -40,7 +40,7 @@ export function NavLinks({ groups }: { groups: NavGroup[] }) {
     <div className="space-y-5">
       {groups.map((g, gi) => (
         <div key={g.label || gi}>
-          {g.label && <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-eyebrow text-navy-500">{g.label}</p>}
+          {g.label && <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-eyebrow text-sun-700">{g.label}</p>}
           <ul className="space-y-0.5">
             {g.items.map((i) => {
               const active = i.href === best;
@@ -50,12 +50,12 @@ export function NavLinks({ groups }: { groups: NavGroup[] }) {
                   <Link
                     href={i.href}
                     aria-current={active ? "page" : undefined}
-                    className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium no-underline transition hover:no-underline ${active ? "bg-white/[0.08] text-white" : "text-navy-300 hover:bg-white/[0.04] hover:text-white"}`}
+                    className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium no-underline transition hover:no-underline ${active ? "bg-brand-50 text-brand-800" : "text-navy-700 hover:bg-brand-50/60 hover:text-brand-800"}`}
                   >
-                    {active && <span aria-hidden className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-teal-400" />}
-                    <Icon aria-hidden size={16} strokeWidth={1.8} className={active ? "text-teal-400" : "text-navy-500 group-hover:text-navy-200"} />
+                    {active && <span aria-hidden className="absolute inset-y-1.5 left-0 w-1 rounded-full bg-gradient-to-b from-brand-500 to-sun-500" />}
+                    <Icon aria-hidden size={16} strokeWidth={1.8} className={active ? "text-brand-600" : "text-navy-400 group-hover:text-brand-600"} />
                     <span className="flex-1">{i.label}</span>
-                    {!!i.badge && <span className="num rounded-full bg-teal-500 px-1.5 py-px text-[10px] font-semibold text-navy-950" aria-label={`${i.badge} unread`}>{i.badge}</span>}
+                    {!!i.badge && <span className="num rounded-full bg-sun-500 px-1.5 py-px text-[10px] font-semibold text-white" aria-label={`${i.badge} unread`}>{i.badge}</span>}
                   </Link>
                 </li>
               );

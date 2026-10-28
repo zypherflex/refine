@@ -40,7 +40,7 @@ export default async function AnnouncementPage({ params }: { params: Promise<{ i
       <section className="card mt-4 space-y-4">
         <div><h2 className="text-sm font-semibold uppercase tracking-wide text-navy-700">Summary</h2><p className="mt-1">{a.summary}</p></div>
         {a.whatChanged && <div><h2 className="text-sm font-semibold uppercase tracking-wide text-navy-700">What changed</h2><p className="mt-1">{a.whatChanged}</p></div>}
-        <div><h2 className="text-sm font-semibold uppercase tracking-wide text-teal-800">Why it could matter to investors</h2><p className="mt-1">{a.whyItMatters}</p><p className="hint">Interpretation, not a disclosed fact or a recommendation.</p></div>
+        <div><h2 className="text-sm font-semibold uppercase tracking-wide text-brand-800">Why it could matter to investors</h2><p className="mt-1">{a.whyItMatters}</p><p className="hint">Interpretation, not a disclosed fact or a recommendation.</p></div>
         <div><h2 className="text-sm font-semibold uppercase tracking-wide text-amber-800">Important uncertainties</h2><p className="mt-1">{a.uncertainties}</p></div>
         {a.alternativeExplanations && <div><h2 className="text-sm font-semibold uppercase tracking-wide text-navy-700">Alternative explanations</h2><p className="mt-1">{a.alternativeExplanations}</p></div>}
         {a.openQuestions && <div><h2 className="text-sm font-semibold uppercase tracking-wide text-navy-700">Questions to investigate next</h2><p className="mt-1">{a.openQuestions}</p></div>}
@@ -51,7 +51,7 @@ export default async function AnnouncementPage({ params }: { params: Promise<{ i
         <h2 className="h-section">Supporting evidence</h2>
         <ul className="mt-2 space-y-3">
           {a.excerpts.map((e) => (
-            <li key={e.id} className="border-l-4 border-teal-600 pl-3 text-sm">
+            <li key={e.id} className="border-l-4 border-brand-600 pl-3 text-sm">
               <blockquote className="italic">“{e.quote}”</blockquote>
               {e.document ? <SourceLink href={`/documents/${e.document.id}?page=${e.page ?? 1}`}>{e.document.title}{e.page ? `, page ${e.page}` : ""}</SourceLink> : <span className="text-xs text-navy-700">Excerpt from the original source (no stored document)</span>}
             </li>

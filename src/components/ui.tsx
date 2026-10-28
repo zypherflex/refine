@@ -4,7 +4,7 @@ import { provenanceHelp, provenanceLabel, statusLabel, levelLabel } from "@/lib/
 
 const provStyle: Record<Provenance, string> = {
   COMPANY_DISCLOSED: "bg-navy-100 text-navy-900",
-  REGULATOR_EXCHANGE: "bg-teal-100 text-teal-800",
+  REGULATOR_EXCHANGE: "bg-brand-100 text-brand-800",
   INDEPENDENT_REPORT: "bg-white text-navy-800 ring-1 ring-inset ring-navy-600/30",
   ANALYST_ESTIMATE: "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/40",
   USER_ASSUMPTION: "bg-navy-50 text-navy-800 ring-1 ring-dashed ring-navy-600/40",
@@ -31,7 +31,7 @@ export function StatusBadge({ s }: { s: PublicationStatus }) {
   const style: Record<PublicationStatus, string> = {
     DRAFT: "bg-navy-100 text-navy-800",
     IN_REVIEW: "bg-amber-100 text-amber-800",
-    PUBLISHED: "bg-teal-100 text-teal-800",
+    PUBLISHED: "bg-brand-100 text-brand-800",
     RETRACTED: "bg-risk-100 text-risk-800",
     SUPERSEDED: "bg-navy-100 text-navy-700 line-through decoration-1",
   };
@@ -55,7 +55,7 @@ export function Explainer({ title = "Technical detail", children }: { title?: st
   return (
     <details className="group mt-2 rounded-lg border border-navy-100 bg-navy-50/70 text-sm">
       <summary className="flex items-center gap-2 px-3 py-2 font-medium text-navy-800 hover:text-navy-950">
-        <span aria-hidden className="text-teal-700 transition-transform group-open:rotate-90">›</span>
+        <span aria-hidden className="text-brand-700 transition-transform group-open:rotate-90">›</span>
         {title}
       </summary>
       <div className="space-y-2 border-t border-navy-100 px-3 pb-3 pt-2 text-navy-800">{children}</div>
@@ -90,7 +90,7 @@ export function Notice({ tone = "info", title, children }: { tone?: "info" | "wa
     info: "border-navy-100 bg-white before:bg-navy-300",
     warn: "border-amber-600/25 bg-amber-50 before:bg-amber-600",
     risk: "border-risk-600/25 bg-risk-50 before:bg-risk-600",
-    ok: "border-teal-600/25 bg-teal-50 before:bg-teal-600",
+    ok: "border-brand-600/25 bg-brand-50 before:bg-brand-600",
   }[tone];
   return (
     <div className={`relative overflow-hidden rounded-xl border py-3 pl-4 pr-4 text-sm shadow-card before:absolute before:inset-y-0 before:left-0 before:w-1 ${style}`} role={tone === "risk" ? "alert" : "status"}>

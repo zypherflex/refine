@@ -18,7 +18,7 @@ function Status({ state }: { state: { error?: string | null; ok?: string | null 
   return (
     <>
       <FieldError message={state.error} />
-      {state.ok && <p className="text-sm text-teal-800" role="status">{state.ok}</p>}
+      {state.ok && <p className="text-sm text-brand-800" role="status">{state.ok}</p>}
     </>
   );
 }
@@ -134,7 +134,7 @@ export function ListingForm({ kinds, listing, initialKind }: { kinds: HubListing
         <legend className="label">Type of listing *</legend>
         <div className="flex flex-wrap gap-2">
           {LISTING_KINDS.map((k) => (
-            <label key={k.id} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${kind === k.id ? "border-teal-600 bg-teal-50" : "border-navy-100 bg-white"} ${!kinds.includes(k.id) || (listing && listing.kind !== k.id) ? "opacity-50" : ""}`}>
+            <label key={k.id} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${kind === k.id ? "border-brand-600 bg-brand-50" : "border-navy-100 bg-white"} ${!kinds.includes(k.id) || (listing && listing.kind !== k.id) ? "opacity-50" : ""}`}>
               <input type="radio" name="kind" value={k.id} checked={kind === k.id} disabled={!kinds.includes(k.id) || (!!listing && listing.kind !== k.id)} onChange={() => setKind(k.id)} />
               {k.verb}
             </label>

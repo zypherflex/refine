@@ -27,7 +27,7 @@ export default async function ConflictsPage() {
         <ul className="space-y-3">
           {conflicts.map((c) => (
             <li key={c.id} className="card">
-              <div className="flex items-center gap-2"><Pill className={c.status === "UNRESOLVED" ? "bg-amber-100 text-amber-800" : c.status === "DRAFT" ? "bg-navy-100" : "bg-teal-100 text-teal-800"}>{c.status === "DRAFT" ? "Flagged, not yet public" : c.status.toLowerCase()}</Pill><span className="text-xs text-navy-700">{c.company.name}</span></div>
+              <div className="flex items-center gap-2"><Pill className={c.status === "UNRESOLVED" ? "bg-amber-100 text-amber-800" : c.status === "DRAFT" ? "bg-navy-100" : "bg-brand-100 text-brand-800"}>{c.status === "DRAFT" ? "Flagged, not yet public" : c.status.toLowerCase()}</Pill><span className="text-xs text-navy-700">{c.company.name}</span></div>
               <p className="mt-1 font-medium">{c.topic}</p>
               <p className="text-sm text-navy-700">{c.description}</p>
               <ul className="mt-2 text-sm">{c.claims.map((x) => <li key={x.id}>“{x.claim}” — {x.sourceLabel}, {fmtDate(x.sourceDate)} ({provenanceLabel[x.provenance]})</li>)}</ul>

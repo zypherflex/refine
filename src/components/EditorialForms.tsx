@@ -10,7 +10,7 @@ function Result({ s }: { s: EdState }) {
   return (
     <>
       <FieldError message={s.error} />
-      {s.ok && <p className="mt-2 rounded-md bg-teal-50 px-3 py-2 text-sm text-teal-800" role="status">{s.ok}</p>}
+      {s.ok && <p className="mt-2 rounded-md bg-brand-50 px-3 py-2 text-sm text-brand-800" role="status">{s.ok}</p>}
     </>
   );
 }

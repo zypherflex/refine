@@ -3,7 +3,7 @@ import type { StructuredAnswer } from "@/server/assistant/types";
 import { fmtDate, fmtNumber } from "@/lib/format";
 import { Notice, Pill } from "./ui";
 
-const kindStyle = { FACT: "bg-navy-100 text-navy-900", CALCULATION: "bg-teal-100 text-teal-800", ESTIMATE: "bg-amber-100 text-amber-800", INTERPRETATION: "bg-white text-navy-800 ring-1 ring-inset ring-navy-600/30" } as const;
+const kindStyle = { FACT: "bg-navy-100 text-navy-900", CALCULATION: "bg-brand-100 text-brand-800", ESTIMATE: "bg-amber-100 text-amber-800", INTERPRETATION: "bg-white text-navy-800 ring-1 ring-inset ring-navy-600/30" } as const;
 const kindLabel = { FACT: "Fact (disclosed)", CALCULATION: "Calculation", ESTIMATE: "Estimate", INTERPRETATION: "Interpretation" } as const;
 const scopeLabel = { COMPANY_SPECIFIC: "Company-specific answer", GENERAL: "General explanation", MIXED: "General explanation and company evidence" } as const;
 
@@ -13,8 +13,8 @@ function Refs({ refs, a }: { refs: string[]; a: StructuredAnswer }) {
       {refs.map((r) => {
         const s = a.sources.find((x) => x.ref === r);
         const c = a.calculations.find((x) => x.ref === r);
-        if (s) return <Link key={r} href={s.link} className="rounded bg-teal-50 px-1 text-xs font-semibold no-underline ring-1 ring-teal-600/40" title={s.label}>[{r}]</Link>;
-        if (c) return <a key={r} href={`#calc-${r}`} className="rounded bg-teal-50 px-1 text-xs font-semibold no-underline ring-1 ring-teal-600/40">[{r}]</a>;
+        if (s) return <Link key={r} href={s.link} className="rounded bg-brand-50 px-1 text-xs font-semibold no-underline ring-1 ring-brand-600/40" title={s.label}>[{r}]</Link>;
+        if (c) return <a key={r} href={`#calc-${r}`} className="rounded bg-brand-50 px-1 text-xs font-semibold no-underline ring-1 ring-brand-600/40">[{r}]</a>;
         return null;
       })}
     </span>
@@ -55,7 +55,7 @@ export function AnswerView({ a }: { a: StructuredAnswer }) {
           <h3 className="text-xs font-semibold uppercase tracking-wide text-navy-700">Calculations (by RefineryLens)</h3>
           <ul className="mt-1 grid gap-2 sm:grid-cols-2">
             {a.calculations.map((c) => (
-              <li key={c.ref} id={`calc-${c.ref}`} className="rounded-md border border-teal-600/30 p-2 text-sm">
+              <li key={c.ref} id={`calc-${c.ref}`} className="rounded-md border border-brand-600/30 p-2 text-sm">
                 <p className="font-medium">[{c.ref}] {c.name}</p>
                 {c.refused ? <p className="text-navy-700">Not calculated: {c.refused}</p> : (
                   <>
@@ -71,7 +71,7 @@ export function AnswerView({ a }: { a: StructuredAnswer }) {
       )}
       {a.implications.length > 0 && (
         <section>
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-teal-800">Possible investment implications</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-brand-800">Possible investment implications</h3>
           <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">{a.implications.map((x, i) => <li key={i}>{x}</li>)}</ul>
           <p className="hint">Interpretations to consider, not recommendations.</p>
         </section>

@@ -31,7 +31,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
             {messages.map((m) => {
               const me = m.senderId === user.id;
               return (
-                <li key={m.id} className={`max-w-[85%] rounded-xl px-4 py-3 text-sm shadow-card ${me ? "ml-auto bg-teal-50 ring-1 ring-teal-600/20" : "bg-white ring-1 ring-navy-100"}`}>
+                <li key={m.id} className={`max-w-[85%] rounded-xl px-4 py-3 text-sm shadow-card ${me ? "ml-auto bg-brand-50 ring-1 ring-brand-600/20" : "bg-white ring-1 ring-navy-100"}`}>
                   <p className="text-[11px] text-navy-600"><span className="font-medium text-navy-800">{me ? "You" : names.get(m.senderId)}</span> · {fmtDateTime(m.createdAt)}</p>
                   <p className="mt-1 whitespace-pre-line text-navy-900">{m.body}</p>
                 </li>

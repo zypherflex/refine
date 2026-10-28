@@ -55,7 +55,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         title={company.name}
         subtitle={
           <span className="flex flex-wrap items-center gap-2">
-            <Pill className={company.coverageStatus === "ACTIVE" ? "bg-teal-100 text-teal-800" : "bg-amber-100 text-amber-800"}>{coverageLabel[company.coverageStatus]}</Pill>
+            <Pill className={company.coverageStatus === "ACTIVE" ? "bg-brand-100 text-brand-800" : "bg-amber-100 text-amber-800"}>{coverageLabel[company.coverageStatus]}</Pill>
             <span>{company.coverageNote}</span>
           </span>
         }
@@ -90,7 +90,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           <ul className="mt-2 space-y-2">
             {published.slice(0, 3).map((a) => (
               <li key={a.id} className="card flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-5">
-                <span className="num w-28 shrink-0 text-xs font-semibold uppercase tracking-wider text-teal-700">{fmtDate(a.sourcePublishedAt)}</span>
+                <span className="num w-28 shrink-0 text-xs font-semibold uppercase tracking-wider text-brand-700">{fmtDate(a.sourcePublishedAt)}</span>
                 <span className="text-sm"><Link href={`/announcements/${a.id}`} className="font-medium text-navy-950">{a.headline}.</Link> {a.whatChanged}</span>
               </li>
             ))}

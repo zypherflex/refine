@@ -23,7 +23,7 @@ export function AskForm({ companyId, conversationId, documents, initialQuestion,
         <textarea id="question" name="question" value={q} onChange={(e) => setQ(e.target.value)} className="input min-h-20" maxLength={1000} required placeholder="Ask about announcements, reports, metrics, risks or your thesis" />
       </div>
       <div className="flex flex-wrap gap-2" aria-label="Suggested questions">
-        {SUGGESTED.map((s) => <button type="button" key={s} onClick={() => setQ(s)} className="rounded-full border border-navy-100 bg-white px-2.5 py-1 text-xs hover:border-teal-600">{s}</button>)}
+        {SUGGESTED.map((s) => <button type="button" key={s} onClick={() => setQ(s)} className="rounded-full border border-navy-100 bg-white px-2.5 py-1 text-xs hover:border-brand-600">{s}</button>)}
       </div>
       {documents.length > 0 && (
         <div>

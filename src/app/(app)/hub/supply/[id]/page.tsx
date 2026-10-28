@@ -11,7 +11,7 @@ import { Notice, PageHeader, Pill } from "@/components/ui";
 
 export const metadata = { title: "Supply agreement" };
 
-const deliveryStyle = { LOGGED: "bg-amber-100 text-amber-800", CONFIRMED: "bg-teal-100 text-teal-800", DISPUTED: "bg-risk-100 text-risk-800" } as const;
+const deliveryStyle = { LOGGED: "bg-amber-100 text-amber-800", CONFIRMED: "bg-brand-100 text-brand-800", DISPUTED: "bg-risk-100 text-risk-800" } as const;
 const deliveryLabel = { LOGGED: "Waiting for buyer", CONFIRMED: "✓ Confirmed", DISPUTED: "! Disputed" } as const;
 
 export default async function AgreementPage({ params }: { params: Promise<{ id: string }> }) {

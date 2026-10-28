@@ -37,8 +37,8 @@ export default async function SettingsPage() {
         {!paymentsEnabled && <div className="mt-2"><Notice tone="warn">Payment collection is disabled because no payment provider is configured. Plans can be assigned by an administrator.</Notice></div>}
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           {PLANS.map((p) => (
-            <div key={p.id} className={`card ${user.plan === p.id ? "border-teal-600 ring-1 ring-teal-600" : ""}`}>
-              <div className="flex items-center justify-between"><h3 className="font-semibold">{p.name}</h3>{user.plan === p.id && <Pill className="bg-teal-100 text-teal-800">Current plan</Pill>}</div>
+            <div key={p.id} className={`card ${user.plan === p.id ? "border-brand-600 ring-1 ring-brand-600" : ""}`}>
+              <div className="flex items-center justify-between"><h3 className="font-semibold">{p.name}</h3>{user.plan === p.id && <Pill className="bg-brand-100 text-brand-800">Current plan</Pill>}</div>
               <p className="mt-1 text-sm text-navy-700">{p.tagline}</p>
               <ul className="mt-3 list-disc space-y-1 pl-5 text-sm">{p.features.map((f) => <li key={f}>{f}</li>)}</ul>
               <button className="btn-secondary mt-4 w-full" disabled title={paymentsEnabled ? undefined : "Payments are not configured"}>{user.plan === p.id ? "Your plan" : paymentsEnabled ? "Choose plan" : "Payments not yet available"}</button>

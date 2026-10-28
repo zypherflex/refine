@@ -10,7 +10,7 @@ import { EmptyState, PageHeader, Pill } from "@/components/ui";
 export const metadata = { title: "Delivery jobs" };
 
 const statusLabel = { OPEN: "Taking quotes", AWARDED: "Awarded", DELIVERED: "Delivered", CANCELLED: "Cancelled" } as const;
-const statusStyle = { OPEN: "bg-teal-100 text-teal-800", AWARDED: "bg-navy-100 text-navy-800", DELIVERED: "bg-navy-100 text-navy-800", CANCELLED: "bg-navy-50 text-navy-500 line-through" } as const;
+const statusStyle = { OPEN: "bg-brand-100 text-brand-800", AWARDED: "bg-navy-100 text-navy-800", DELIVERED: "bg-navy-100 text-navy-800", CANCELLED: "bg-navy-50 text-navy-500 line-through" } as const;
 
 function LocationSelect({ id, name, label, value }: { id: string; name: string; label: string; value: string }) {
   return (

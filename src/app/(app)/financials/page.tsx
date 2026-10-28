@@ -58,7 +58,7 @@ export default async function FinancialsPage() {
           {FINANCIAL_KEYS.map(([key, label]) => (
             <li key={key}><a href={`#${key}`} className="block rounded-md px-2.5 py-1 text-navy-700 no-underline hover:bg-white hover:text-navy-950 hover:no-underline">{label}</a></li>
           ))}
-          <li><a href="#calc-h" className="block rounded-md px-2.5 py-1 text-teal-700 no-underline hover:bg-white hover:no-underline">Calculated</a></li>
+          <li><a href="#calc-h" className="block rounded-md px-2.5 py-1 text-brand-700 no-underline hover:bg-white hover:no-underline">Calculated</a></li>
         </ul>
       </nav>
       {rows.length === 0 && (

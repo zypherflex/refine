@@ -23,7 +23,7 @@ export function PrivateUploadForm({ companies, maxMb }: { companies: { id: strin
       </div>
       <div className="sm:col-span-3">
         <FieldError message={state.error} />
-        {state.ok && <p className="text-sm text-teal-800" role="status">{state.ok}</p>}
+        {state.ok && <p className="text-sm text-brand-800" role="status">{state.ok}</p>}
         <button className="btn-primary mt-1" disabled={pending}>{pending ? "Uploading…" : "Upload privately"}</button>
       </div>
     </form>
@@ -47,7 +47,7 @@ export function PublicUploadForm({ companies, sources, docTypes, provenances, to
       <div className="sm:col-span-2">
         <p className="hint mb-2">Respect source permissions and licences. Do not upload paywalled material you are not licensed to redistribute.</p>
         <FieldError message={state.error} />
-        {state.ok && <p className="text-sm text-teal-800" role="status">{state.ok}</p>}
+        {state.ok && <p className="text-sm text-brand-800" role="status">{state.ok}</p>}
         <button className="btn-primary mt-1" disabled={pending}>{pending ? "Uploading…" : "Upload to library"}</button>
       </div>
     </form>

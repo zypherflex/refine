@@ -26,7 +26,7 @@ export function PeriodChart({ title, unit, points, description }: { title: strin
       </div>
       <figcaption className="mt-1 text-xs text-navy-700">{description}</figcaption>
       <details className="mt-1 text-xs">
-        <summary className="text-teal-700">Show chart data as a table</summary>
+        <summary className="text-brand-700">Show chart data as a table</summary>
         <table className="mt-1 w-full text-left">
           <thead><tr><th className="py-1 pr-3">Period</th><th className="py-1">{title} ({unit})</th></tr></thead>
           <tbody>{points.map((p) => <tr key={p.period}><td className="py-0.5 pr-3">{p.period}</td><td className="tabular-nums">{p.value.toLocaleString("en-GB")}{p.note ? ` (${p.note})` : ""}</td></tr>)}</tbody>

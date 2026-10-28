@@ -36,7 +36,7 @@ export default async function DocumentPage({ params, searchParams }: { params: P
           <nav aria-label="Pages" className="mt-4 flex flex-wrap items-center gap-1 text-sm">
             <span className="mr-1 text-navy-700">Page</span>
             {Array.from({ length: doc.pageCount }, (_, i) => i + 1).map((n) => (
-              <Link key={n} href={`/documents/${doc.id}?page=${n}`} aria-current={n === pageNo ? "page" : undefined} className={`rounded px-2 py-0.5 no-underline ${n === pageNo ? "bg-teal-700 text-white" : "bg-white ring-1 ring-navy-100"}`}>{n}</Link>
+              <Link key={n} href={`/documents/${doc.id}?page=${n}`} aria-current={n === pageNo ? "page" : undefined} className={`rounded px-2 py-0.5 no-underline ${n === pageNo ? "bg-brand-700 text-white" : "bg-white ring-1 ring-navy-100"}`}>{n}</Link>
             ))}
           </nav>
           <section className="card mt-3" aria-label={`Page ${pageNo} text`}>

@@ -63,7 +63,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
               {quotes.length === 0 ? <p className="muted">No quotes yet. Delivery partners serving this route are notified when they open the jobs board.</p> : (
                 <ul className="mt-2 space-y-3">
                   {quotes.map((q) => (
-                    <li key={q.id} className={`card flex flex-wrap items-start justify-between gap-3 ${q.status === "ACCEPTED" ? "ring-2 ring-teal-600" : ""}`}>
+                    <li key={q.id} className={`card flex flex-wrap items-start justify-between gap-3 ${q.status === "ACCEPTED" ? "ring-2 ring-brand-600" : ""}`}>
                       <div className="min-w-0 text-sm">
                         <p className="flex flex-wrap items-center gap-1.5"><Link href={`/hub/businesses/${q.carrier.id}`} className="font-medium">{q.carrier.name}</Link><VerificationBadge v={q.carrier.verification} />{q.carrier.isDemo && <DemoTag />}</p>
                         {q.note && <p className="mt-1 whitespace-pre-line text-navy-800">{q.note}</p>}

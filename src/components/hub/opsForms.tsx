@@ -11,7 +11,7 @@ function Status({ state }: { state: State }) {
   return (
     <>
       <FieldError message={state.error} />
-      {state.ok && <p className="text-sm text-teal-800" role="status">{state.ok}</p>}
+      {state.ok && <p className="text-sm text-brand-800" role="status">{state.ok}</p>}
     </>
   );
 }

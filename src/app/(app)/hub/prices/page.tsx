@@ -14,7 +14,7 @@ function Change({ now, prev }: { now: number | null; prev: number | null }) {
   const pct = ((now - prev) / prev) * 100;
   if (Math.abs(pct) < 0.5) return <span className="text-navy-600">→ flat</span>;
   // Rising prices hurt buyers, so up reads as a warning; the arrow and sign carry the meaning without colour.
-  return <span className={pct > 0 ? "text-risk-700" : "text-teal-800"}>{pct > 0 ? "▲ +" : "▼ "}{pct.toFixed(1)}%</span>;
+  return <span className={pct > 0 ? "text-risk-700" : "text-brand-800"}>{pct > 0 ? "▲ +" : "▼ "}{pct.toFixed(1)}%</span>;
 }
 
 export default async function PriceBoardPage({ searchParams }: { searchParams: Promise<{ item?: string }> }) {

@@ -7,7 +7,7 @@ import { fmtDate, fmtDateTime, fmtNumber } from "@/lib/format";
 import { topicLabel } from "@/lib/labels";
 import { EmptyState, Explainer, FictionTag, Notice, PageHeader, Pill, ProvenanceBadge } from "@/components/ui";
 
-const stanceStyle: Record<string, string> = { SUPPORTS: "bg-teal-100 text-teal-800", CHALLENGES: "bg-risk-100 text-risk-800", UNCLEAR: "bg-navy-100 text-navy-800" };
+const stanceStyle: Record<string, string> = { SUPPORTS: "bg-brand-100 text-brand-800", CHALLENGES: "bg-risk-100 text-risk-800", UNCLEAR: "bg-navy-100 text-navy-800" };
 const stanceLabel: Record<string, string> = { SUPPORTS: "May support", CHALLENGES: "May challenge", UNCLEAR: "Unclear" };
 
 export default async function ThesisPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> }) {
@@ -127,7 +127,7 @@ export default async function ThesisPage({ params, searchParams }: { params: Pro
                     {state === "NO_DATA" ? (
                       <p className="mt-1 rounded bg-navy-50 px-2 py-1 text-xs">Not publicly disclosed, so this cannot be checked.</p>
                     ) : (
-                      <p className={`mt-1 rounded px-2 py-1 text-xs ${state === "BREACHED" ? "bg-risk-50 text-risk-800" : "bg-teal-50 text-teal-800"}`}>
+                      <p className={`mt-1 rounded px-2 py-1 text-xs ${state === "BREACHED" ? "bg-risk-50 text-risk-800" : "bg-brand-50 text-brand-800"}`}>
                         Latest: {fmtNumber(value!)} {indicator.unit} ({metric?.periodLabel}{metric?.valueType !== "REPORTED" ? `, ${metric?.valueType.toLowerCase()}` : ""}). {state === "BREACHED" ? "Past your threshold." : state === "OK" ? "Within your threshold." : ""}
                       </p>
                     )}

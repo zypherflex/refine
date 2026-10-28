@@ -8,7 +8,7 @@ import { Pill } from "./ui";
 type M = Metric & { document: { id: string; title: string } | null; legalEntity: { name: string } | null; conflictClaims?: { conflict: { topic: string; status: string } }[] };
 
 const auditLabel = { AUDITED: "Audited", UNAUDITED: "Unaudited", RESTATED: "Restated", NOT_APPLICABLE: "—" } as const;
-const typeStyle = { REPORTED: "bg-navy-100 text-navy-900", CALCULATED: "bg-teal-100 text-teal-800", ESTIMATED: "bg-amber-100 text-amber-800" } as const;
+const typeStyle = { REPORTED: "bg-navy-100 text-navy-900", CALCULATED: "bg-brand-100 text-brand-800", ESTIMATED: "bg-amber-100 text-amber-800" } as const;
 
 export function MetricTable({ rows }: { rows: M[] }) {
   return (

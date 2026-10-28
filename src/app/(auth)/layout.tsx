@@ -4,14 +4,14 @@ import { Logo } from "@/components/Logo";
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid min-h-screen bg-white lg:grid-cols-[1fr_1.05fr]">
-      <aside className="relative hidden overflow-hidden bg-navy-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_100%_0%,rgba(22,163,156,0.25),transparent_60%)]" />
+      <aside className="relative hidden overflow-hidden bg-[linear-gradient(150deg,#3a1ba3_0%,#5b2ee8_40%,#b33ce0_75%,#ff7a1a_100%)] p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_100%_0%,rgba(255,209,102,0.35),transparent_60%)]" />
         <Link href="/" className="relative no-underline hover:no-underline"><Logo light /></Link>
         <blockquote className="relative max-w-md">
-          <p className="font-serif text-3xl font-semibold leading-snug tracking-tight">“Show me what changed, what supports it, and what we still don’t know.”</p>
-          <p className="mt-4 text-sm text-navy-300">The standard every RefineryLens page is built to.</p>
+          <p className="font-serif text-3xl font-semibold leading-snug tracking-tight">Sellers, buyers, delivery partners and refineries, <span className="text-[#ffd166]">in one place.</span></p>
+          <p className="mt-4 text-sm text-white/85">Post, match, message and check who is verified. Plus independent research on refineries.</p>
         </blockquote>
-        <p className="relative text-xs text-navy-400">Independent research. Not affiliated with any company we cover. Not investment advice.</p>
+        <p className="relative text-xs text-white/75">Independent research. Not affiliated with any company we cover. Not investment advice.</p>
       </aside>
       <div className="flex flex-col px-4 py-10 sm:px-8">
         <Link href="/" className="no-underline hover:no-underline lg:hidden"><Logo /></Link>
