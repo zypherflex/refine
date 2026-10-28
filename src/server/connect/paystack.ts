@@ -2,11 +2,14 @@ import crypto from "node:crypto";
 import { db } from "@/lib/db";
 import { AppError } from "@/lib/errors";
 import type { Actor } from "@/lib/permissions";
-import { audit } from "../audit";
 import { callJson } from "./http";
+import { settle } from "./settle";
+
+export { BUSINESS_PLAN_DAYS, extendBusinessPlan } from "./settle";
 
 /**
- * Paystack card payments for the Pro research plan and the trade hub Business plan. The plan changes only after Paystack confirms the charge, either through
+ * Paystack card payments for the Pro research plan, the trade hub Business plan and RefineryLens Data plans, in naira or,
+ * for customers billed outside Nigeria, in US dollars (Paystack must have enabled USD and a USD payout account). The plan changes only after Paystack confirms the charge, either through
  * the verify call when the customer returns or through the signed webhook, whichever comes first.
  * Docs: https://paystack.com/docs/api/transaction/ and https://paystack.com/docs/payments/webhooks/
  */
@@ -29,15 +32,17 @@ export function businessPriceKobo() {
   return Math.round((Number.isFinite(ngn) && ngn > 0 ? ngn : 15_000) * 100);
 }
 
-export const BUSINESS_PLAN_DAYS = 30;
 
 const auth = () => ({ Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`, "Content-Type": "application/json" });
 
-type Purpose = "PLAN_PRO" | "BUSINESS_PLAN";
+export type Purpose = "PLAN_PRO" | "BUSINESS_PLAN" | "DATA_PLAN";
+
+/** USD needs Paystack to have approved international payments with a Zenith Bank USD account for payouts. */
+export const paystackUsdEnabled = () => paystackConfigured() && process.env.PAYSTACK_USD_ENABLED === "true";
 
 /** Starts a checkout and returns the Paystack page to send the customer to. */
 export async function startProCheckout(actor: Actor & { email: string }) {
-  return startCheckout(actor, "PLAN_PRO", proPriceKobo(), null);
+  return startCheckout(actor, "PLAN_PRO", proPriceKobo(), "NGN", {});
 }
 
 /** Business plan checkout for the actor's own business, which must be verified. */
@@ -45,45 +50,24 @@ export async function startBusinessCheckout(actor: Actor & { email: string }) {
   const b = await db.hubBusiness.findUnique({ where: { ownerId: actor.id } });
   if (!b) throw new AppError("Set up your business profile first.");
   if (b.verification !== "VERIFIED") throw new AppError("The Business plan is for verified businesses. Request verification first.");
-  return startCheckout(actor, "BUSINESS_PLAN", businessPriceKobo(), b.id);
+  return startCheckout(actor, "BUSINESS_PLAN", businessPriceKobo(), "NGN", { businessId: b.id });
 }
 
-async function startCheckout(actor: Actor & { email: string }, purpose: Purpose, amountKobo: number, businessId: string | null) {
+export type CheckoutExtra = { businessId?: string; dataAccountId?: string; planId?: string; periodDays?: number };
+
+export async function startCheckout(actor: Actor & { email: string }, purpose: Purpose, amountKobo: number, currency: "NGN" | "USD", extra: CheckoutExtra) {
   if (!paystackConfigured()) throw new AppError("Card payments are not configured.");
+  if (currency === "USD" && !paystackUsdEnabled()) throw new AppError("US dollar payments are not set up yet.");
   const reference = `rl_${crypto.randomBytes(12).toString("hex")}`;
   const base = (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
-  await db.payment.create({ data: { userId: actor.id, provider: "paystack", reference, purpose, amountKobo, businessId } });
+  await db.payment.create({ data: { userId: actor.id, provider: "paystack", reference, purpose, amountKobo, currency, ...extra } });
   const res = await callJson<{ status: boolean; data: { authorization_url: string } }>("Paystack", `${API}/transaction/initialize`, {
     method: "POST",
     headers: auth(),
-    body: JSON.stringify({ email: actor.email, amount: amountKobo, currency: "NGN", reference, callback_url: `${base}/api/payments/paystack/callback`, metadata: { purpose, userId: actor.id } }),
+    body: JSON.stringify({ email: actor.email, amount: amountKobo, currency, reference, callback_url: `${base}/api/payments/paystack/callback`, metadata: { purpose, userId: actor.id } }),
   });
   if (!res.status || !res.data?.authorization_url) throw new AppError("Paystack did not start the payment. Try again.");
   return res.data.authorization_url;
-}
-
-/**
- * Marks a payment successful and applies what it paid for, once. Called after verifying with Paystack; checks the
- * amount and currency against what was asked for, so a tampered amount never upgrades a plan.
- */
-async function settle(reference: string, paid: { status: string; amount: number; currency: string }) {
-  const p = await db.payment.findUnique({ where: { reference } });
-  if (!p) return { ok: false as const, reason: "unknown reference" };
-  if (p.status === "SUCCESS") return { ok: true as const, already: true, purpose: p.purpose };
-  if (paid.status !== "success" || paid.amount !== p.amountKobo || paid.currency !== "NGN") {
-    if (paid.status === "failed" || paid.status === "abandoned") await db.payment.update({ where: { id: p.id }, data: { status: "FAILED" } });
-    return { ok: false as const, reason: `status ${paid.status}`, purpose: p.purpose };
-  }
-  const updated = await db.payment.updateMany({ where: { id: p.id, status: { not: "SUCCESS" } }, data: { status: "SUCCESS", paidAt: new Date() } });
-  if (updated.count && p.purpose === "PLAN_PRO") {
-    await db.user.update({ where: { id: p.userId }, data: { plan: "PRO" } });
-    await audit(p.userId, "payment.plan_pro", "Payment", p.id, { reference });
-  }
-  if (updated.count && p.purpose === "BUSINESS_PLAN" && p.businessId) {
-    await extendBusinessPlan(p.businessId, BUSINESS_PLAN_DAYS);
-    await audit(p.userId, "payment.business_plan", "Payment", p.id, { reference, businessId: p.businessId });
-  }
-  return { ok: true as const, already: false, purpose: p.purpose };
 }
 
 /** Asks Paystack for the transaction's real status. Never trust the redirect alone. */
@@ -109,11 +93,4 @@ export async function handleWebhook(event: { event?: string; data?: { reference?
   if (event.event !== "charge.success" || !event.data?.reference) return { handled: false };
   const r = await verifyAndSettle(event.data.reference);
   return { handled: true, ...r };
-}
-
-/** Adds days to a business's plan, from today or from the current end date if still running. */
-export async function extendBusinessPlan(businessId: string, days: number) {
-  const b = await db.hubBusiness.findUniqueOrThrow({ where: { id: businessId } });
-  const from = b.planUntil && b.planUntil > new Date() ? b.planUntil : new Date();
-  return db.hubBusiness.update({ where: { id: businessId }, data: { planUntil: new Date(from.getTime() + days * 86_400_000) } });
 }

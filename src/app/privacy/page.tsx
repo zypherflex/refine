@@ -20,6 +20,7 @@ export default function PrivacyPage() {
         <li><b>Messages</b> between your business and others. Only the two businesses in a conversation can read it; RefineryLens staff cannot.</li>
         <li><b>Research you keep:</b> files you upload privately, theses, watchlists and questions to the research assistant. Private files and theses are visible to you alone.</li>
         <li><b>Optional contact details:</b> a phone number, if you turn on SMS or WhatsApp alerts, and a notification token for each phone where you turn on app notifications.</li>
+        <li><b>RefineryLens Data customers:</b> your organisation, billing country, API keys (stored only as a scrambled hash) and how many requests each key made per day. The data you receive contains no personal information.</li>
         <li><b>Payments:</b> a payment reference, amount and status. Card details go directly to Paystack; RefineryLens never receives them.</li>
         <li><b>Security records:</b> a log of important actions (for example publishing, verifying or suspending), and temporary counts of sign-in attempts to stop abuse.</li>
       </ul>
@@ -37,7 +38,7 @@ export default function PrivacyPage() {
       <h2>Who else receives data</h2>
       <p>Only when the related feature is switched on in this installation, and only what that service needs:</p>
       <ul>
-        <li><b>Paystack</b> (payments): your email and the amount.</li>
+        <li><b>Paystack</b> (payments in naira and US dollars) and <b>Stripe</b> (US dollar payments, when used): your email and the amount.</li>
         <li><b>Termii, Africa&apos;s Talking or Meta WhatsApp</b> (text alerts): your phone number and the alert text.</li>
         <li><b>Google Firebase Cloud Messaging and Apple Push Notification service</b> (phone notifications): your phone&apos;s notification token and the alert title and text.</li>
         <li><b>Dojah</b> (company registry check): your CAC registration number, when you ask for verification.</li>

@@ -128,6 +128,8 @@ Every trade hub business in the seed (`prisma/seed-hub.ts`) is fictional, named 
 | **USSD price check** | Implemented for Africa's Talking USSD; tested | An Africa's Talking USSD code pointed at `{APP_URL}/api/ussd?token={USSD_TOKEN}` |
 | **CAC registry lookup** for verification | Implemented with Dojah's CAC lookup; results appear in the verification queue, never verify on their own | A Dojah account: `CAC_LOOKUP_PROVIDER=dojah`, `DOJAH_APP_ID`, `DOJAH_SECRET_KEY` |
 | **Gas site geocoding** | Implemented with OpenStreetMap Nominatim, one lookup a second in the worker; tested | `GEOCODER=nominatim` and `NOMINATIM_EMAIL`; use your own or a paid Nominatim for heavy use |
+| **US dollar revenue: RefineryLens Data** | Implemented: a daily price index by state, product and source (built hourly by the worker, only from 3+ reporters, demo contributions flagged), a REST API (`/api/v1/meta`, `latest`, `prices`, `national`) with hashed API keys, per-day metering and plan history limits, a CSV download, a public page (`/data`) and docs (`/data/docs`), 14-day trials, and plans in USD for foreign customers and naira for Nigerian ones; tested | For USD: `PAYSTACK_USD_ENABLED=true` (after Paystack approves USD with a Zenith USD account) or `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` (through a non-Nigerian entity). Naira works with the Paystack keys above |
+| **US dollar revenue: sponsored placements** | Implemented: labelled, rel="sponsored" cards on the CNG calculator, stations, today's prices, gas network and hub, targeted by state, rotated by exposure, with views and clicks; sold and invoiced in USD and entered under Administration → Sponsorships; tested | Nothing; sales and invoicing are done by the team |
 | **Escrow and trade finance** | Not shipped | A licensed payment or lending partner (see the strategy playbook) |
 | **Free open-data feeds** (oil and product prices, Nigerian macro data, global refinery inventory, news leads) | Implemented; see [Open data feeds](#open-data-feeds). Keyless feeds are on by default; EIA needs a free key | `EIA_API_KEY` for EIA; nothing for the rest. An editor approves each source before readers see it |
 | **Exchange or regulator data feeds** (share prices, filings) | Not connected; no share prices or tickers are shown | Licensed feeds from the relevant exchange or regulator |
@@ -216,7 +218,9 @@ Administrators open **Administration** (`/admin`). Every section shares one navi
 | | Price watch | Public medians by state and product, and the week's reports 30% or more from their state median, with a hide button |
 | | Gas orders | All orders with counts by status; stuck orders (no answer in 2 hours, or open over a day); cancel with a reason both sides are told |
 | | Live trips | Drivers sharing location, silent trips, end a trip left running (no exact positions shown) |
-| Money | Payments & plans | Paystack payments with status and purpose filters, revenue by month, Business plans ending within 14 days |
+| Money | Payments & plans | Payments in naira and US dollars (Paystack, Paystack USD, Stripe) with status and purpose filters, revenue by month per currency, Business plans ending within 14 days |
+| | Data customers | Data accounts, recurring revenue in USD and naira at list price, set Enterprise or invoiced terms, rebuild the price index |
+| | Sponsorships | Add labelled sponsorships with placements, states, dates and USD price; pause, resume; views, clicks and click rate |
 | Communication | Broadcast | Count a group (everyone, households, business accounts, sellers, buyers, delivery partners, refineries, home-delivery sellers; optionally one state), then send an in-app alert and push notification. The count is confirmed when sending; links must stay inside RefineryLens; never sent by SMS |
 | System | Health & jobs | Integrations by group, background job counts, failed jobs with retry, open data feeds |
 | | Audit log | Filter by action, person, entity, ID and date |

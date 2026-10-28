@@ -88,3 +88,17 @@ export async function seedEveryday(
   });
   await db.gasOrder.create({ data: { ...address, userId: people[1].id, businessId: sellers.surulereId, cylinderKg: 12.5, estimateNaira: 16_500, priceNaira: 16_500, status: "DELIVERED", rating: 4, createdAt: new Date(Date.now() - 6 * DAY), deliveredAt: new Date(Date.now() - 6 * DAY + 2 * HOUR) } });
 }
+
+/** Demo for the dollar revenue lines: the daily index built from the demo reports, one demo data customer and one demo sponsor. */
+export async function seedRevenueDemo(db: PrismaClient, mk: (email: string, name: string) => Promise<{ id: string }>) {
+  const { backfillIndex } = await import("../src/server/data/index-builder");
+  await backfillIndex(14);
+  const analyst = await mk("data@refinerylens.test", "Dana Data (demo)");
+  await db.dataAccount.create({ data: { userId: analyst.id, organisation: "Demo Commodities Ltd (demo)", billingCountry: "GB", plan: "professional", paidUntil: new Date(Date.now() + 20 * DAY) } });
+  await db.sponsorship.create({
+    data: {
+      sponsor: "Demo CNG Conversions (demo)", headline: "Convert your car or keke to CNG", body: "Certified dual-fuel conversions with a 12-month warranty. Sample sponsor for this demo installation.",
+      url: "https://example.com/cng", placements: ["cng-savings", "stations"], priceUsd: 1500, startsAt: new Date(Date.now() - 5 * DAY), endsAt: new Date(Date.now() + 25 * DAY),
+    },
+  });
+}

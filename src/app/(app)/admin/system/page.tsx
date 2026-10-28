@@ -24,7 +24,12 @@ export default async function AdminSystem() {
       [`SMS / WhatsApp${st.text.provider ? ` (${st.text.provider})` : ""}`, !!st.text.provider, st.text.configured && !st.text.provider ? "provider set but keys missing" : undefined],
       ["Push, Android app (Firebase)", st.push.android], ["Push, iPhone app (APNs)", st.push.ios], ["USSD price check (Africa's Talking)", st.ussd],
     ]],
-    ["Money and checks", [["Card payments (Paystack)", st.payments.available, st.payments.configured && !st.payments.available ? "needs PAYMENT_PROVIDER=paystack and PAYSTACK_SECRET_KEY" : undefined], ["CAC registry lookup (Dojah)", st.registry]]],
+    ["Money and checks", [
+      ["Card payments in naira (Paystack)", st.payments.available, st.payments.configured && !st.payments.available ? "needs PAYMENT_PROVIDER=paystack and PAYSTACK_SECRET_KEY" : undefined],
+      ["US dollar payments (Paystack USD)", st.usd.paystack, !st.usd.paystack ? "needs Paystack's approval, a Zenith USD account and PAYSTACK_USD_ENABLED=true" : undefined],
+      ["US dollar payments (Stripe, US entity)", st.usd.stripe, st.usd.stripe && !st.usd.stripeWebhook ? "set STRIPE_WEBHOOK_SECRET so webhooks are verified" : !st.usd.stripe ? "needs STRIPE_SECRET_KEY" : undefined],
+      ["CAC registry lookup (Dojah)", st.registry],
+    ]],
     ["Maps", [["Geocoding for gas sites and drop-off pins (Nominatim)", st.geocoder], ["Custom map tiles for live tracking", !!process.env.NEXT_PUBLIC_MAP_TILE_URL, !process.env.NEXT_PUBLIC_MAP_TILE_URL ? "using OpenStreetMap's public tiles (light use only)" : undefined]]],
     ["Open data", PROVIDER_ORDER.map((id) => [PROVIDERS[id].publisher, st.openData[id].available, st.openData[id].reason || undefined] as [string, boolean, string?])],
   ];

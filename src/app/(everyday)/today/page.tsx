@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sponsored } from "@/components/Sponsored";
 import { ArrowRight, Calculator, Flame, Fuel, ShieldAlert, Truck } from "lucide-react";
 import { getCurrentUser } from "@/server/auth";
 import { todayPrices } from "@/server/everyday/outlets";
@@ -98,6 +99,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
           <Link href="/register" className="btn-primary no-underline">Join free</Link>
         </section>
       )}
+      <div className="mt-8"><Sponsored placement="today" state={state} /></div>
     </>
   );
 }

@@ -78,6 +78,7 @@ model User {
   gasOrders       GasOrder[]
   cylinders       GasCylinder[]
   contentFlags    ContentFlag[]
+  dataAccount     DataAccount?
 }
 
 enum Audience {
@@ -1217,18 +1218,24 @@ enum PaymentStatus {
 }
 
 model Payment {
-  id         String        @id @default(cuid())
-  userId     String
-  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider   String
-  reference  String        @unique
-  purpose    String
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider      String
+  reference     String        @unique
+  purpose       String
   // For BUSINESS_PLAN payments, the business the plan is for.
-  businessId String?
-  amountKobo Int
-  status     PaymentStatus @default(PENDING)
-  paidAt     DateTime?
-  createdAt  DateTime      @default(now())
+  businessId    String?
+  // For DATA_PLAN payments, the data account and how many days it buys.
+  dataAccountId String?
+  planId        String?
+  periodDays    Int?
+  // Amount in the currency's minor unit: kobo for NGN, cents for USD.
+  amountKobo    Int
+  currency      String        @default("NGN")
+  status        PaymentStatus @default(PENDING)
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
 }
 
 // Phones that receive push notifications in the Google Play and App Store apps. The token comes from FCM (Android)
@@ -1481,4 +1488,94 @@ model Broadcast {
   createdAt  DateTime @default(now())
 
   @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// RefineryLens Data: the daily price index sold by API and CSV, priced in USD for customers billed outside Nigeria
+// and in naira for customers in Nigeria (Nigerian parties must deal in naira under the CBN FX Manual).
+
+// One row per day, state, product and source: the median and range of the latest report from each distinct reporter
+// that day. Built by the worker from station reports (PUBLIC) and seller reports (SELLER); only rows with enough
+// reporters are written, so the index never exposes one person's or one seller's price.
+model PriceIndexDaily {
+  id           String   @id @default(cuid())
+  day          DateTime
+  state        String
+  item         String
+  source       String
+  median       Float
+  low          Float
+  high         Float
+  reporters    Int
+  // True when demo stations or sellers contributed, so a demo installation's figures are never sold as market data.
+  includesDemo Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@unique([day, state, item, source])
+  @@index([item, day])
+}
+
+model DataAccount {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organisation   String
+  // ISO country code where the customer is billed. NG pays in naira; everyone else in US dollars.
+  billingCountry String
+  plan           String
+  // Access runs until this time; a trial or paid period extends it.
+  paidUntil      DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  keys           ApiKey[]
+}
+
+model ApiKey {
+  id         String      @id @default(cuid())
+  accountId  String
+  account    DataAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  name       String
+  // Shown so people can tell keys apart; only a hash of the full key is stored.
+  prefix     String
+  hash       String      @unique
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime    @default(now())
+  usage      ApiUsage[]
+
+  @@index([accountId])
+}
+
+model ApiUsage {
+  id       String   @id @default(cuid())
+  keyId    String
+  key      ApiKey   @relation(fields: [keyId], references: [id], onDelete: Cascade)
+  day      DateTime
+  requests Int      @default(0)
+
+  @@unique([keyId, day])
+}
+
+// A paid, labelled placement for a supplier (CNG conversion kits, cylinders, skid plants, safety services), sold and
+// invoiced in US dollars by the RefineryLens team. Always shown with a "Sponsored" label.
+model Sponsorship {
+  id          String   @id @default(cuid())
+  sponsor     String
+  headline    String
+  body        String
+  url         String
+  // cng-savings, stations, today, gas-network, hub
+  placements  String[]
+  // Empty means every state.
+  states      String[] @default([])
+  priceUsd    Float
+  startsAt    DateTime
+  endsAt      DateTime
+  active      Boolean  @default(true)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@index([active, startsAt, endsAt])
 }

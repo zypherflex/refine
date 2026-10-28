@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sponsored } from "@/components/Sponsored";
 import { requireUser } from "@/server/auth";
 import { getMyBusiness } from "@/server/hub/business";
 import { nearestSupply, networkData } from "@/server/hub/gas";
@@ -156,6 +157,7 @@ export default async function GasNetworkPage({ searchParams }: { searchParams: S
       </details>
 
       {sites.length === 0 && <div className="mt-6"><EmptyState title="No gas sites listed yet">Sellers, refineries and hauliers add their sites from the trade hub.</EmptyState></div>}
+      <div className="mt-6"><Sponsored placement="gas-network" state={state || null} /></div>
     </>
   );
 }

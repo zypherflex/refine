@@ -28,7 +28,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         { href: "/admin/trips", label: "Live trips", badge: a.staleTrips },
       ],
     },
-    { label: "Money", items: [{ href: "/admin/payments", label: "Payments & plans", badge: a.failedPayments }] },
+    {
+      label: "Money",
+      items: [
+        { href: "/admin/payments", label: "Payments & plans", badge: a.failedPayments },
+        { href: "/admin/data", label: "Data customers" },
+        { href: "/admin/sponsors", label: "Sponsorships" },
+      ],
+    },
     { label: "Communication", items: [{ href: "/admin/broadcast", label: "Broadcast" }] },
     {
       label: "System",

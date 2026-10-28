@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sponsored } from "@/components/Sponsored";
 import type { HubListingKind } from "@prisma/client";
 import { requireUser } from "@/server/auth";
 import { getMyBusiness } from "@/server/hub/business";
@@ -120,6 +121,7 @@ export default async function HubPage({ searchParams }: { searchParams: Search }
           <SafetyNote />
         </Notice>
       </div>
+      <div className="mt-6"><Sponsored placement="hub" /></div>
     </>
   );
 }

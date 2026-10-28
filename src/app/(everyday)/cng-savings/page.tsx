@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sponsored } from "@/components/Sponsored";
 import { getCurrentUser } from "@/server/auth";
 import { fuelPricesFor } from "@/server/everyday/outlets";
 import { PageHeader, Notice } from "@/components/ui";
@@ -19,6 +20,7 @@ export default async function CngSavingsPage() {
         <Notice title="Before you convert">Use a conversion centre certified under the government&apos;s CNG programme, ask for the cylinder&apos;s test certificate, and check there is a CNG station on the routes you drive. <Link href="/stations?kind=CNG_STATION">Find CNG stations</Link>.</Notice>
         <Notice title="Keep both fuels">Most conversions are dual-fuel: the vehicle still runs on petrol when you cannot find CNG.</Notice>
       </div>
+      <div className="mt-6"><Sponsored placement="cng-savings" state={user?.homeState} /></div>
     </>
   );
 }

@@ -93,3 +93,39 @@ export async function retryJobsAction(form: FormData) {
   await retryFailedJobs(admin, s(form, "id") || undefined);
   revalidatePath("/admin/system");
 }
+
+export async function setDataPlanAction(_: AdminState, form: FormData) {
+  const admin = await requireRole("ADMIN");
+  const { adminSetDataPlan } = await import("@/server/data/accounts");
+  return run(() => adminSetDataPlan(admin, s(form, "id"), s(form, "plan"), Number(s(form, "days"))), "Plan set.", ["/admin/data"]);
+}
+
+export async function backfillIndexAction(_: AdminState, form: FormData) {
+  const admin = await requireRole("ADMIN");
+  const { adminBackfillIndex } = await import("@/server/admin/data");
+  let n = 0;
+  const res = await run(async () => { n = await adminBackfillIndex(admin, Number(s(form, "days")) || 30); }, "Rebuilt.", ["/admin/data"]);
+  return res.ok ? { ok: `Rebuilt: ${n.toLocaleString("en-GB")} index rows.` } : res;
+}
+
+export async function createSponsorshipAction(_: AdminState, form: FormData) {
+  const admin = await requireRole("ADMIN");
+  const { createSponsorship } = await import("@/server/sponsor");
+  const d = (k: string) => (s(form, k) ? new Date(`${s(form, k)}T00:00:00Z`) : new Date(NaN));
+  return run(
+    () => createSponsorship(admin, {
+      sponsor: s(form, "sponsor"), headline: s(form, "headline"), body: s(form, "body"), url: s(form, "url"),
+      placements: form.getAll("placements").map(String) as never, states: form.getAll("states").map(String),
+      priceUsd: Number(s(form, "priceUsd").replace(/[,$\s]/g, "")), startsAt: d("startsAt"), endsAt: d("endsAt"),
+    }),
+    "Sponsorship added.",
+    ["/admin/sponsors"],
+  );
+}
+
+export async function toggleSponsorshipAction(form: FormData) {
+  const admin = await requireRole("ADMIN");
+  const { setSponsorshipActive } = await import("@/server/sponsor");
+  await setSponsorshipActive(admin, s(form, "id"), s(form, "active") === "yes");
+  revalidatePath("/admin/sponsors");
+}

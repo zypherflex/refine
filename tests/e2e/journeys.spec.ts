@@ -524,7 +524,7 @@ test("admin console: every section opens from the navigation", async ({ page }) 
   const sections: [RegExp, string][] = [
     [/^Users/, "Users"], [/^Verification & reports/, "Trade hub moderation"], [/^Businesses/, "Businesses"], [/^Listings/, "Listings"], [/^Delivery jobs/, "Delivery jobs"],
     [/^Flagged content/, "Station report moderation"], [/^Stations & shops/, "Stations & shops"], [/^Price watch/, "Price watch"], [/^Gas orders/, "Gas orders"], [/^Live trips/, "Live trips"],
-    [/^Payments & plans/, "Payments & plans"], [/^Broadcast/, "Broadcast"], [/^Health & jobs/, "Health & jobs"], [/^Audit log/, "Audit log"], [/^Exports/, "Exports"],
+    [/^Payments & plans/, "Payments & plans"], [/^Data customers/, "Data customers"], [/^Sponsorships/, "Sponsorships"], [/^Broadcast/, "Broadcast"], [/^Health & jobs/, "Health & jobs"], [/^Audit log/, "Audit log"], [/^Exports/, "Exports"],
   ];
   for (const [link, heading] of sections) {
     await nav.getByRole("link", { name: link }).click();
@@ -560,4 +560,45 @@ test("admin console: non-administrators cannot open it or download exports", asy
   await expect(page).not.toHaveURL(/\/admin\/users/);
   const res = await page.request.get("/api/admin/exports/users");
   expect(res.status()).toBe(404);
+});
+
+test("data product: public pricing in dollars, a customer creates a key and calls the API @mobile", async ({ page }) => {
+  await page.context().clearCookies();
+  await page.goto("/data");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("What fuel and cooking gas really cost in Nigeria");
+  await expect(page.getByText("$49").first()).toBeVisible();
+  await expect(page.getByText("$299").first()).toBeVisible();
+  await page.goto("/data/docs");
+  await expect(page.getByRole("heading", { level: 1, name: "API documentation" })).toBeVisible();
+
+  await signIn(page, "data@refinerylens.test");
+  await page.goto("/account/data");
+  await expect(page.getByText("Demo Commodities Ltd (demo)").first()).toBeVisible();
+  await expect(page.getByText("Plans · prices in US dollars")).toBeVisible();
+  await page.getByLabel("Key name").fill("e2e");
+  await page.getByRole("button", { name: "Create API key" }).click();
+  const key = await page.getByLabel("New API key").inputValue();
+  expect(key).toMatch(/^rl_live_/);
+  const res = await page.request.get("/api/v1/latest?item=pms_retail_litre", { headers: { authorization: `Bearer ${key}` } });
+  expect(res.status()).toBe(200);
+  const body = await res.json();
+  expect(body.data.length).toBeGreaterThan(0);
+  expect(body.data[0]).toMatchObject({ currency: "NGN", demo: true });
+  expect((await page.request.get("/api/v1/latest", { headers: { authorization: "Bearer rl_live_notarealkeynotarealkey00" } })).status()).toBe(401);
+});
+
+test("sponsored placement is labelled, and admins see data customers and sponsorships", async ({ page }) => {
+  await page.context().clearCookies();
+  await page.goto("/cng-savings");
+  const ad = page.getByRole("complementary", { name: /Sponsored by Demo CNG Conversions/ });
+  await expect(ad).toContainText("Sponsored");
+  await expect(ad.getByRole("link", { name: /Learn more/ })).toHaveAttribute("rel", /sponsored/);
+
+  await signIn(page, "admin@refinerylens.test");
+  await page.goto("/admin/data");
+  await expect(page.getByText("Demo Commodities Ltd (demo)")).toBeVisible();
+  await expect(page.getByText("$299").first()).toBeVisible();
+  await page.goto("/admin/sponsors");
+  await expect(page.getByText("Demo CNG Conversions (demo)")).toBeVisible();
+  await expect(page.getByText(/views · \d+ clicks/).first()).toBeVisible();
 });

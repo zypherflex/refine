@@ -143,6 +143,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
         </div>
       </section>
 
+      <section aria-labelledby="data-h" className="border-b border-ink-100 bg-ink-950 text-white">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 sm:px-8 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-eyebrow text-navy-300">For companies worldwide</p>
+            <h2 id="data-h" className="mt-1 font-serif text-2xl font-semibold text-white">RefineryLens Data: Nigeria&apos;s daily fuel and LPG price index, by state, by API.</h2>
+            <p className="mt-1 text-sm text-ink-300">For traders, banks, multinationals and clean-cooking projects. From $49 a month.</p>
+          </div>
+          <Link href="/data" className="btn shrink-0 bg-white px-5 py-3 font-semibold text-ink-950 no-underline hover:bg-ink-100">See the data <ArrowRight size={18} aria-hidden /></Link>
+        </div>
+      </section>
+
       <section aria-labelledby="ng" className="border-b border-ink-100">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-8">
           <p className="eyebrow">Lekki to world markets</p>

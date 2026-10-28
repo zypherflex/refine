@@ -46,7 +46,7 @@ export default async function AdminOverview() {
         <Stat label="Gas orders, 7 days" value={s.orders7} sub={`${s.delivered7} delivered`} href="/admin/orders" />
         <Stat label="Drivers sharing now" value={s.liveTrips} href="/admin/trips" tone={s.liveTrips ? "good" : "plain"} />
         <Stat label="Station reports" value={s.reports24} sub={`last 24 h · ${s.reports7} in 7 days · ${s.outlets} places`} href="/admin/outlets" />
-        <Stat label="Revenue, 30 days" value={naira(s.revenue30Naira)} sub={`${s.paid30} payment${s.paid30 === 1 ? "" : "s"}`} href="/admin/payments" />
+        <Stat label="Revenue, 30 days" value={`$${s.revenue30Usd.toLocaleString("en-US")}`} sub={`plus ${naira(s.revenue30Naira)} · ${s.paid30} payment${s.paid30 === 1 ? "" : "s"}`} href="/admin/payments" tone={s.revenue30Usd ? "good" : "plain"} />
       </section>
 
       <section aria-label="Last 14 days" className="mb-6 grid gap-3 lg:grid-cols-3">

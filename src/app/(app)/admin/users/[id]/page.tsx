@@ -6,6 +6,7 @@ import { NotFoundError } from "@/lib/errors";
 import { changeAudienceAction, changePlanAction, changeRoleAction, revokeSessionsAction } from "@/app/actions/admin";
 import { setReportingBlockedAction } from "@/app/actions/everyday";
 import { naira } from "@/lib/hub/prices";
+import { fmtMoney } from "@/lib/data-plans";
 import { EVERYDAY_LABEL, ORDER_STATUS, problemLabel } from "@/lib/everyday";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { Badge, Stat } from "@/components/admin/parts";
@@ -85,7 +86,7 @@ export default async function AdminUser({ params }: { params: Promise<{ id: stri
             </div>
           ) : <p className="muted mt-2">No business profile.</p>}
           <h3 className="mt-5 text-sm font-semibold">Payments</h3>
-          {d.payments.length ? <ul className="mt-1 space-y-1 text-sm">{d.payments.map((p) => <li key={p.id} className="flex justify-between"><span>{p.purpose.toLowerCase().replace(/_/g, " ")} · {fmtDate(p.createdAt)}</span><span className="num">{naira(p.amountKobo / 100)} <Badge tone={p.status === "SUCCESS" ? "good" : p.status === "FAILED" ? "bad" : "plain"}>{p.status.toLowerCase()}</Badge></span></li>)}</ul> : <p className="muted mt-1 text-sm">None.</p>}
+          {d.payments.length ? <ul className="mt-1 space-y-1 text-sm">{d.payments.map((p) => <li key={p.id} className="flex justify-between"><span>{p.purpose.toLowerCase().replace(/_/g, " ")} · {fmtDate(p.createdAt)}</span><span className="num">{fmtMoney(p.amountKobo, p.currency)} <Badge tone={p.status === "SUCCESS" ? "good" : p.status === "FAILED" ? "bad" : "plain"}>{p.status.toLowerCase()}</Badge></span></li>)}</ul> : <p className="muted mt-1 text-sm">None.</p>}
         </section>
 
         <section aria-labelledby="orders-h" className="card">

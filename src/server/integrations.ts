@@ -1,5 +1,6 @@
 import { PROVIDERS, type ProviderId } from "./opendata/catalog";
-import { paystackConfigured } from "./connect/paystack";
+import { paystackConfigured, paystackUsdEnabled } from "./connect/paystack";
+import { stripeConfigured } from "./connect/stripe";
 import { textProvider } from "./connect/text";
 import { registryConfigured } from "./connect/registry";
 import { geocoderConfigured } from "./connect/geocode";
@@ -45,6 +46,7 @@ export function integrationStatus() {
     languageModel: Boolean(process.env.ANTHROPIC_API_KEY),
     email: { configured: Boolean(email), available: SHIPPED_EMAIL_ADAPTERS.includes(email) && emailCredentials },
     payments: { configured: Boolean(payment), available: SHIPPED_PAYMENT_ADAPTERS.includes(payment) && paystackConfigured() },
+    usd: { paystack: paystackUsdEnabled(), stripe: stripeConfigured(), stripeWebhook: stripeConfigured() && Boolean(process.env.STRIPE_WEBHOOK_SECRET) },
     text: { configured: Boolean(process.env.TEXT_PROVIDER), provider: textProvider() },
     registry: registryConfigured(),
     geocoder: geocoderConfigured(),

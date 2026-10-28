@@ -13,6 +13,8 @@
   summary { cursor: pointer; list-style: none; }
   summary::-webkit-details-marker { display: none; }
   code { @apply rounded bg-ink-100 px-1 py-0.5 font-mono text-[0.85em]; }
+  /* Code inside a dark code panel keeps the panel's colours rather than the light inline-code chip. */
+  pre code { @apply bg-transparent p-0 text-inherit; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 }
 

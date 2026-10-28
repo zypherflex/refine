@@ -25,13 +25,15 @@ export async function overviewStats(actor: Actor, now = new Date()) {
     db.outletReport.count({ where: { createdAt: { gte: d7 } } }),
     db.outlet.count({ where: { hidden: false } }),
     db.payment.count({ where: { status: "SUCCESS", paidAt: { gte: d30 } } }),
-    db.payment.aggregate({ where: { status: "SUCCESS", paidAt: { gte: d30 } }, _sum: { amountKobo: true } }),
+    db.payment.groupBy({ by: ["currency"], where: { status: "SUCCESS", paidAt: { gte: d30 } }, _sum: { amountKobo: true } }),
     db.hubBusiness.count({ where: { planUntil: { gt: now } } }),
     db.hubListing.count({ where: { status: "ACTIVE", expiresAt: { gt: now } } }),
   ]);
   return {
     users, households, businessesUsers: users - households, new7, newPrev7, businesses, verified, orders7, delivered7, liveTrips, reports24, reports7, outlets,
-    paid30, revenue30Naira: (revenue30._sum.amountKobo ?? 0) / 100, activePlans, listings,
+    paid30, activePlans, listings,
+    revenue30Naira: (revenue30.find((r) => r.currency === "NGN")?._sum.amountKobo ?? 0) / 100,
+    revenue30Usd: (revenue30.find((r) => r.currency === "USD")?._sum.amountKobo ?? 0) / 100,
   };
 }
 

@@ -69,10 +69,10 @@ export const EXPORTS: Record<string, Export> = {
   },
   payments: {
     label: "Payments",
-    about: "Payment references, who paid, purpose, amount and status.",
+    about: "Payment references, provider, who paid, purpose, amount, currency (NGN or USD) and status.",
     build: async () => ({
-      header: ["reference", "user_email", "purpose", "amount_naira", "status", "created_at", "paid_at"],
-      rows: (await db.payment.findMany({ orderBy: { createdAt: "asc" }, take: LIMIT, include: { user: { select: { email: true } } } })).map((p) => [p.reference, p.user.email, p.purpose, p.amountKobo / 100, p.status, p.createdAt, p.paidAt]),
+      header: ["reference", "provider", "user_email", "purpose", "plan", "amount", "currency", "status", "created_at", "paid_at"],
+      rows: (await db.payment.findMany({ orderBy: { createdAt: "asc" }, take: LIMIT, include: { user: { select: { email: true } } } })).map((p) => [p.reference, p.provider, p.user.email, p.purpose, p.planId, p.amountKobo / 100, p.currency, p.status, p.createdAt, p.paidAt]),
     }),
   },
 };

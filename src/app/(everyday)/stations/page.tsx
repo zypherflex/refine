@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sponsored } from "@/components/Sponsored";
 import { Plus, Search } from "lucide-react";
 import type { OutletKind } from "@prisma/client";
 import { getCurrentUser } from "@/server/auth";
@@ -72,6 +73,7 @@ export default async function StationsPage({ searchParams }: { searchParams: Pro
           ))}
         </ul>
       )}
+      <div className="mt-6"><Sponsored placement="stations" state={state} /></div>
     </>
   );
 }
