@@ -72,7 +72,7 @@ export async function seedEveryday(
   // Tunde's kitchen cylinder lasts about 4 weeks and is due a refill in 3 days.
   await db.gasCylinder.create({ data: { userId: tunde.id, label: "Kitchen", sizeKg: 12.5, usualDays: 30, refills: { create: [{ filledAt: new Date(Date.now() - 81 * DAY), priceNaira: 15_500 }, { filledAt: new Date(Date.now() - 53 * DAY), priceNaira: 16_000 }, { filledAt: new Date(Date.now() - 25 * DAY), priceNaira: 16_750 }] } } });
   const address = { state: "Lagos", area: "Surulere", address: "14 Demo Close, off Bode Thomas St (fictional)", phone: "+2348030000001" };
-  await db.gasOrder.create({ data: { ...address, userId: tunde.id, businessId: sellers.ikejaId, cylinderKg: 12.5, estimateNaira: 16_750, priceNaira: 16_750, status: "DELIVERED", rating: 5, createdAt: new Date(Date.now() - 25 * DAY), deliveredAt: new Date(Date.now() - 25 * DAY + 3 * HOUR) } });
+  await db.gasOrder.create({ data: { ...address, userId: tunde.id, businessId: sellers.ikejaId, cylinderKg: 12.5, estimateNaira: 16_750, priceNaira: 16_750, commissionNaira: 419, status: "DELIVERED", rating: 5, createdAt: new Date(Date.now() - 25 * DAY), deliveredAt: new Date(Date.now() - 25 * DAY + 3 * HOUR) } });
   await db.gasOrder.create({ data: { ...address, userId: people[0].id, businessId: sellers.ikejaId, cylinderKg: 6, area: "Yaba", address: "3 Demo Street, Yaba (fictional)", phone: "+2348030000002", estimateNaira: 8_300, status: "PLACED", createdAt: new Date(Date.now() - 40 * 60_000) } });
   // An order on its way, with the driver sharing their location from Ikeja towards Surulere (demo positions).
   const onWay = await db.gasOrder.create({ data: { ...address, userId: tunde.id, businessId: sellers.ikejaId, cylinderKg: 6, estimateNaira: 8_300, priceNaira: 8_300, status: "OUT_FOR_DELIVERY", note: "Second cylinder for the shop (demo)", createdAt: new Date(Date.now() - 50 * 60_000) } });
@@ -86,7 +86,7 @@ export async function seedEveryday(
       pings: { create: route.map((p, i) => ({ ...p, accuracy: 12, speed: 6, recordedAt: new Date(Date.now() - (11 - i) * 60_000) })) },
     },
   });
-  await db.gasOrder.create({ data: { ...address, userId: people[1].id, businessId: sellers.surulereId, cylinderKg: 12.5, estimateNaira: 16_500, priceNaira: 16_500, status: "DELIVERED", rating: 4, createdAt: new Date(Date.now() - 6 * DAY), deliveredAt: new Date(Date.now() - 6 * DAY + 2 * HOUR) } });
+  await db.gasOrder.create({ data: { ...address, userId: people[1].id, businessId: sellers.surulereId, cylinderKg: 12.5, estimateNaira: 16_500, priceNaira: 16_500, commissionNaira: 413, status: "DELIVERED", rating: 4, createdAt: new Date(Date.now() - 6 * DAY), deliveredAt: new Date(Date.now() - 6 * DAY + 2 * HOUR) } });
 }
 
 /** Demo for the dollar revenue lines: the daily index built from the demo reports, one demo data customer and one demo sponsor. */
