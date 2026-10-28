@@ -18,7 +18,7 @@ export function IndexChart({ points, unit, label }: { points: IndexChartPoint[];
           <XAxis dataKey="weekEnding" tick={{ fontSize: 10, fill: "#182a5a" }} axisLine={{ stroke: "#d5dae6" }} tickLine={false} minTickGap={40} />
           <YAxis tick={{ fontSize: 10, fill: "#182a5a" }} axisLine={false} tickLine={false} width={60} domain={["auto", "auto"]} tickFormatter={(v: number) => `₦${v.toLocaleString("en-GB")}`} />
           <Tooltip formatter={(v, _n, item) => [`₦${Number(v).toLocaleString("en-GB")}/${unit} · ${(item.payload as IndexChartPoint).sellers} sellers`, "Median"]} labelFormatter={(l) => `Week to ${l}`} contentStyle={{ fontSize: 12 }} />
-          <Line type="monotone" dataKey="median" stroke="#087c47" strokeWidth={2} dot={points.length <= 30} connectNulls={false} isAnimationActive={false} />
+          <Line type="monotone" dataKey="median" stroke="#5b2ee8" strokeWidth={2} dot={points.length <= 30} connectNulls={false} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>

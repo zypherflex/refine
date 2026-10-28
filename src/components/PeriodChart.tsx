@@ -20,7 +20,7 @@ export function PeriodChart({ title, unit, points, description }: { title: strin
             <YAxis tick={{ fontSize: 11, fill: "#182a5a" }} axisLine={false} tickLine={false} width={64} tickFormatter={(v: number) => v.toLocaleString("en-GB")} />
             <ReferenceLine y={0} stroke="#475477" />
             <Tooltip formatter={(v) => [`${Number(v).toLocaleString("en-GB")} ${unit}`, title]} contentStyle={{ fontSize: 12 }} />
-            <Bar dataKey="value" fill="#087c47" radius={[3, 3, 0, 0]} maxBarSize={56} isAnimationActive={false} />
+            <Bar dataKey="value" fill="#5b2ee8" radius={[3, 3, 0, 0]} maxBarSize={56} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </div>

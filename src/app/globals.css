@@ -4,7 +4,7 @@
 
 @layer base {
   html { -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; }
-  body { @apply bg-white text-ink-900 antialiased; font-feature-settings: "cv11", "ss01", "ss03"; }
+  body { @apply bg-[#f8f6ff] text-ink-900 antialiased; font-feature-settings: "cv11", "ss01", "ss03"; }
   h1, h2, h3 { @apply text-ink-950; }
   a { @apply text-brand-700 underline-offset-[3px] decoration-brand-600/40; }
   a:hover { @apply underline; }
@@ -21,7 +21,7 @@
   .card-link { @apply card block text-ink-900 no-underline transition hover:-translate-y-px hover:border-brand-600/50 hover:shadow-lift hover:no-underline; }
   .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium no-underline transition disabled:cursor-not-allowed disabled:opacity-50; }
   .btn:hover { text-decoration: none; }
-  .btn-primary { @apply btn bg-brand-700 text-white shadow-sm hover:bg-brand-800 active:bg-brand-900; }
+  .btn-primary { @apply btn bg-gradient-to-r from-brand-600 to-[#a23cf0] text-white shadow-sm shadow-brand-600/25 hover:from-brand-700 hover:to-[#8f2fd8] active:from-brand-800; }
   .btn-secondary { @apply btn border border-ink-200 bg-white text-ink-900 shadow-sm hover:border-ink-300 hover:bg-ink-50; }
   .btn-ghost { @apply btn text-ink-800 hover:bg-ink-100; }
   .btn-danger { @apply btn bg-risk-700 text-white shadow-sm hover:bg-risk-800; }
@@ -29,7 +29,7 @@
   .input { @apply block w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 shadow-sm placeholder:text-ink-500 focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-600/15; }
   .label { @apply mb-1.5 block text-sm font-medium text-ink-900; }
   .hint { @apply mt-1 text-xs text-ink-600; }
-  .eyebrow { @apply text-[11px] font-semibold uppercase tracking-eyebrow text-brand-700; }
+  .eyebrow { @apply text-[11px] font-semibold uppercase tracking-eyebrow text-sun-700; }
   .h-page { @apply font-serif text-[1.75rem] font-semibold leading-tight tracking-tight sm:text-[2.1rem]; }
   .h-section { @apply text-[0.95rem] font-semibold tracking-tight text-ink-950; }
   .muted { @apply text-sm text-ink-600; }

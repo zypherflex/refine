@@ -45,33 +45,33 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="relative overflow-hidden bg-ink-950 text-white">
+      <div className="relative overflow-hidden bg-gradient-to-br from-brand-800 via-[#9b2fd6] to-sun-500 text-white">
         <div aria-hidden className="band-ng h-[3px] w-full" />
         <header className="relative mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-8">
           <Logo light />
           <nav className="flex items-center gap-2 text-sm">
             <Link href="/login" className="btn-ghost text-white hover:bg-white/10">Sign in</Link>
-            <Link href="/register" className="btn bg-white text-ink-950 shadow-sm hover:bg-ink-100">Create account</Link>
+            <Link href="/register" className="btn bg-white text-brand-800 shadow-sm hover:bg-brand-50">Create account</Link>
           </nav>
         </header>
         <main className="relative mx-auto grid max-w-6xl gap-12 px-4 pb-16 pt-10 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:pb-20 lg:pt-16">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-brand-300">
+            <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-sun-200">
               Independent business intelligence for Nigeria's downstream
             </p>
             <h1 className="mt-6 font-serif text-[2.5rem] font-semibold leading-[1.08] tracking-tight text-white sm:text-6xl">
-              Business opportunities around Dangote. <span className="text-brand-300">Evidence first.</span>
+              Business opportunities around Dangote. <span className="text-[#ffd84d]">Evidence first.</span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-200">
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/90">
               Find where your business fits, from one tanker or an LPG kiosk to crude cargoes and modular refining. RefineryLens maps the opportunities around Dangote's Lekki complex, shows the sourced facts and dated reports behind each one, and lets you size it with your own numbers.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <Link href="/register" className="btn bg-brand-500 px-5 py-3 text-base font-semibold text-white shadow-sm hover:bg-brand-400 hover:text-ink-950">
+              <Link href="/register" className="btn bg-[#ffd84d] px-5 py-3 text-base font-semibold text-ink-950 shadow-sm hover:bg-[#ffe680]">
                 Start free <ArrowRight size={18} aria-hidden />
               </Link>
-              <Link href="/login" className="btn border border-white/15 px-5 py-3 text-base text-white hover:bg-white/10">Sign in</Link>
+              <Link href="/login" className="btn border border-white/30 px-5 py-3 text-base text-white hover:bg-white/10">Sign in</Link>
             </div>
-            <p className="mt-6 max-w-xl text-xs leading-relaxed text-ink-300">
+            <p className="mt-6 max-w-xl text-xs leading-relaxed text-white/75">
               Find the opportunity. Examine the evidence. Size it with your own numbers. RefineryLens is independent and is not affiliated with, endorsed by or sponsored by Dangote or any Dangote company. Nothing here is an offer from Dangote.
             </p>
           </div>
@@ -101,7 +101,7 @@ export default async function Home() {
         </main>
         {scale.length > 0 && (
           <section aria-labelledby="scale-h" className="relative mx-auto max-w-6xl px-4 pb-16 sm:px-8">
-            <h2 id="scale-h" className="mb-3 text-[11px] font-semibold uppercase tracking-eyebrow text-ink-300">Scale at a glance · as stated by the company</h2>
+            <h2 id="scale-h" className="mb-3 text-[11px] font-semibold uppercase tracking-eyebrow text-white/80">Scale at a glance · as stated by the company</h2>
             <ScaleTiles facts={scale} dark />
           </section>
         )}
@@ -197,15 +197,15 @@ export default async function Home() {
       </section>
 
       <section aria-labelledby="coverage" className="mx-auto max-w-6xl px-4 pb-20 sm:px-8">
-        <div className="relative overflow-hidden rounded-2xl bg-ink-950 p-8 text-white sm:p-12">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-800 via-[#9b2fd6] to-sun-500 p-8 text-white sm:p-12">
           <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
             <div>
-              <p className="eyebrow text-brand-300">Coverage</p>
+              <p className="eyebrow text-sun-200">Coverage</p>
               <h2 id="coverage" className="mt-2 font-serif text-3xl font-semibold tracking-tight text-white">Opportunities around Dangote first. More of Africa’s energy hubs next.</h2>
-              <p className="mt-4 max-w-xl text-ink-200">Every opportunity rests on Dangote’s public disclosures and dated independent reports, moved through editorial review. The platform is designed to add more refining and energy hubs across Africa and beyond.</p>
+              <p className="mt-4 max-w-xl text-white/90">Every opportunity rests on Dangote’s public disclosures and dated independent reports, moved through editorial review. The platform is designed to add more refining and energy hubs across Africa and beyond.</p>
             </div>
             <div className="flex lg:justify-end">
-              <Link href="/register" className="btn bg-brand-500 px-5 py-3 text-base font-semibold text-white hover:bg-brand-400 hover:text-ink-950">Create a free account <ArrowRight size={18} aria-hidden /></Link>
+              <Link href="/register" className="btn bg-[#ffd84d] px-5 py-3 text-base font-semibold text-ink-950 hover:bg-[#ffe680]">Create a free account <ArrowRight size={18} aria-hidden /></Link>
             </div>
           </div>
         </div>

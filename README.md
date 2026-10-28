@@ -155,7 +155,7 @@ Other features reuse the cached data through `src/server/opendata/index.ts`: `ge
 | Layer | Choice |
 | --- | --- |
 | Framework | Next.js 15 (App Router, React Server Components, server actions), React 19, TypeScript |
-| Styling | Tailwind CSS 3. Atlantic navy carries the structure (`ink`: #0B1530 sidebar and headings, Navy 800 #182A5A data marks, Mist #F3F5FC panels and table headers), Naija green #087C47 marks actions, verified businesses and links (`brand`), Signal amber #B7791F is for warnings only, white is the page; a thin green-white-green line is the single flag reference. Inter, Source Serif 4 and JetBrains Mono (for numbers) self-hosted via Fontsource; Lucide icons. Times are shown in West Africa Time (Lagos) |
+| Styling | Tailwind CSS 3. Atlantic navy carries text and headings (`ink`: #0B1530, Navy 800 #182A5A, Mist #F3F5FC panels and table headers). Electric violet #5B2EE8 marks actions, links, verified businesses and chart lines (`brand`), sunset orange #FF7A1A is the warm highlight for eyebrows, badges and the logo (`sun`, small text uses #B84A00), and the landing hero and sign-in panel use a violet-to-orange gradient with sunny yellow calls to action. Signal amber #B7791F is for warnings only. The sidebar is light, the page a faint violet tint, and a thin green-white-green line stays the single flag reference. Inter, Source Serif 4 and JetBrains Mono (for numbers) self-hosted via Fontsource; Lucide icons. Times are shown in West Africa Time (Lagos) |
 | Charts | Recharts, always with an accessible table alternative |
 | Database | PostgreSQL via Prisma 6; migrations in `prisma/migrations` |
 | Auth | Custom, see above. Chosen over an auth library to keep sessions server-side and auditable with no third-party dependency |
