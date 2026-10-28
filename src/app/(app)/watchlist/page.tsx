@@ -10,8 +10,8 @@ import { EmptyState, Notice, PageHeader, Pill } from "@/components/ui";
 
 export const metadata = { title: "Watchlist and alerts" };
 
-const kindLabel: Record<string, string> = { NEW_ANNOUNCEMENT: "New", CORRECTION: "Correction", RETRACTION: "Retraction", SUPERSESSION: "Superseded", THESIS_MATCH: "Thesis evidence", HUB_MESSAGE: "Trade hub message", HUB_VERIFICATION: "Trade hub" };
-const kindStyle: Record<string, string> = { NEW_ANNOUNCEMENT: "bg-teal-100 text-teal-800", CORRECTION: "bg-amber-100 text-amber-800", RETRACTION: "bg-risk-100 text-risk-800", SUPERSESSION: "bg-navy-100 text-navy-800", THESIS_MATCH: "bg-navy-900 text-white", HUB_MESSAGE: "bg-teal-600 text-white", HUB_VERIFICATION: "bg-teal-100 text-teal-800" };
+const kindLabel: Record<string, string> = { NEW_ANNOUNCEMENT: "New", CORRECTION: "Correction", RETRACTION: "Retraction", SUPERSESSION: "Superseded", THESIS_MATCH: "Thesis evidence", HUB_MESSAGE: "Trade hub message", HUB_VERIFICATION: "Trade hub", HUB_JOB: "Delivery job", HUB_SUPPLY: "Supply agreement" };
+const kindStyle: Record<string, string> = { NEW_ANNOUNCEMENT: "bg-teal-100 text-teal-800", CORRECTION: "bg-amber-100 text-amber-800", RETRACTION: "bg-risk-100 text-risk-800", SUPERSESSION: "bg-navy-100 text-navy-800", THESIS_MATCH: "bg-navy-900 text-white", HUB_MESSAGE: "bg-teal-600 text-white", HUB_VERIFICATION: "bg-teal-100 text-teal-800", HUB_JOB: "bg-teal-100 text-teal-800", HUB_SUPPLY: "bg-teal-100 text-teal-800" };
 
 export default async function WatchlistPage() {
   const user = await requireUser();

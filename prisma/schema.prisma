@@ -692,9 +692,14 @@ model HubBusiness {
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 
-  listings HubListing[]
-  threads  HubThread[]
-  reports  HubReport[]
+  listings         HubListing[]
+  threads          HubThread[]
+  reports          HubReport[]
+  priceReports     PriceReport[]
+  jobsPosted       DeliveryJob[]     @relation("JobPoster")
+  quotes           DeliveryQuote[]
+  buyerAgreements  SupplyAgreement[] @relation("AgreementBuyer")
+  sellerAgreements SupplyAgreement[] @relation("AgreementSeller")
 
   @@index([verification])
 }
@@ -788,4 +793,145 @@ model HubReport {
   createdAt  DateTime        @default(now())
 
   @@index([status])
+}
+
+model PriceReport {
+  id         String      @id @default(cuid())
+  businessId String
+  business   HubBusiness @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  // An entry from PRICE_ITEMS, e.g. lpg_retail_kg or ago_depot_litre.
+  item       String
+  state      String
+  priceNaira Float
+  // The day the price applied, at midnight UTC. One report per business, item, state and day.
+  day        DateTime
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@unique([businessId, item, state, day])
+  @@index([item, day])
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Delivery jobs: a business posts a load, delivery partners quote, the poster accepts one, and both sides confirm
+// the delivery. RefineryLens records the agreement; payment is settled between the businesses.
+
+enum DeliveryJobStatus {
+  OPEN
+  AWARDED
+  DELIVERED
+  CANCELLED
+}
+
+enum QuoteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+}
+
+model DeliveryJob {
+  id                 String            @id @default(cuid())
+  posterId           String
+  poster             HubBusiness       @relation("JobPoster", fields: [posterId], references: [id], onDelete: Cascade)
+  title              String
+  products           String[]
+  quantity           Float
+  unit               String
+  fromState          String
+  fromTown           String            @default("")
+  toState            String
+  toTown             String            @default("")
+  pickupDate         DateTime
+  details            String            @default("")
+  status             DeliveryJobStatus @default(OPEN)
+  acceptedQuoteId    String?           @unique
+  posterConfirmedAt  DateTime?
+  carrierConfirmedAt DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  quotes DeliveryQuote[]
+
+  @@index([status, pickupDate])
+}
+
+model DeliveryQuote {
+  id         String      @id @default(cuid())
+  jobId      String
+  job        DeliveryJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  carrierId  String
+  carrier    HubBusiness @relation(fields: [carrierId], references: [id], onDelete: Cascade)
+  priceNaira Float
+  note       String      @default("")
+  status     QuoteStatus @default(PENDING)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@unique([jobId, carrierId])
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Recurring supply agreements: a buyer and a seller record a standing arrangement, the seller logs each delivery and
+// the buyer confirms or disputes it. Confirmed deliveries build each seller's public reliability record.
+
+enum AgreementFrequency {
+  WEEKLY
+  FORTNIGHTLY
+  MONTHLY
+}
+
+enum AgreementStatus {
+  PROPOSED
+  ACTIVE
+  PAUSED
+  ENDED
+  DECLINED
+}
+
+enum SupplyDeliveryStatus {
+  LOGGED
+  CONFIRMED
+  DISPUTED
+}
+
+model SupplyAgreement {
+  id           String             @id @default(cuid())
+  buyerId      String
+  buyer        HubBusiness        @relation("AgreementBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  sellerId     String
+  seller       HubBusiness        @relation("AgreementSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  // Which side proposed; the other side accepts or declines.
+  proposedById String
+  product      String
+  quantity     Float
+  unit         String
+  frequency    AgreementFrequency
+  deliverTo    String
+  priceNote    String             @default("")
+  notes        String             @default("")
+  startDate    DateTime
+  endDate      DateTime?
+  status       AgreementStatus    @default(PROPOSED)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  deliveries SupplyDelivery[]
+
+  @@index([buyerId])
+  @@index([sellerId])
+}
+
+model SupplyDelivery {
+  id          String               @id @default(cuid())
+  agreementId String
+  agreement   SupplyAgreement      @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+  deliveredOn DateTime
+  quantity    Float
+  status      SupplyDeliveryStatus @default(LOGGED)
+  buyerNote   String               @default("")
+  confirmedAt DateTime?
+  createdAt   DateTime             @default(now())
+
+  @@unique([agreementId, deliveredOn])
 }

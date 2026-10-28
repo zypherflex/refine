@@ -169,3 +169,42 @@ test("trade hub: a buyer enquires about a refinery's offer, the refinery replies
   await page.getByRole("button", { name: "Verify", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Verification requests (0)" })).toBeVisible();
 });
+
+test("price board, delivery job and supply agreement work end to end @mobile", async ({ page }) => {
+  const db = new PrismaClient();
+  await db.deliveryJob.deleteMany({ where: { title: "E2E 10 tonnes LPG" } });
+  await db.$disconnect();
+
+  await signIn(page, "buyer@refinerylens.test");
+  await page.goto("/hub/prices?item=lpg_retail_kg");
+  await expect(page.getByRole("heading", { level: 1, name: "Price board" })).toBeVisible();
+  await expect(page.getByRole("row", { name: /Lagos ₦1,300/ })).toBeVisible();
+  await expect(page.getByText("Includes demo sellers")).toBeVisible();
+
+  await page.goto("/hub/jobs/new");
+  await page.getByLabel("What needs moving? *").fill("E2E 10 tonnes LPG");
+  await page.getByLabel("LPG (cooking gas)").check();
+  await page.getByLabel("Quantity *").fill("10");
+  await page.getByLabel("Unit *").selectOption("tonnes");
+  await page.getByLabel("From *").selectOption("Lagos");
+  await page.getByLabel("To *").selectOption("Kano");
+  await Promise.all([page.waitForURL(/\/hub\/jobs\/(?!new)[a-z0-9]+$/), page.getByRole("button", { name: "Post job and collect quotes" }).click()]);
+  const jobUrl = page.url();
+
+  await signIn(page, "haulier@refinerylens.test");
+  await page.goto(jobUrl);
+  await page.getByLabel("Your price for the whole job (₦) *").fill("1100000");
+  await page.getByRole("button", { name: "Send quote" }).click();
+  await expect(page.getByText("Quote sent.")).toBeVisible();
+
+  await signIn(page, "buyer@refinerylens.test");
+  await page.goto(jobUrl);
+  await page.getByRole("button", { name: "Accept this quote" }).click();
+  await expect(page.getByRole("heading", { name: /Awarded to Northern Corridor Haulage/ })).toBeVisible();
+  await page.getByRole("button", { name: "Confirm the load arrived" }).click();
+  await expect(page.getByText(/confirmed delivery/).first()).toBeVisible();
+
+  await page.goto("/hub/supply");
+  await page.getByRole("link", { name: /20 tonnes of LPG/ }).click();
+  await expect(page.getByText("Waiting for buyer")).toBeVisible();
+});

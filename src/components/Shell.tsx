@@ -30,6 +30,9 @@ export function Shell({ user, children, companies, current, unread, hubUnread, c
       label: "Trade hub",
       items: [
         { href: "/hub", label: "Buy, sell & deliver", icon: "hub" },
+        { href: "/hub/prices", label: "Price board", icon: "prices" },
+        { href: "/hub/jobs", label: "Delivery jobs", icon: "jobs" },
+        { href: "/hub/supply", label: "Supply agreements", icon: "supply" },
         { href: "/hub/refineries", label: "Refineries", icon: "refinery" },
         { href: "/hub/inbox", label: "Hub inbox", icon: "inbox", badge: hubUnread },
         { href: "/hub/me", label: "My business", icon: "business" },
