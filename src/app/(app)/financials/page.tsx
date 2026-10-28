@@ -53,12 +53,12 @@ export default async function FinancialsPage() {
   return (
     <>
       <PageHeader eyebrow="Research" title="Financial reports" subtitle="Reported figures in plain language, with the document and page each one comes from. Currency, units, period, scope and audit status are kept with every figure." />
-      <nav aria-label="Jump to metric" className="sticky top-[5.6rem] z-20 -mx-4 mb-6 overflow-x-auto border-y border-ink-100 bg-ink-50/90 px-4 py-2 backdrop-blur sm:mx-0 sm:rounded-xl sm:border">
+      <nav aria-label="Jump to metric" className="sticky top-[5.6rem] z-20 -mx-4 mb-6 overflow-x-auto border-y border-navy-100 bg-navy-50/90 px-4 py-2 backdrop-blur sm:mx-0 sm:rounded-xl sm:border">
         <ul className="flex gap-1 whitespace-nowrap text-xs font-medium">
           {FINANCIAL_KEYS.map(([key, label]) => (
-            <li key={key}><a href={`#${key}`} className="block rounded-md px-2.5 py-1 text-ink-700 no-underline hover:bg-white hover:text-ink-950 hover:no-underline">{label}</a></li>
+            <li key={key}><a href={`#${key}`} className="block rounded-md px-2.5 py-1 text-navy-700 no-underline hover:bg-white hover:text-navy-950 hover:no-underline">{label}</a></li>
           ))}
-          <li><a href="#calc-h" className="block rounded-md px-2.5 py-1 text-brand-700 no-underline hover:bg-white hover:no-underline">Calculated</a></li>
+          <li><a href="#calc-h" className="block rounded-md px-2.5 py-1 text-teal-700 no-underline hover:bg-white hover:no-underline">Calculated</a></li>
         </ul>
       </nav>
       {rows.length === 0 && (

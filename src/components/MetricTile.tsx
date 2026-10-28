@@ -6,8 +6,8 @@ import { provenanceLabel } from "@/lib/labels";
 
 export function TileFrame({ label, children, muted = false }: { label: string; children: React.ReactNode; muted?: boolean }) {
   return (
-    <div className={`flex flex-col rounded-xl border p-4 ${muted ? "border-dashed border-ink-200 bg-white/60" : "border-ink-100 bg-white shadow-card"}`}>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-500">{label}</p>
+    <div className={`flex flex-col rounded-xl border p-4 ${muted ? "border-dashed border-navy-200 bg-white/60" : "border-navy-100 bg-white shadow-card"}`}>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-navy-500">{label}</p>
       {children}
     </div>
   );
@@ -17,18 +17,18 @@ export function MetricTile({ label, m, href }: { label: string; m: (Metric & { d
   if (!m || m.disclosureStatus === "NOT_DISCLOSED" || m.value === null) {
     return (
       <TileFrame label={label} muted>
-        <p className="mt-2 text-sm font-semibold text-ink-700">{m?.disclosureStatus === "NOT_DISCLOSED" ? "Not publicly disclosed" : "No verified figure"}</p>
-        <p className="mt-1 line-clamp-3 text-xs leading-relaxed text-ink-600">{m?.notes || "RefineryLens shows figures only when a reviewed source supports them."}</p>
+        <p className="mt-2 text-sm font-semibold text-navy-700">{m?.disclosureStatus === "NOT_DISCLOSED" ? "Not publicly disclosed" : "No verified figure"}</p>
+        <p className="mt-1 line-clamp-3 text-xs leading-relaxed text-navy-600">{m?.notes || "RefineryLens shows figures only when a reviewed source supports them."}</p>
       </TileFrame>
     );
   }
   const v = Number(m.value);
   return (
     <TileFrame label={label}>
-      <p className="num mt-2 text-2xl font-semibold tracking-tight text-ink-950">
-        {fmtNumber(v)} <span className="text-sm font-medium tracking-normal text-ink-600">{m.unit === "%" ? "%" : unitLabel(m)}</span>
+      <p className="num mt-2 text-2xl font-semibold tracking-tight text-navy-950">
+        {fmtNumber(v)} <span className="text-sm font-medium tracking-normal text-navy-600">{m.unit === "%" ? "%" : unitLabel(m)}</span>
       </p>
-      <p className="mt-1 text-xs text-ink-600">
+      <p className="mt-1 text-xs text-navy-600">
         {m.periodLabel} · {m.scope === "GROUP" ? "group" : m.scope === "REFINERY" ? "refinery" : "sector"} · {m.valueType === "REPORTED" ? provenanceLabel[m.provenance].toLowerCase() : m.valueType.toLowerCase()}
         {m.auditStatus !== "NOT_APPLICABLE" && ` · ${m.auditStatus.toLowerCase()}`}
       </p>

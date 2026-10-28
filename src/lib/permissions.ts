@@ -17,8 +17,6 @@ export const can = {
   uploadPublicDocument: (a: Actor | null) => hasRole(a, "EDITOR"),
   manageUsers: (a: Actor | null) => hasRole(a, "ADMIN"),
   viewEditorial: (a: Actor | null) => hasRole(a, "ANALYST"),
-  /** Verify, suspend and reinstate trade hub businesses and handle reports. Cannot read hub messages. */
-  moderateHub: (a: Actor | null) => hasRole(a, "ADMIN"),
 };
 
 const PUBLIC_STATUSES = new Set(["PUBLISHED", "RETRACTED", "SUPERSEDED"]);

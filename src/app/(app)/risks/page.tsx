@@ -46,13 +46,13 @@ export default async function RisksPage() {
                     <h3 className="mt-2 font-semibold">{r.title}</h3>
                     <p className="mt-1 text-sm">{r.summary}</p>
                     <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
-                      <div><dt className="text-xs font-semibold uppercase tracking-wide text-ink-700">Supporting evidence</dt><dd className="mt-0.5">{r.evidenceSummary}{r.evidence.length > 0 && <ul className="mt-1">{r.evidence.map((e) => e.announcement && <li key={e.id}><Link href={`/announcements/${e.announcement.id}`}>{e.announcement.headline}</Link></li>)}</ul>}</dd></div>
-                      <div><dt className="text-xs font-semibold uppercase tracking-wide text-ink-700">How it could affect the business</dt><dd className="mt-0.5">{r.impactPathway}</dd></div>
-                      <div><dt className="text-xs font-semibold uppercase tracking-wide text-ink-700">Time horizon</dt><dd className="mt-0.5">{r.horizon}</dd></div>
-                      <div><dt className="text-xs font-semibold uppercase tracking-wide text-ink-700">Evidence quality and uncertainty</dt><dd className="mt-0.5">{r.evidenceQuality} {r.uncertainty}</dd></div>
-                      <div className="sm:col-span-2"><dt className="text-xs font-semibold uppercase tracking-wide text-ink-700">What would clarify it</dt><dd className="mt-0.5">{r.clarifyingDisclosure}</dd></div>
+                      <div><dt className="text-xs font-semibold uppercase tracking-wide text-navy-700">Supporting evidence</dt><dd className="mt-0.5">{r.evidenceSummary}{r.evidence.length > 0 && <ul className="mt-1">{r.evidence.map((e) => e.announcement && <li key={e.id}><Link href={`/announcements/${e.announcement.id}`}>{e.announcement.headline}</Link></li>)}</ul>}</dd></div>
+                      <div><dt className="text-xs font-semibold uppercase tracking-wide text-navy-700">How it could affect the business</dt><dd className="mt-0.5">{r.impactPathway}</dd></div>
+                      <div><dt className="text-xs font-semibold uppercase tracking-wide text-navy-700">Time horizon</dt><dd className="mt-0.5">{r.horizon}</dd></div>
+                      <div><dt className="text-xs font-semibold uppercase tracking-wide text-navy-700">Evidence quality and uncertainty</dt><dd className="mt-0.5">{r.evidenceQuality} {r.uncertainty}</dd></div>
+                      <div className="sm:col-span-2"><dt className="text-xs font-semibold uppercase tracking-wide text-navy-700">What would clarify it</dt><dd className="mt-0.5">{r.clarifyingDisclosure}</dd></div>
                     </dl>
-                    <p className="mt-2 text-xs text-ink-700">Updated {fmtDate(r.updatedAt)}</p>
+                    <p className="mt-2 text-xs text-navy-700">Updated {fmtDate(r.updatedAt)}</p>
                   </article>
                 ))
               )}

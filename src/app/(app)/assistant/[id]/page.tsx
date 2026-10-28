@@ -23,7 +23,7 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
       <div className="grid gap-6 lg:grid-cols-4">
         <div className="space-y-4 lg:col-span-3">
           {convo.messages.map((m, i) => (
-            <div key={m.id} id={i === convo.messages.length - 1 ? "latest" : undefined} className={m.role === "user" ? "rounded-lg bg-ink-900 px-4 py-3 text-white" : "card"}>
+            <div key={m.id} id={i === convo.messages.length - 1 ? "latest" : undefined} className={m.role === "user" ? "rounded-lg bg-navy-900 px-4 py-3 text-white" : "card"}>
               {m.role === "user" ? <p><span className="sr-only">You asked: </span>{m.content}</p> : m.structured ? <AnswerView a={m.structured as unknown as StructuredAnswer} /> : <p>{m.content}</p>}
             </div>
           ))}

@@ -1,73 +1,79 @@
-import Link from "next/link";
+import { db } from "@/lib/db";
 import { requireRole } from "@/server/auth";
-import { attentionCounts } from "@/server/admin/attention";
-import { dailySeries, overviewStats, usersByState } from "@/server/admin/overview";
-import { naira } from "@/lib/hub/prices";
-import { DailyBars, Stat } from "@/components/admin/parts";
-import { PageHeader } from "@/components/ui";
+import { changePlanAction, changeRoleAction } from "@/app/actions/admin";
+import { fmtDateTime } from "@/lib/format";
+import { integrationStatus } from "@/server/integrations";
+import { PageHeader, Pill } from "@/components/ui";
 
 export const metadata = { title: "Administration" };
-export const dynamic = "force-dynamic";
 
-export default async function AdminOverview() {
+export default async function AdminPage() {
   const admin = await requireRole("ADMIN");
-  const [s, a, series, states] = await Promise.all([overviewStats(admin), attentionCounts(admin), dailySeries(admin), usersByState(admin)]);
-  const growth = s.newPrev7 ? Math.round(((s.new7 - s.newPrev7) / s.newPrev7) * 100) : null;
-  const todo = [
-    [a.verifications, "business verification requests", "/admin/hub"],
-    [a.hubReports, "open reports about businesses", "/admin/hub"],
-    [a.flags, "flagged station reports or places", "/admin/everyday"],
-    [a.stuckOrders, "gas orders stuck (no answer in 2 h, or open over a day)", "/admin/orders?view=stuck"],
-    [a.staleTrips, "live trips with no position for 30 min", "/admin/trips"],
-    [a.failedPayments, "failed payments this week", "/admin/payments?status=FAILED"],
-    [a.failedJobs, "failed background jobs", "/admin/system"],
+  const [users, logs, jobs] = await Promise.all([
+    db.user.findMany({ orderBy: { createdAt: "asc" }, include: { _count: { select: { theses: true, documents: true } } } }),
+    db.auditLog.findMany({ orderBy: { createdAt: "desc" }, take: 60, include: { actor: { select: { name: true } } } }),
+    db.job.groupBy({ by: ["status"], _count: true }),
+  ]);
+  const st = integrationStatus();
+  const integrations = [
+    ["PostgreSQL database", st.database],
+    ["Private document storage (local disk)", st.storage.driver === "local" && st.storage.available],
+    ["S3-compatible object storage", st.storage.driver === "s3" && st.storage.available],
+    ["Language model for the assistant", st.languageModel],
+    ["Email alert delivery" + (st.email.configured && !st.email.available ? " (incomplete: needs EMAIL_PROVIDER=smtp, SMTP_URL and EMAIL_FROM)" : ""), st.email.available],
+    ["Payment collection" + (st.payments.configured && !st.payments.available ? " (provider set, no adapter)" : ""), st.payments.available],
   ] as const;
-  const waiting = todo.filter(([n]) => n > 0);
-
   return (
     <>
-      <PageHeader eyebrow="Administration" title="Overview" subtitle="What is happening on RefineryLens, and what needs your attention. Administrators cannot open private files, theses or business messages." />
-      <section aria-labelledby="todo-h" className="card mb-6">
-        <h2 id="todo-h" className="h-section">Needs attention</h2>
-        {waiting.length === 0 ? <p className="mt-2 text-sm text-brand-800">All clear. Nothing is waiting.</p> : (
-          <ul className="mt-2 divide-y divide-ink-100">
-            {waiting.map(([n, label, href]) => (
-              <li key={label}><Link href={href} className="flex items-center justify-between py-2 text-sm no-underline hover:no-underline"><span className="text-ink-800">{label}</span><span className="num rounded-full bg-amber-100 px-2 font-semibold text-amber-800">{n}</span></Link></li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section aria-label="Key numbers" className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Accounts" value={s.users} sub={`${s.households.toLocaleString("en-GB")} households · ${s.businessesUsers.toLocaleString("en-GB")} business`} href="/admin/users" />
-        <Stat label="New accounts, 7 days" value={s.new7} sub={growth === null ? "no accounts the week before" : `${growth >= 0 ? "+" : ""}${growth}% on the week before`} tone={growth !== null && growth < 0 ? "warn" : "plain"} href="/admin/users?sort=new" />
-        <Stat label="Businesses" value={s.businesses} sub={`${s.verified} verified · ${s.activePlans} on the Business plan`} href="/admin/businesses" />
-        <Stat label="Live listings" value={s.listings} href="/admin/listings" />
-        <Stat label="Gas orders, 7 days" value={s.orders7} sub={`${s.delivered7} delivered`} href="/admin/orders" />
-        <Stat label="Drivers sharing now" value={s.liveTrips} href="/admin/trips" tone={s.liveTrips ? "good" : "plain"} />
-        <Stat label="Station reports" value={s.reports24} sub={`last 24 h · ${s.reports7} in 7 days · ${s.outlets} places`} href="/admin/outlets" />
-        <Stat label="Revenue, 30 days" value={`$${s.revenue30Usd.toLocaleString("en-US")}`} sub={`plus ${naira(s.revenue30Naira)} · ${s.paid30} payment${s.paid30 === 1 ? "" : "s"}`} href="/admin/payments" tone={s.revenue30Usd ? "good" : "plain"} />
-      </section>
-
-      <section aria-label="Last 14 days" className="mb-6 grid gap-3 lg:grid-cols-3">
-        <div className="card"><h2 className="h-section">New accounts</h2><div className="mt-3"><DailyBars data={series.signups} label="New accounts per day" /></div></div>
-        <div className="card"><h2 className="h-section">Gas orders</h2><div className="mt-3"><DailyBars data={series.orders} label="Gas orders per day" /></div></div>
-        <div className="card"><h2 className="h-section">Station reports</h2><div className="mt-3"><DailyBars data={series.reports} label="Station reports per day" /></div></div>
-      </section>
-
-      <section aria-labelledby="states-h" className="card">
-        <h2 id="states-h" className="h-section">Where people are (home state)</h2>
-        {states.length === 0 ? <p className="muted mt-2">Nobody has chosen a state yet.</p> : (
-          <ul className="mt-3 space-y-1.5">
-            {states.map((x) => (
-              <li key={x.state} className="flex items-center gap-3 text-sm">
-                <span className="w-28 shrink-0">{x.state}</span>
-                <span className="h-2 rounded-full bg-navy-500" style={{ width: `${(x.n / states[0].n) * 60}%` }} aria-hidden />
-                <span className="num text-ink-700">{x.n}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+      <PageHeader eyebrow="Administration" title="Administration" subtitle="Users, roles, plans, background jobs and the audit log. Administrators cannot open users' private files or theses." />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="card lg:col-span-2">
+          <h2 className="h-section">Users</h2>
+          <div className="table-wrap mt-2">
+            <table className="tbl">
+              <thead><tr><th>User</th><th>Role</th><th>Plan</th><th>Private items</th></tr></thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id}>
+                    <td><p className="font-medium">{u.name}</p><p className="text-xs text-navy-700">{u.email}</p></td>
+                    <td>
+                      <form action={changeRoleAction} className="flex gap-1"><input type="hidden" name="userId" value={u.id} />
+                        <select name="role" defaultValue={u.role} className="input py-1" aria-label={`Role for ${u.name}`} disabled={u.id === admin.id}>{["USER", "ANALYST", "EDITOR", "ADMIN"].map((r) => <option key={r}>{r}</option>)}</select>
+                        {u.id !== admin.id && <button className="btn-secondary btn-sm">Set</button>}
+                      </form>
+                    </td>
+                    <td>
+                      <form action={changePlanAction} className="flex gap-1"><input type="hidden" name="userId" value={u.id} />
+                        <select name="plan" defaultValue={u.plan} className="input py-1" aria-label={`Plan for ${u.name}`}>{["FREE", "PRO", "TEAM"].map((r) => <option key={r}>{r}</option>)}</select>
+                        <button className="btn-secondary btn-sm">Set</button>
+                      </form>
+                    </td>
+                    <td className="text-xs">{u._count.theses} theses, {u._count.documents} files (contents not viewable)</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <aside className="space-y-6">
+          <section className="card">
+            <h2 className="h-section">Integrations</h2>
+            <ul className="mt-2 space-y-1 text-sm">{integrations.map(([n, ok]) => <li key={n} className="flex justify-between gap-2"><span>{n}</span><Pill className={ok ? "bg-teal-100 text-teal-800" : "bg-navy-100 text-navy-800"}>{ok ? "Working" : "Not configured"}</Pill></li>)}</ul>
+          </section>
+          <section className="card">
+            <h2 className="h-section">Background jobs</h2>
+            <ul className="mt-2 text-sm">{jobs.length === 0 ? <li>No jobs yet.</li> : jobs.map((j) => <li key={j.status}>{j.status.toLowerCase()}: {j._count}</li>)}</ul>
+          </section>
+        </aside>
+      </div>
+      <section className="card mt-6">
+        <h2 className="h-section">Audit log</h2>
+        <div className="table-wrap mt-2">
+          <table className="tbl">
+            <thead><tr><th>When</th><th>Who</th><th>Action</th><th>Entity</th></tr></thead>
+            <tbody>{logs.map((l) => <tr key={l.id}><td className="whitespace-nowrap text-xs">{fmtDateTime(l.createdAt)}</td><td>{l.actor?.name ?? "System"}</td><td><code className="text-xs">{l.action}</code></td><td className="text-xs">{l.entityType} {l.entityId.slice(0, 10)}…</td></tr>)}</tbody>
+          </table>
+        </div>
       </section>
     </>
   );

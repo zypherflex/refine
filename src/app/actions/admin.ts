@@ -1,41 +1,25 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import type { Plan, Role } from "@prisma/client";
+import { db } from "@/lib/db";
 import { requireRole } from "@/server/auth";
-import { revokeSessions, setUserAudience, setUserPlan, setUserRole } from "@/server/admin/users";
-
-const s = (form: FormData, k: string) => String(form.get(k) ?? "");
-
-/** Admin actions return nothing on purpose: the pages re-render with the new state, and errors are logged. */
-function refresh(userId: string) {
-  revalidatePath("/admin/users");
-  revalidatePath(`/admin/users/${userId}`);
-}
+import { changeRole } from "@/server/services/users";
+import { audit } from "@/server/audit";
+import type { Plan, Role } from "@prisma/client";
 
 export async function changeRoleAction(form: FormData) {
   const admin = await requireRole("ADMIN");
-  const role = s(form, "role") as Role;
+  const role = String(form.get("role")) as Role;
   if (!["USER", "ANALYST", "EDITOR", "ADMIN"].includes(role)) return;
-  await setUserRole(admin, s(form, "userId"), role).catch((e) => console.error("change role", e));
-  refresh(s(form, "userId"));
+  await changeRole(admin, String(form.get("userId")), role).catch(() => undefined);
+  revalidatePath("/admin");
 }
 
 export async function changePlanAction(form: FormData) {
   const admin = await requireRole("ADMIN");
-  await setUserPlan(admin, s(form, "userId"), s(form, "plan") as Plan).catch((e) => console.error("change plan", e));
-  refresh(s(form, "userId"));
-}
-
-export async function changeAudienceAction(form: FormData) {
-  const admin = await requireRole("ADMIN");
-  const a = s(form, "audience");
-  if (a !== "PERSONAL" && a !== "BUSINESS") return;
-  await setUserAudience(admin, s(form, "userId"), a);
-  refresh(s(form, "userId"));
-}
-
-export async function revokeSessionsAction(form: FormData) {
-  const admin = await requireRole("ADMIN");
-  await revokeSessions(admin, s(form, "userId"));
-  refresh(s(form, "userId"));
+  const plan = String(form.get("plan")) as Plan;
+  if (!["FREE", "PRO", "TEAM"].includes(plan)) return;
+  const userId = String(form.get("userId"));
+  await db.user.update({ where: { id: userId }, data: { plan } });
+  await audit(admin.id, "user.change_plan", "User", userId, { plan });
+  revalidatePath("/admin");
 }

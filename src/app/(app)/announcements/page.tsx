@@ -56,13 +56,13 @@ export default async function AnnouncementsPage({ searchParams }: { searchParams
           {conflicts.map((c) => (
             <div key={c.id} className="card mt-2 border-amber-600/40">
               <p className="font-medium">{c.topic}</p>
-              <p className="text-sm text-ink-700">{c.description}</p>
+              <p className="text-sm text-navy-700">{c.description}</p>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
                 {c.claims.map((x) => (
-                  <div key={x.id} className="rounded-md bg-ink-50 p-3 text-sm">
+                  <div key={x.id} className="rounded-md bg-navy-50 p-3 text-sm">
                     <ProvenanceBadge p={x.provenance} />
                     <p className="mt-1 font-semibold">{x.claim}</p>
-                    <p className="text-xs text-ink-700">{x.sourceLabel} · {fmtDate(x.sourceDate)}</p>
+                    <p className="text-xs text-navy-700">{x.sourceLabel} · {fmtDate(x.sourceDate)}</p>
                     {x.announcement && <p className="mt-1 text-xs"><Link href={`/announcements/${x.announcement.id}`}>Related announcement</Link></p>}
                     {x.metric?.documentId && <p className="text-xs"><SourceLink href={`/documents/${x.metric.documentId}?page=${x.metric.page ?? 1}`}>Source page {x.metric.page ?? 1}</SourceLink></p>}
                   </div>

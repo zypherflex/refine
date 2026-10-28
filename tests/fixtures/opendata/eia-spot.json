@@ -1,6 +1,0 @@
-{"response":{"total":3,"dateFormat":"YYYY-MM-DD","frequency":"daily","data":[
-{"period":"2026-10-20","duoarea":"NA","area-name":"NA","product":"EPCBRENT","product-name":"UK Brent Crude Oil","process":"PF4","process-name":"Spot Price FOB","series":"RBRTE","series-description":"Europe Brent Spot Price FOB (Dollars per Barrel)","value":"70.10","units":"$/BBL"},
-{"period":"2026-10-17","series":"RBRTE","value":"69.50","units":"$/BBL"},
-{"period":"2026-10-16","series":"RBRTE","value":null,"units":"$/BBL"},
-{"period":"2026-10-15","series":"RBRTE","value":68.9,"units":"$/BBL"}
-]},"request":{"command":"/v2/petroleum/pri/spt/data/"},"apiVersion":"2.1.8"}

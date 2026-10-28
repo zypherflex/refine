@@ -57,7 +57,7 @@ export default async function EditAnnouncement({ params, searchParams }: { param
                 {blockers.length > 0 ? <Notice tone="warn" title="Not ready to publish"><ul className="list-disc pl-4">{blockers.map((b) => <li key={b}>{b}</li>)}</ul></Notice> : <WorkflowButton id={a.id} op="publish" label="Publish" />}
               </div>
             )}
-            {a.status === "IN_REVIEW" && !editor && <p className="text-sm text-ink-700">Waiting for an editor to review.</p>}
+            {a.status === "IN_REVIEW" && !editor && <p className="text-sm text-navy-700">Waiting for an editor to review.</p>}
             {a.status === "PUBLISHED" && editor && (
               <>
                 {a.supersededBy ? <p className="text-sm">Replacement draft: <Link href={`/editorial/announcements/${a.supersededBy.id}`}>{a.supersededBy.headline}</Link></p> : <Link href={`/editorial/announcements/new?supersedes=${a.id}`} className="btn-secondary w-full">Supersede with a new version</Link>}

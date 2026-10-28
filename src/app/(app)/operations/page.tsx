@@ -76,7 +76,7 @@ export default async function OperationsPage() {
             <div className="mt-3"><MetricTable rows={other} /></div>
           </section>
         )}
-        <section className="card border-ink-600/30">
+        <section className="card border-navy-600/30">
           <h2 className="h-section">National sector context</h2>
           <p className="muted">Sector totals cover all suppliers in the market, including imports. They are not company figures and are never combined with them.</p>
           {sector.length === 0 ? <div className="mt-3"><Unavailable title="No sector data published" /></div> : <div className="mt-3"><MetricTable rows={sector} /></div>}
