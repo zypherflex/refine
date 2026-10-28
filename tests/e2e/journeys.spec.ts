@@ -16,7 +16,7 @@ async function signIn(page: Page, email: string) {
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(PASSWORD);
-  await Promise.all([page.waitForURL(/\/dashboard/), page.getByRole("button", { name: "Sign in" }).click()]);
+  await Promise.all([page.waitForURL(/\/hub/), page.getByRole("button", { name: "Sign in" }).click()]);
   sessions.set(email, (await page.context().cookies()).filter((c) => c.name === "rl_session"));
 }
 
@@ -25,9 +25,10 @@ async function selectCompany(page: Page, slug: string) {
   await expect(page.locator("#company-switch")).toHaveValue(slug);
 }
 
-test("landing page presents RefineryLens as independent @mobile", async ({ page }) => {
+test("landing page presents RefineryLens as a trade hub and as independent @mobile", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Understand the change");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Where sellers, buyers, delivery partners");
+  await expect(page.getByRole("heading", { name: "Set up one profile, take any of the four roles." })).toBeVisible();
   await expect(page.getByText("not affiliated with, endorsed by or sponsored by")).toBeVisible();
   await expect(page.locator("img[src*='dangote' i]")).toHaveCount(0);
 });
@@ -137,4 +138,34 @@ test("editor publishes a sourced announcement, corrects it, and readers see both
   await expect(page.getByText(note)).toBeVisible();
   await page.goto(`/thesis/${thesis.id}`);
   await expect(page.getByText(draft.headline).first()).toBeVisible();
+});
+
+test("trade hub: a buyer enquires about a refinery's offer, the refinery replies, and an admin verifies a business @mobile", async ({ page }) => {
+  // Start from no conversation between these two demo businesses, and Kano Gas waiting for verification.
+  const db = new PrismaClient();
+  await db.hubThread.deleteMany({ where: { starter: { email: "converter@refinerylens.test" } } });
+  await db.hubBusiness.updateMany({ where: { owner: { email: "buyer@refinerylens.test" } }, data: { verification: "PENDING_REVIEW", verifiedAt: null } });
+  await db.$disconnect();
+
+  await signIn(page, "converter@refinerylens.test");
+  await page.goto("/hub?product=pp");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Sellers, buyers, delivery partners and refineries");
+  await page.getByRole("link", { name: "Polypropylene resin, injection and raffia grades" }).click();
+  await expect(page.getByText("✓ Verified").first()).toBeVisible();
+  await page.getByLabel("Your message").fill("We need 40 tonnes of raffia grade a month in Sagamu. Can you quote?");
+  await Promise.all([page.waitForURL(/\/hub\/inbox\/[a-z0-9]+$/), page.getByRole("button", { name: "Send message" }).click()]);
+  await expect(page.getByText("We need 40 tonnes of raffia grade")).toBeVisible();
+
+  await signIn(page, "refinery@refinerylens.test");
+  await page.goto("/hub/inbox");
+  await page.getByRole("link", { name: /Ogun Resin Converters/ }).click();
+  await page.getByLabel("Reply").fill("Yes. 40 tonnes monthly is fine; quote follows by Friday.");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(page.getByText("quote follows by Friday")).toBeVisible();
+
+  await signIn(page, "admin@refinerylens.test");
+  await page.goto("/admin/hub");
+  await expect(page.getByText("RC 0000002 (demo)")).toBeVisible();
+  await page.getByRole("button", { name: "Verify", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Verification requests (0)" })).toBeVisible();
 });

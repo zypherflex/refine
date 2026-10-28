@@ -46,12 +46,16 @@ model User {
 
   sessions      Session[]
   theses        Thesis[]
-  documents     Document[]       @relation("DocumentOwner")
+  documents     Document[]        @relation("DocumentOwner")
   watchlists    Watchlist[]
   alerts        Alert[]
   conversations Conversation[]
   reviews       EditorialReview[]
   auditLogs     AuditLog[]
+  hubBusiness   HubBusiness?
+  hubThreads    HubThread[]       @relation("HubThreadStarter")
+  hubMessages   HubMessage[]
+  hubReports    HubReport[]
 }
 
 model Session {
@@ -227,47 +231,47 @@ enum PublicationStatus {
 }
 
 model Announcement {
-  id              String            @id @default(cuid())
-  companyId       String
-  company         Company           @relation(fields: [companyId], references: [id])
-  legalEntityId   String?
-  legalEntity     LegalEntity?      @relation(fields: [legalEntityId], references: [id])
-  sourceId        String?
-  source          Source?           @relation(fields: [sourceId], references: [id])
-  headline        String
-  originalTitle   String
-  publisher       String
-  sourceUrl       String
-  documentType    DocumentType
-  sourceVersion   String            @default("1")
-  eventDate       DateTime?
-  sourcePublishedAt DateTime
-  retrievedAt     DateTime
-  provenance      Provenance
-  summary         String
-  whatChanged     String            @default("")
-  whyItMatters    String
-  uncertainties   String
-  analysis        String            @default("")
-  alternativeExplanations String    @default("")
-  openQuestions   String            @default("")
-  topics          String[]          @default([])
-  status          PublicationStatus @default(DRAFT)
-  aiGenerated     Boolean           @default(false)
-  reviewerId      String?
-  reviewedAt      DateTime?
-  publishedAt     DateTime?
-  retractedAt     DateTime?
-  retractionReason String           @default("")
-  revision        Int               @default(1)
-  supersedesId    String?           @unique
-  supersedes      Announcement?     @relation("Supersession", fields: [supersedesId], references: [id])
-  supersededBy    Announcement?     @relation("Supersession")
-  duplicateOfId   String?
-  isFictional     Boolean           @default(false)
-  createdById     String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id                      String            @id @default(cuid())
+  companyId               String
+  company                 Company           @relation(fields: [companyId], references: [id])
+  legalEntityId           String?
+  legalEntity             LegalEntity?      @relation(fields: [legalEntityId], references: [id])
+  sourceId                String?
+  source                  Source?           @relation(fields: [sourceId], references: [id])
+  headline                String
+  originalTitle           String
+  publisher               String
+  sourceUrl               String
+  documentType            DocumentType
+  sourceVersion           String            @default("1")
+  eventDate               DateTime?
+  sourcePublishedAt       DateTime
+  retrievedAt             DateTime
+  provenance              Provenance
+  summary                 String
+  whatChanged             String            @default("")
+  whyItMatters            String
+  uncertainties           String
+  analysis                String            @default("")
+  alternativeExplanations String            @default("")
+  openQuestions           String            @default("")
+  topics                  String[]          @default([])
+  status                  PublicationStatus @default(DRAFT)
+  aiGenerated             Boolean           @default(false)
+  reviewerId              String?
+  reviewedAt              DateTime?
+  publishedAt             DateTime?
+  retractedAt             DateTime?
+  retractionReason        String            @default("")
+  revision                Int               @default(1)
+  supersedesId            String?           @unique
+  supersedes              Announcement?     @relation("Supersession", fields: [supersedesId], references: [id])
+  supersededBy            Announcement?     @relation("Supersession")
+  duplicateOfId           String?
+  isFictional             Boolean           @default(false)
+  createdById             String?
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
 
   excerpts       Excerpt[]
   corrections    Correction[]
@@ -432,25 +436,25 @@ enum Level {
 }
 
 model Risk {
-  id                    String            @id @default(cuid())
-  companyId             String
-  company               Company           @relation(fields: [companyId], references: [id])
-  category              RiskCategory
-  title                 String
-  summary               String
-  evidenceSummary       String
-  impactPathway         String
-  horizon               String
-  severity              Level
-  confidence            Level
-  evidenceQuality       String
-  uncertainty           String
-  clarifyingDisclosure  String
-  status                PublicationStatus @default(DRAFT)
-  isFictional           Boolean           @default(false)
-  updatedAt             DateTime          @updatedAt
-  createdAt             DateTime          @default(now())
-  evidence              RiskEvidence[]
+  id                   String            @id @default(cuid())
+  companyId            String
+  company              Company           @relation(fields: [companyId], references: [id])
+  category             RiskCategory
+  title                String
+  summary              String
+  evidenceSummary      String
+  impactPathway        String
+  horizon              String
+  severity             Level
+  confidence           Level
+  evidenceQuality      String
+  uncertainty          String
+  clarifyingDisclosure String
+  status               PublicationStatus @default(DRAFT)
+  isFictional          Boolean           @default(false)
+  updatedAt            DateTime          @updatedAt
+  createdAt            DateTime          @default(now())
+  evidence             RiskEvidence[]
 }
 
 model RiskEvidence {
@@ -463,18 +467,18 @@ model RiskEvidence {
 }
 
 model Thesis {
-  id                     String   @id @default(cuid())
+  id                     String    @id @default(cuid())
   ownerId                String
-  owner                  User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner                  User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   companyId              String
-  company                Company  @relation(fields: [companyId], references: [id])
+  company                Company   @relation(fields: [companyId], references: [id])
   title                  String
   rationale              String
-  reassessmentConditions String   @default("")
+  reassessmentConditions String    @default("")
   reviewDate             DateTime?
-  version                Int      @default(1)
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  version                Int       @default(1)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   assumptions Assumption[]
   indicators  ThesisIndicator[]
@@ -645,4 +649,143 @@ model Job {
   finishedAt  DateTime?
 
   @@index([status, runAt])
+}
+
+enum HubRole {
+  SELLER
+  BUYER
+  DELIVERY
+  REFINERY
+}
+
+enum HubVerification {
+  UNVERIFIED
+  PENDING_REVIEW
+  VERIFIED
+  SUSPENDED
+}
+
+// One trading profile per user. Anyone can post straight away; an administrator checks the registration and
+// licence details before the business is marked verified.
+model HubBusiness {
+  id                 String          @id @default(cuid())
+  ownerId            String          @unique
+  owner              User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name               String
+  roles              HubRole[]
+  about              String          @default("")
+  state              String
+  city               String          @default("")
+  website            String          @default("")
+  // CAC registration number and licences (e.g. NMDPRA) the business says it holds. Checked on verification.
+  registrationNumber String          @default("")
+  licences           String          @default("")
+  // Refineries only: nameplate capacity the business states, in barrels per day.
+  capacityBpd        Int?
+  verification       HubVerification @default(UNVERIFIED)
+  // Shown to the owner: why a verification request was returned or the business suspended.
+  verificationNote   String          @default("")
+  verifiedAt         DateTime?
+  verifiedById       String?
+  // Seeded demo businesses are labelled so nobody mistakes them for real trading partners.
+  isDemo             Boolean         @default(false)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  listings HubListing[]
+  threads  HubThread[]
+  reports  HubReport[]
+
+  @@index([verification])
+}
+
+enum HubListingKind {
+  OFFER
+  REQUEST
+  DELIVERY
+}
+
+enum HubListingStatus {
+  ACTIVE
+  CLOSED
+}
+
+model HubListing {
+  id         String           @id @default(cuid())
+  businessId String
+  business   HubBusiness      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  kind       HubListingKind
+  title      String
+  details    String           @default("")
+  products   String[]
+  quantity   Float?
+  unit       String           @default("")
+  // Free text such as "NGN 1,050 per litre ex-depot, valid this week". Prices move fast, so nothing is computed.
+  priceNote  String           @default("")
+  // Where the goods are, the buyer is, or the fleet is based.
+  state      String
+  // States a seller or haulier serves, or a buyer will accept delivery from.
+  areas      String[]         @default([])
+  status     HubListingStatus @default(ACTIVE)
+  expiresAt  DateTime
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  threads HubThread[]
+
+  @@index([kind, status, expiresAt])
+  @@index([businessId])
+}
+
+// A private conversation between the user who made an enquiry and the business it was sent to. Only those two
+// people can read it; administrators cannot.
+model HubThread {
+  id            String      @id @default(cuid())
+  businessId    String
+  business      HubBusiness @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  listingId     String?
+  listing       HubListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  starterId     String
+  starter       User        @relation("HubThreadStarter", fields: [starterId], references: [id], onDelete: Cascade)
+  subject       String
+  lastMessageAt DateTime    @default(now())
+  starterReadAt DateTime    @default(now())
+  ownerReadAt   DateTime?
+  createdAt     DateTime    @default(now())
+
+  messages HubMessage[]
+
+  @@unique([starterId, businessId, listingId])
+  @@index([starterId, lastMessageAt])
+  @@index([businessId, lastMessageAt])
+}
+
+model HubMessage {
+  id        String    @id @default(cuid())
+  threadId  String
+  thread    HubThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime  @default(now())
+
+  @@index([threadId, createdAt])
+}
+
+enum HubReportStatus {
+  OPEN
+  CLOSED
+}
+
+model HubReport {
+  id         String          @id @default(cuid())
+  businessId String
+  business   HubBusiness     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  reporterId String
+  reporter   User            @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  reason     String
+  status     HubReportStatus @default(OPEN)
+  createdAt  DateTime        @default(now())
+
+  @@index([status])
 }

@@ -24,8 +24,17 @@ function UserCard({ user }: { user: CurrentUser }) {
   );
 }
 
-export function Shell({ user, children, companies, current, unread, company }: { user: CurrentUser; children: React.ReactNode; companies: { slug: string; name: string }[]; current: string; unread: number; company: { name: string; isFictional: boolean; coverageStatus: string } }) {
+export function Shell({ user, children, companies, current, unread, hubUnread, company }: { user: CurrentUser; children: React.ReactNode; companies: { slug: string; name: string }[]; current: string; unread: number; hubUnread: number; company: { name: string; isFictional: boolean; coverageStatus: string } }) {
   const groups: NavGroup[] = [
+    {
+      label: "Trade hub",
+      items: [
+        { href: "/hub", label: "Buy, sell & deliver", icon: "hub" },
+        { href: "/hub/refineries", label: "Refineries", icon: "refinery" },
+        { href: "/hub/inbox", label: "Hub inbox", icon: "inbox", badge: hubUnread },
+        { href: "/hub/me", label: "My business", icon: "business" },
+      ],
+    },
     {
       label: "Research",
       items: [
@@ -64,7 +73,7 @@ export function Shell({ user, children, companies, current, unread, company }: {
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2">Skip to content</a>
       <div className="hidden w-[17rem] shrink-0 bg-navy-950 lg:block">
       <aside className="sticky top-0 flex h-screen flex-col bg-[radial-gradient(120%_60%_at_0%_0%,rgba(22,163,156,0.12),transparent_60%)] text-navy-200">
-        <div className="px-5 pb-4 pt-6"><Link href="/dashboard" className="no-underline hover:no-underline"><Logo light /></Link></div>
+        <div className="px-5 pb-4 pt-6"><Link href="/hub" className="no-underline hover:no-underline"><Logo light /></Link></div>
         <nav aria-label="Main" className="flex-1 overflow-y-auto px-3 pb-4"><NavLinks groups={groups} /></nav>
         <div className="border-t border-white/5 px-5 py-4">
           <UserCard user={user} />
@@ -88,7 +97,7 @@ export function Shell({ user, children, companies, current, unread, company }: {
                   </div>
                 </div>
               </details>
-              <Link href="/dashboard" className="no-underline hover:no-underline lg:hidden" aria-label="RefineryLens overview"><span className="hidden sm:inline"><Logo size={26} /></span><span className="sm:hidden"><LogoMark size={28} /></span></Link>
+              <Link href="/hub" className="no-underline hover:no-underline lg:hidden" aria-label="RefineryLens trade hub"><span className="hidden sm:inline"><Logo size={26} /></span><span className="sm:hidden"><LogoMark size={28} /></span></Link>
               <p className="hidden text-xs font-medium uppercase tracking-eyebrow text-navy-500 lg:block">Coverage</p>
             </div>
             <CompanySwitcher companies={companies} current={current} />

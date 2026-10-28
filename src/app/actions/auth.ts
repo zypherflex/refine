@@ -11,7 +11,7 @@ export type FormState = { error?: string | null; ok?: string | null };
 
 function safeNext(n: FormDataEntryValue | null) {
   const s = typeof n === "string" ? n : "";
-  return s.startsWith("/") && !s.startsWith("//") ? s : "/dashboard";
+  return s.startsWith("/") && !s.startsWith("//") ? s : "/hub";
 }
 
 export async function loginAction(_: FormState, form: FormData): Promise<FormState> {
@@ -39,7 +39,7 @@ export async function registerAction(_: FormState, form: FormData): Promise<Form
     if (e instanceof AppError) return { error: e.message };
     throw e;
   }
-  redirect("/dashboard?welcome=1");
+  redirect("/hub?welcome=1");
 }
 
 export async function logoutAction() {

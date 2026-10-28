@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, BookOpen, Building2, ClipboardCheck, Factory, FileStack, Gauge, History, LayoutDashboard, Lightbulb, MessagesSquare, Newspaper, Settings, ShieldAlert, Users } from "lucide-react";
+import { Bell, BookOpen, Building2, ClipboardCheck, Factory, FileStack, Gauge, History, Inbox, LayoutDashboard, Lightbulb, MessagesSquare, Newspaper, Settings, ShieldAlert, Store, Users, Warehouse } from "lucide-react";
 
 const icons = {
   overview: LayoutDashboard,
@@ -19,6 +19,10 @@ const icons = {
   admin: Users,
   settings: Settings,
   gauge: Gauge,
+  hub: Store,
+  inbox: Inbox,
+  refinery: Factory,
+  business: Warehouse,
 } as const;
 
 export type NavItem = { href: string; label: string; icon: keyof typeof icons; badge?: number };

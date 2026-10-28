@@ -1,0 +1,87 @@
+import Link from "next/link";
+import type { HubBusiness, HubListing, HubVerification } from "@prisma/client";
+import { kindLabel, productLabel, roleLabel, verificationLabel } from "@/lib/hub/catalog";
+import { fmtDate } from "@/lib/format";
+import { Pill } from "../ui";
+
+const verificationStyle: Record<HubVerification, string> = {
+  UNVERIFIED: "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/40",
+  PENDING_REVIEW: "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/40",
+  VERIFIED: "bg-teal-600 text-white",
+  SUSPENDED: "bg-risk-100 text-risk-800",
+};
+
+const verificationHelp: Record<HubVerification, string> = {
+  UNVERIFIED: "RefineryLens has not checked this business's registration or licences.",
+  PENDING_REVIEW: "The business has asked RefineryLens to check its registration and licences. Until then, treat it as unverified.",
+  VERIFIED: "RefineryLens checked this business's registration and licence details. It is not a guarantee of its products, prices or conduct.",
+  SUSPENDED: "RefineryLens has suspended this business.",
+};
+
+export function VerificationBadge({ v }: { v: HubVerification }) {
+  return (
+    <Pill className={verificationStyle[v]} title={verificationHelp[v]}>
+      {v === "VERIFIED" ? "✓ Verified" : v === "PENDING_REVIEW" ? "Unverified (check requested)" : verificationLabel[v]}
+    </Pill>
+  );
+}
+
+export function DemoTag() {
+  return <Pill className="bg-amber-100 text-amber-800 ring-1 ring-inset ring-amber-600/50" title="Seeded demonstration account. Not a real business.">Demo account</Pill>;
+}
+
+export function RolePills({ roles }: { roles: string[] }) {
+  return <>{roles.map((r) => <Pill key={r} className="bg-navy-50 text-navy-700 ring-1 ring-inset ring-navy-100">{roleLabel(r)}</Pill>)}</>;
+}
+
+const kindStyle = { OFFER: "bg-teal-100 text-teal-800", REQUEST: "bg-navy-900 text-white", DELIVERY: "bg-amber-100 text-amber-900" } as const;
+
+export function KindPill({ kind }: { kind: HubListing["kind"] }) {
+  return <Pill className={kindStyle[kind]}>{kindLabel(kind)}</Pill>;
+}
+
+export function quantityText(l: Pick<HubListing, "quantity" | "unit">) {
+  if (l.quantity === null) return null;
+  return `${l.quantity.toLocaleString("en-GB", { maximumFractionDigits: 2 })} ${l.unit}`.trim();
+}
+
+export function placesText(l: Pick<HubListing, "kind" | "state" | "areas">) {
+  const base = l.kind === "REQUEST" ? `Deliver to ${l.state}` : l.kind === "DELIVERY" ? `Based in ${l.state}` : `From ${l.state}`;
+  if (!l.areas.length) return base;
+  const shown = l.areas.slice(0, 4).join(", ") + (l.areas.length > 4 ? ` and ${l.areas.length - 4} more` : "");
+  return `${base} · ${l.kind === "REQUEST" ? "accepts supply from" : "serves"} ${shown}`;
+}
+
+export function ListingCard({ l, business, showBusiness = true }: { l: HubListing; business: Pick<HubBusiness, "id" | "name" | "verification" | "isDemo">; showBusiness?: boolean }) {
+  const qty = quantityText(l);
+  return (
+    <li className="card flex flex-col">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <KindPill kind={l.kind} />
+        {l.products.map((p) => <Pill key={p} className="bg-navy-50 text-navy-700 ring-1 ring-inset ring-navy-100">{productLabel(p)}</Pill>)}
+      </div>
+      <h3 className="mt-2 text-base font-semibold text-navy-950"><Link href={`/hub/listings/${l.id}`}>{l.title}</Link></h3>
+      <p className="mt-1 text-sm text-navy-700">{placesText(l)}</p>
+      {(qty || l.priceNote) && <p className="mt-1 text-sm text-navy-800">{[qty, l.priceNote].filter(Boolean).join(" · ")}</p>}
+      <div className="mt-auto pt-3">
+        {showBusiness && (
+          <p className="flex flex-wrap items-center gap-1.5 text-xs text-navy-700">
+            <Link href={`/hub/businesses/${business.id}`} className="font-medium">{business.name}</Link>
+            <VerificationBadge v={business.verification} />
+            {business.isDemo && <DemoTag />}
+          </p>
+        )}
+        <p className="mt-1 text-[11px] text-navy-500">Posted {fmtDate(l.createdAt)} · live until {fmtDate(l.expiresAt)}</p>
+      </div>
+    </li>
+  );
+}
+
+/** Shown wherever people can contact each other: RefineryLens only introduces, it does not stand behind a deal. */
+export function SafetyNote() {
+  return (
+    <p className="text-xs leading-relaxed text-navy-600">
+      RefineryLens introduces businesses and carries their messages. It does not take payments, hold goods or guarantee any party, and is not affiliated with Dangote or any refinery listed here. Check licences and product quality yourself, and never pay in advance to a business you have not verified.
+    </p>
+  );
+}

@@ -1,6 +1,10 @@
 # RefineryLens
 
-Independent investor intelligence for refinery businesses. **Understand the change. Examine the evidence. Reassess your investment thesis.**
+The trade hub where **sellers, buyers, delivery partners and refineries** do business, with independent research on refinery businesses behind it.
+
+**Trade hub.** Businesses set up one trading profile with any of four roles (seller, buyer, delivery partner, refinery), post product offers, buy requests and delivery capacity, see matching listings from the other side of the deal, and message each other privately in the hub inbox. Anyone can post straight away; a *Verified* badge appears once an administrator has checked the business's registration and licences, and names of well-known refiners stay hidden until verified. Administrators verify, return, suspend and handle reports, but cannot read conversations. RefineryLens introduces businesses and carries their messages: it takes no payments, holds no goods and guarantees no one. Signing in opens the hub.
+
+**Research.** Investor intelligence for refinery businesses: **understand the change, examine the evidence, reassess your investment thesis.**
 
 RefineryLens turns company disclosures, filings and news into reviewed, plain-language research. Every figure carries its source, page, period, scope, units and provenance label; missing data is shown as missing; conflicting sources stay visible; AI-drafted content stays a draft until an editor reviews it.
 
@@ -75,7 +79,14 @@ All demo accounts use the password **`RefineryLens-demo-2026`**.
 | `other@refinerylens.test` | Investor (Free plan) | A second investor, for checking that private files and theses are isolated |
 | `analyst@refinerylens.test` | Analyst | Drafting announcements and metrics in the editorial desk |
 | `editor@refinerylens.test` | Editor | Reviewing, publishing, correcting and retracting; approving sources and resolving conflicts |
-| `admin@refinerylens.test` | Administrator | Users, roles, plans, jobs, audit log and integration status (but **not** users' private files) |
+| `admin@refinerylens.test` | Administrator | Users, roles, plans, jobs, audit log and integration status (but **not** users' private files); trade hub verification and reports |
+| `seller@refinerylens.test` | Trade hub seller | Ikeja Energy Supplies (demo), verified: LPG and diesel offers, an enquiry from Kano Gas to answer |
+| `buyer@refinerylens.test` | Trade hub buyer | Kano Gas Kiosks (demo), verification requested: an LPG buy request and an unread reply |
+| `haulier@refinerylens.test` | Trade hub delivery partner | Northern Corridor Haulage (demo), verified: tanker and LPG truck capacity |
+| `refinery@refinerylens.test` | Trade hub refinery | Lagoon Coast Refining Co. (fictional demo), verified: polypropylene offer and a crude request |
+| `converter@refinerylens.test` | Trade hub buyer | Ogun Resin Converters (demo), unverified: a polypropylene buy request |
+
+Every trade hub business in the seed (`prisma/seed-hub.ts`) is fictional, named "(demo)" and flagged as a demo account in the UI.
 
 ### Two companies, deliberately different
 
@@ -132,7 +143,7 @@ The admin screen shows the live status of each integration.
 
 ### Permissions
 
-Role checks live in `src/lib/permissions.ts` and are enforced in server actions and services, not only in the UI. Private documents and theses are filtered by `ownerId` at the query level and again in code, so not even administrators can read them. The assistant's retrieval applies the same rule, which is covered by integration and browser tests.
+Role checks live in `src/lib/permissions.ts` and are enforced in server actions and services, not only in the UI. Private documents and theses are filtered by `ownerId` at the query level and again in code, so not even administrators can read them. Trade hub conversations are readable only by the user who started them and the owner of the business they went to; administrators verify, suspend and handle reports (`can.moderateHub`) without access to messages. The assistant's retrieval applies the same rule, which is covered by integration and browser tests.
 
 ### Background jobs
 
@@ -149,7 +160,7 @@ Uploads enqueue a `document.extract` job. By default the web process drains the 
 
 ## Screens
 
-Landing, sign-in and registration; **Overview** dashboard; **Company profile**; **Announcements and news** with detail pages; **Financial reports**; **Operational indicators**; **Risk center**; **My investment thesis** (list, create, edit, detail with versions and evidence review); **Research assistant** with saved conversations; **Watchlist and alerts**; **Source library** and document viewer; **Corrections log**; **Account and plan**; **Editorial desk** (announcements, documents, sources, conflicts); **Administration**.
+Landing, sign-in and registration (signing in opens the trade hub); **Trade hub** (browse offers, buy requests and delivery capacity by product, location and verification; listing pages with matches; business profiles; **Refineries**; **Hub inbox** with private conversations; **My business** with profile, verification and listings; **Trade hub moderation** for administrators); **Overview** dashboard; **Company profile**; **Announcements and news** with detail pages; **Financial reports**; **Operational indicators**; **Risk center**; **My investment thesis** (list, create, edit, detail with versions and evidence review); **Research assistant** with saved conversations; **Watchlist and alerts**; **Source library** and document viewer; **Corrections log**; **Account and plan**; **Editorial desk** (announcements, documents, sources, conflicts); **Administration**.
 
 All screens are responsive from phone to desktop widths, keyboard navigable with visible focus and a skip link, and use semantic headings and labels.
 
