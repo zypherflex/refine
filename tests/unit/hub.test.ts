@@ -4,7 +4,7 @@ import { SEGMENTS } from "@/lib/opportunities/catalog";
 
 describe("trade hub rules", () => {
   it("treats well-known refiner names as protected however they are written", () => {
-    expect(isProtectedName("Dangote Petroleum")).toBe(true);
+    expect(isProtectedName("NNPC Petroleum")).toBe(true);
     expect(isProtectedName("D.A.N.G.O.T.E Supplies")).toBe(true);
     expect(isProtectedName("NNPC Retail Partner")).toBe(true);
     expect(isProtectedName("Ikeja Energy Supplies")).toBe(false);
@@ -13,8 +13,8 @@ describe("trade hub rules", () => {
   it("hides suspended businesses and unverified ones using a protected name", () => {
     expect(isPubliclyVisible({ name: "Ikeja Energy", verification: "UNVERIFIED" })).toBe(true);
     expect(isPubliclyVisible({ name: "Ikeja Energy", verification: "SUSPENDED" })).toBe(false);
-    expect(isPubliclyVisible({ name: "Dangote Gas", verification: "PENDING_REVIEW" })).toBe(false);
-    expect(isPubliclyVisible({ name: "Dangote Gas", verification: "VERIFIED" })).toBe(true);
+    expect(isPubliclyVisible({ name: "NNPC Gas", verification: "PENDING_REVIEW" })).toBe(false);
+    expect(isPubliclyVisible({ name: "NNPC Gas", verification: "VERIFIED" })).toBe(true);
   });
 
   it("lets each role post only its own kinds of listing", () => {

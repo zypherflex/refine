@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "RefineryLens Data: Nigeria fuel and LPG price index", description: "Daily pump and cooking-gas prices by Nigerian state, from named stations and sellers. REST API and CSV, priced in US dollars." };
 
 const buyers = [
-  [LineChart, "Commodity traders", "Benchmark cargo prices against what fuel and LPG actually sell for in each state, and see the spread after Dangote and imports."],
+  [LineChart, "Commodity traders", "Benchmark cargo prices against what fuel and LPG actually sell for in each state, and see the spread between local refining and imports."],
   [Landmark, "Banks and development finance", "Track the cost of fuel and cooking gas for borrowers and programmes, state by state, every day."],
   [Building2, "Multinationals and logistics", "Budget fleet and generator diesel, and set allowances, with figures that move with the street, not a monthly survey."],
   [Leaf, "Clean-cooking and carbon projects", "Monitor LPG refill prices and the cost of switching from firewood and charcoal, for project design and reporting."],

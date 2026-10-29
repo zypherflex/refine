@@ -8,7 +8,7 @@ import { CALCULATORS } from "@/lib/opportunities/calculators";
 import { SizingTool } from "@/components/opportunities/SizingTool";
 import { MarketPanel } from "@/components/opportunities/MarketPanel";
 import { BoardForm } from "@/components/opportunities/BoardForm";
-import { ContextList, SourceLine } from "@/components/opportunities/ContextList";
+import { ContextList } from "@/components/opportunities/ContextList";
 import { ScenarioList } from "@/components/opportunities/ScenarioList";
 import { Readiness } from "@/components/opportunities/Readiness";
 import { liveCountsByProduct } from "@/server/hub/listings";
@@ -36,18 +36,6 @@ export default async function OpportunityPage({ params }: { params: Promise<{ sl
           <section className="card" aria-labelledby="how-h">
             <h2 id="how-h" className="h-section">How the business works</h2>
             <p className="mt-1 text-sm text-ink-800">{o.howItWorks}</p>
-          </section>
-          <section className="card" aria-labelledby="anchor-h">
-            <h2 id="anchor-h" className="h-section">What it builds on</h2>
-            <p className="muted">Statements from the company's own website. They are the company's claims, shown with their page, and RefineryLens has not verified them.</p>
-            <ul className="mt-3 space-y-3">
-              {o.anchors.map((a) => (
-                <li key={a.text} className="rounded-lg border border-ink-100 bg-white p-3">
-                  <p className="text-sm text-ink-900">{a.text}</p>
-                  <div className="mt-1.5"><SourceLine id={a.source} /></div>
-                </li>
-              ))}
-            </ul>
           </section>
           <section className="card" aria-labelledby="ctx-h">
             <h2 id="ctx-h" className="h-section">What has been reported</h2>

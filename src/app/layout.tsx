@@ -6,8 +6,8 @@ import { ServiceWorker } from "@/components/AppInstall";
 import { NativeBridge } from "@/components/native/NativeBridge";
 
 export const metadata: Metadata = {
-  title: { default: "RefineryLens · Business opportunities around Dangote", template: "%s · RefineryLens" },
-  description: "Independent business intelligence on opportunities around Dangote, for businesses of every size: sourced facts, dated reports and transparent sizing tools.",
+  title: { default: "RefineryLens · Nigeria's trade hub for fuel and gas", template: "%s · RefineryLens" },
+  description: "Today's fuel and gas prices, verified sellers, buyers, delivery partners and refineries, and independent research on Nigeria's fuel and gas businesses.",
   applicationName: "RefineryLens",
   icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
   // Installed on iPhone and iPad from Safari's Share → Add to Home Screen; opens full screen.

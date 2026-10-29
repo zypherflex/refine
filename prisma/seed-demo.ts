@@ -1,7 +1,7 @@
 /**
  * FICTIONAL DEMONSTRATION DATA.
  * "Lagoon Coast Refining Co." and every figure, document, source and announcement below are invented to
- * demonstrate RefineryLens. They do not describe any real company, and in particular are not Dangote results.
+ * demonstrate RefineryLens. They do not describe any real company.
  */
 import type { PrismaClient } from "@prisma/client";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
@@ -9,7 +9,7 @@ import { createHash } from "node:crypto";
 import { localStorageDriver } from "../src/server/storage";
 import { extractPages } from "../src/server/extraction";
 
-const FICTION = "FICTIONAL DEMONSTRATION DOCUMENT - NOT A REAL COMPANY - NOT DANGOTE RESULTS";
+const FICTION = "FICTIONAL DEMONSTRATION DOCUMENT - NOT A REAL COMPANY";
 
 async function makePdf(title: string, pages: string[][]): Promise<Buffer> {
   const pdf = await PDFDocument.create();
@@ -56,7 +56,7 @@ export async function seedDemo(db: PrismaClient, ids: { editorId: string; analys
       country: "Fictional coastal state",
       sector: "Oil refining (fictional)",
       description:
-        "A fictional refinery used to demonstrate every RefineryLens feature with realistic-looking data. Nothing on this company's pages is real. It is not Dangote and does not describe Dangote.",
+        "A fictional refinery used to demonstrate every RefineryLens feature with realistic-looking data. Nothing on this company's pages is real.",
       coverageStatus: "DEMONSTRATION",
       coverageNote: "All content for this company is fictional sample data for demonstration only.",
       isFictional: true,

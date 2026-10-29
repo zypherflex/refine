@@ -3,7 +3,6 @@ import { requireUser } from "@/server/auth";
 import { getProfile, listBoard, readiness } from "@/server/opportunities/board";
 import { regionalRefineries, signalPoints } from "@/server/opportunities/context";
 import { filterOpportunities, OPPORTUNITIES, rankForProfile, SCALES, SEGMENTS, STAGES, scaleLabel, segmentLabel } from "@/lib/opportunities/catalog";
-import { DANGOTE_STATED_CDU_BPD } from "@/lib/opportunities/calculators";
 import { HUB_SIGNALS } from "@/lib/opportunities/signals";
 import { MarketPanel } from "@/components/opportunities/MarketPanel";
 import { EmptyState, Notice, PageHeader, Pill, Unavailable } from "@/components/ui";
@@ -29,14 +28,14 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
     <>
       <PageHeader
         eyebrow="Opportunities"
-        title="Business opportunities around Dangote"
-        subtitle="Where businesses of every size could plug into Dangote's Lekki complex, which the company states has 700,000 bpd of refining and 830 KTPA of polypropylene capacity: fuel distribution, gas, logistics, polypropylene, crude supply, modular refining and plant services. Each idea shows the company-stated facts it rests on, dated reports that help or hurt the case, and a tool to size it with your own numbers."
+        title="Business opportunities in fuel and gas"
+        subtitle="Where businesses of every size could grow in Nigeria's fuel, gas and refining value chain: fuel distribution, gas, logistics, polypropylene, crude supply, modular refining, plant services and regional trade."
         actions={<><Link href="/opportunities/fit" className="btn-secondary btn-sm no-underline">{profile ? "Update my fit" : "Find my fit"}</Link><Link href="/opportunities/tools" className="btn-secondary btn-sm no-underline">Sizing tools</Link><Link href="/opportunities/board" className="btn-primary btn-sm no-underline">My board ({board.length})</Link></>}
       />
       {sp.welcome && <div className="mb-4"><Notice tone="ok" title="Welcome to RefineryLens">Pick your business size below, open an opportunity, and size it with your own numbers. Your board and scenarios are private to you.</Notice></div>}
       <div className="mb-6">
         <Notice title="Independent analysis, not an offer">
-          These are RefineryLens research notes on possible business models. None is an offer, tender, distributorship or partnership programme of Dangote or any Dangote company, and RefineryLens is not affiliated with them. Confirm terms directly with suppliers and regulators. Not financial advice.
+          These are RefineryLens research notes on possible business models. None is an offer, tender, distributorship or partnership programme of any company, and RefineryLens is not affiliated with any company it mentions. Confirm terms directly with suppliers and regulators. Not financial advice.
         </Notice>
       </div>
 
@@ -135,21 +134,20 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
         <MarketPanel keys={HUB_SIGNALS} points={points} />
         <section aria-labelledby="reg-h">
           <h2 id="reg-h" className="h-section">Refineries in West and Central Africa</h2>
-          <p className="muted">Capacity benchmarks for regional trade and modular refining. Dangote's stated crude distillation capacity is {DANGOTE_STATED_CDU_BPD.toLocaleString("en-GB")} bpd.</p>
+          <p className="muted">Capacity benchmarks for regional trade and modular refining.</p>
           {refineries.length === 0 ? (
             <div className="mt-3"><Unavailable title="Refinery directory is not loaded yet">The open refinery directory has not been imported into this installation. RefineryLens does not list refineries from memory.</Unavailable></div>
           ) : (
             <div className="table-wrap mt-3">
               <table className="tbl">
                 <caption className="sr-only">Refineries by stated capacity</caption>
-                <thead><tr><th scope="col">Refinery</th><th scope="col">Country</th><th scope="col" className="text-right">Capacity (bpd)</th><th scope="col" className="text-right">vs Dangote stated</th><th scope="col">Source</th></tr></thead>
+                <thead><tr><th scope="col">Refinery</th><th scope="col">Country</th><th scope="col" className="text-right">Capacity (bpd)</th><th scope="col">Source</th></tr></thead>
                 <tbody>
                   {refineries.slice(0, 25).map((r) => (
                     <tr key={r.id}>
                       <td>{r.name}</td>
                       <td>{r.countryCode}</td>
                       <td className="num text-right">{r.capacityBpd === null ? "Not stated" : r.capacityBpd.toLocaleString("en-GB")}</td>
-                      <td className="num text-right">{r.capacityBpd === null ? "–" : `${((r.capacityBpd / DANGOTE_STATED_CDU_BPD) * 100).toFixed(1)}%`}</td>
                       <td className="text-xs"><a href={r.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">{r.attribution}</a></td>
                     </tr>
                   ))}

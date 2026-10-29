@@ -46,11 +46,8 @@ async function selectCompany(page: Page, slug: string) {
 test("landing page presents RefineryLens as independent @mobile", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Buy, sell and move fuel and gas");
-  await expect(page.getByRole("heading", { level: 1 })).not.toContainText("opportunities around Dangote");
-  const text = await page.locator("body").innerText();
-  expect(text).not.toMatch(/dangote (petroleum )?refinery/i);
+  expect(await page.locator("body").innerText()).not.toMatch(/dangote/i);
   await expect(page.getByText(/not affiliated with, endorsed by or sponsored by/).first()).toBeVisible();
-  await expect(page.locator("img[src*='dangote' i]")).toHaveCount(0);
 });
 
 test("investor reads the demo dashboard, with the fiction banner and sourced metrics @mobile", async ({ page }) => {
@@ -65,18 +62,6 @@ test("investor reads the demo dashboard, with the fiction banner and sourced met
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
-test("Dangote coverage shows honest unavailable states and no unverified market data", async ({ page }) => {
-  await signIn(page, "investor@refinerylens.test");
-  await selectCompany(page, "dangote");
-  await page.goto("/dashboard");
-  await expect(page.getByText("Independent research. RefineryLens is not affiliated with")).toBeVisible();
-  await expect(page.getByText("No reviewed announcements yet")).toBeVisible();
-  const body = (await page.locator("main").innerText()).toLowerCase();
-  expect(body).not.toMatch(/share price|ticker/);
-  await page.goto("/financials");
-  await expect(page.getByText(/not publicly disclosed|no published figure/i).first()).toBeVisible();
-});
-
 test("readers cannot reach the editorial desk; editors see the review queue", async ({ page }) => {
   await signIn(page, "investor@refinerylens.test");
   await page.goto("/editorial");
@@ -84,7 +69,7 @@ test("readers cannot reach the editorial desk; editors see the review queue", as
   await signIn(page, "editor@refinerylens.test");
   await page.goto("/editorial");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.getByText(/IPO|offer/i).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Announcements awaiting work" })).toBeVisible();
 });
 
 test("research assistant answers with citations", async ({ page }) => {
@@ -204,8 +189,8 @@ test("readers see an open-data series only once its source is approved, with att
 test("business owner filters opportunities by size, sizes one with labelled examples, and saves it privately @mobile", async ({ page }) => {
   await signIn(page, "investor@refinerylens.test");
   await page.goto("/opportunities");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Business opportunities around Dangote");
-  expect(await page.locator("body").innerText()).not.toMatch(/dangote (petroleum )?refinery/i);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Business opportunities in fuel and gas");
+  expect(await page.locator("body").innerText()).not.toMatch(/dangote/i);
   await expect(page.getByText("Independent analysis, not an offer")).toBeVisible();
   await page.getByRole("link", { name: /^Micro/ }).click();
   await expect(page).toHaveURL(/scale=micro/);
@@ -215,7 +200,7 @@ test("business owner filters opportunities by size, sizes one with labelled exam
   await expect(page.getByText(/Market data is not loaded yet|Some series are not loaded/).first()).toBeVisible();
 
   await page.getByRole("link", { name: "LPG cylinder refilling and retail" }).click();
-  await expect(page.getByText("Statements from the company's own website")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "How the business works" })).toBeVisible();
   await expect(page.getByText("Not calculated yet.")).toBeVisible();
   await page.getByRole("button", { name: "Fill blanks with example numbers" }).click();
   await expect(page.getByText(/round placeholder numbers/)).toBeVisible();

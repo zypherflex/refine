@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CALCULATORS, exampleInputs, DANGOTE_STATED_CDU_BPD, type CalculatorId } from "@/lib/opportunities/calculators";
+import { CALCULATORS, exampleInputs, type CalculatorId } from "@/lib/opportunities/calculators";
 import { filterOpportunities, OPPORTUNITIES, SCALES } from "@/lib/opportunities/catalog";
 import { SOURCES } from "@/lib/opportunities/sources";
 
@@ -54,12 +54,12 @@ describe("sizing tools", () => {
     expect(bad.ok).toBe(false);
   });
 
-  it("modular refinery: refuses yields above 100% and benchmarks against the stated capacity", () => {
+  it("modular refinery: refuses yields above 100% and works out throughput", () => {
     const ex = exampleInputs("modular-refinery");
     expect(CALCULATORS["modular-refinery"].compute({ ...ex, y_diesel: 80 }).ok).toBe(false);
     const r = CALCULATORS["modular-refinery"].compute({ ...ex, capacityBpd: 7000 });
     expect(r.ok).toBe(true);
-    if (r.ok) expect(r.lines.find((l) => l.label.includes("Dangote"))!.value).toBeCloseTo((7000 / DANGOTE_STATED_CDU_BPD) * 100);
+    if (r.ok) expect(r.lines.find((l) => l.label === "Average throughput")!.value).toBeCloseTo(7000 * (ex.utilisationPct / 100));
   });
 
   it("modular refinery: gross product worth is the yield-weighted price", () => {
@@ -90,9 +90,7 @@ describe("opportunity catalogue", () => {
     for (const o of OPPORTUNITIES) {
       expect(slugs.has(o.slug)).toBe(false);
       slugs.add(o.slug);
-      expect(o.anchors.length, o.slug).toBeGreaterThan(0);
-      for (const a of [...o.anchors, ...o.context]) expect(SOURCES[a.source], `${o.slug}: ${a.source}`).toBeDefined();
-      for (const a of o.anchors) expect(SOURCES[a.source].provenance, `${o.slug} anchors must be company statements`).toBe("COMPANY_DISCLOSED");
+      for (const a of o.context) expect(SOURCES[a.source], `${o.slug}: ${a.source}`).toBeDefined();
       if (o.calculator) expect(CALCULATORS[o.calculator.id]).toBeDefined();
     }
   });

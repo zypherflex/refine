@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { seedDangote } from "./seed-dangote";
 import { seedDemo } from "./seed-demo";
 import { seedHub } from "./seed-hub";
 import { seedFxDemo, seedEveryday, seedRevenueDemo } from "./seed-everyday";
@@ -25,7 +24,6 @@ async function main() {
   const investor = await mk("investor@refinerylens.test", "Ivy Investor", "USER", "PRO");
   const other = await mk("other@refinerylens.test", "Obi Other", "USER", "FREE");
 
-  const dangote = await seedDangote(db, editor.id);
   const demo = await seedDemo(db, { editorId: editor.id, analystId: analyst.id });
   const hub = await seedHub(db, (email, name) => mk(email, name, "USER"), admin.id);
   await seedEveryday(db, (email, name) => mk(email, name, "USER"), { ikejaId: hub.ikeja.id, surulereId: hub.surulere.id });
@@ -33,7 +31,6 @@ async function main() {
   await seedFxDemo(db);
 
   await db.watchlist.create({ data: { userId: investor.id, companyId: demo.company.id, topics: [], frequency: "IMMEDIATE" } });
-  await db.watchlist.create({ data: { userId: investor.id, companyId: dangote.id, topics: [], frequency: "DAILY" } });
   await db.watchlist.create({ data: { userId: other.id, companyId: demo.company.id, topics: ["debt"], frequency: "WEEKLY" } });
 
   const actor = { id: investor.id, role: investor.role };
@@ -107,7 +104,7 @@ async function main() {
 
   console.log("Seeded RefineryLens.");
   console.log(`  Users (password ${DEMO_PASSWORD}): admin@, editor@, analyst@, investor@, other@ refinerylens.test`);
-  console.log(`  Companies: ${dangote.name} (website facts awaiting review); ${demo.company.name}`);
+  console.log(`  Company: ${demo.company.name}`);
   console.log("  Trade hub (same password): seller@, buyer@, haulier@, refinery@, converter@, cng@ refinerylens.test; nine demo businesses, ten listings, eleven gas sites, price reports, delivery jobs and supply agreements\n  Everyday (same password): tunde@ (household with a cylinder and orders), kemi@, emeka@, halima@, joy@ refinerylens.test; demo stations and reports\n  Data (same password): data@refinerylens.test (Professional data customer); price index built for 14 days; one demo sponsor");
 }
 

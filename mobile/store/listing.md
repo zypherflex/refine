@@ -39,7 +39,7 @@ Copy these into Google Play Console and App Store Connect. Character limits are 
 > FOR FUEL AND GAS BUSINESSES
 > A trade hub for depots, marketers, refill plants, hauliers and refineries: state price medians, verified suppliers, a map of the gas network, delivery jobs with quotes, regular supply agreements, private business messages, home-delivery orders from households, and live GPS tracking of your drivers and trucks.
 >
-> RefineryLens is free for households. Prices are reports from the public and sellers, not promises from any seller. RefineryLens is not affiliated with NNPC, Dangote or any company listed.
+> RefineryLens is free for households. Prices are reports from the public and sellers, not promises from any seller. RefineryLens is not affiliated with any company listed.
 
 **Graphics:** `mobile/store/screenshots/android-phone/*.png` (1080 × 1920), feature graphic `mobile/store/screenshots/feature-graphic-1024x500.png`, app icon `mobile/store/screenshots/app-icon-1024.png` (resize to 512 × 512 for the Play listing).
 

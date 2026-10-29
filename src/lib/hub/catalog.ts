@@ -62,7 +62,7 @@ export function productsForSegment(segment: string): ProductId[] {
 
 /**
  * Names nobody can trade under until an administrator has verified the business, so an unverified account cannot pass
- * itself off as Dangote or another well-known refiner. Compared without spaces or punctuation.
+ * itself off as a well-known refiner. Compared without spaces or punctuation.
  */
 const PROTECTED_NAMES = ["dangote", "nnpc", "aradel", "waltersmith", "nigerianpetroleum"];
 

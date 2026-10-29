@@ -50,7 +50,7 @@ export default async function HubRefineriesPage({ searchParams }: { searchParams
           ))}
         </ul>
       )}
-      <div className="mt-8"><Notice title="Not affiliated">RefineryLens is not affiliated with Dangote or any refinery listed here. A refinery's offers are its own; check terms directly with it.</Notice></div>
+      <div className="mt-8"><Notice title="Not affiliated">RefineryLens is not affiliated with any refinery listed here. A refinery's offers are its own; check terms directly with it.</Notice></div>
     </>
   );
 }

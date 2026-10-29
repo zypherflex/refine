@@ -75,7 +75,7 @@ export async function buildBrief(o: Opportunity, opts: { userName: string; check
   text(`${segmentLabel(o.segment)} · suits ${o.scales.map(scaleLabel).join(", ").toLowerCase()} businesses`, { size: 9, color: MUTED });
   text(`Prepared for ${opts.userName} on ${fmtDateTime(opts.now ?? new Date())}`, { size: 9, color: MUTED, gap: 8 });
   text(
-    "Independent analysis by RefineryLens. This is not an offer, tender, distributorship or partnership programme of Dangote or any Dangote company, and RefineryLens is not affiliated with them. Not financial or investment advice. Confirm all terms with suppliers and regulators.",
+    "Independent analysis by RefineryLens. This is not an offer, tender, distributorship or partnership programme of any company, and RefineryLens is not affiliated with any company it mentions. Not financial or investment advice. Confirm all terms with suppliers and regulators.",
     { size: 8.5, color: WARN, gap: 8 },
   );
 
@@ -83,12 +83,6 @@ export async function buildBrief(o: Opportunity, opts: { userName: string; check
   heading("How the business works");
   text(o.howItWorks);
 
-  heading("What it builds on (company statements, not verified by RefineryLens)");
-  for (const a of o.anchors) {
-    const s = SOURCES[a.source];
-    bullet(a.text);
-    text(`Source: ${s.publisher}, ${s.title} (${s.url}), retrieved ${fmtDate(s.retrievedAt)}`, { size: 8, color: MUTED, indent: 18 });
-  }
   if (o.context.length) {
     heading("What has been reported");
     for (const c of o.context) {

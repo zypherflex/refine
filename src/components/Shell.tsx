@@ -154,7 +154,7 @@ export function Shell({ user, children, companies, current, unread, hubUnread, c
           <ResearchOnly>
           {company.isFictional ? (
             <div className="border-t border-amber-600/20 bg-amber-50 px-4 py-1.5 text-center text-xs font-medium text-amber-800 sm:px-8" role="note">
-              Fictional demonstration company. Every figure, document and news item for “{company.name}” is invented sample data and is not a result of any real company, including Dangote.
+              Fictional demonstration company. Every figure, document and news item for “{company.name}” is invented sample data and does not describe any real company.
             </div>
           ) : (
             <div className="border-t border-ink-100 bg-ink-50 px-4 py-1.5 text-center text-xs text-ink-600 sm:px-8" role="note">

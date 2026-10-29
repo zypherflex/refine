@@ -116,7 +116,7 @@ model Company {
   isFictional    Boolean        @default(false)
   // Company-stated facts shown on the profile with their source, e.g. [{label, value, sourceUrl, retrievedAt}]
   profileFacts   Json?
-  // GDELT query used to find news leads for editors, e.g. "Dangote". Empty disables news leads.
+  // GDELT query used to find news leads for editors, e.g. a company name. Empty disables news leads.
   newsQuery      String         @default("")
   createdAt      DateTime       @default(now())
 

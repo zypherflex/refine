@@ -1,12 +1,12 @@
 # RefineryLens
 
-Independent business intelligence on **opportunities around Dangote**, for businesses of every size. **Find the opportunity. Examine the evidence. Size it with your own numbers.**
+Nigeria's trade hub for fuel and gas, with independent business intelligence for businesses of every size. **Find the opportunity. Examine the evidence. Size it with your own numbers.**
 
 RefineryLens turns company disclosures, filings and news into reviewed, plain-language research. Every figure carries its source, page, period, scope, units and provenance label; missing data is shown as missing; conflicting sources stay visible; AI-drafted content stays a draft until an editor reviews it.
 
-The **business opportunities hub** maps 14 ways for businesses from micro to enterprise scale to plug into Dangote's Lekki complex: fuel retail and depots, tanker haulage, CNG and LPG, polypropylene conversion and resin distribution, Jet A-1, regional export, crude supply, modular refining, marine logistics and plant services. Each opportunity shows the company-stated facts it rests on, dated independent reports that help or hurt the case, questions to answer and licences to check, plus a sizing tool with visible formulas. Users keep a private opportunity board and saved scenarios. **Find my fit** asks for business size, areas of interest and assets the business already has, then ranks matching opportunities and shows why each is listed. Each opportunity has a **readiness checklist** (progress shows on the board), every sizing tool shows a **what-if table** (each key input moved ±10%), and users can download a **one-page PDF brief** with sources, readiness answers and a saved scenario. The **trade hub** connects **sellers, buyers, delivery partners and refineries**: businesses post product offers, buy requests and delivery capacity, see matching listings from the other side of the deal, and message each other privately. Anyone can post straight away; a *Verified* badge appears once an administrator has checked the business's CAC registration and licences, and names of well-known refiners stay hidden until verified. The hub's **gas network** maps LPG and CNG supply across Nigeria's 36 states and the FCT: businesses list their terminals, depots, refill plants, cylinder retail points, CNG stations and gas truck bases, and the map shows supply points, delivery coverage, buyer demand and gaps (demand with no supply or delivery) by state, with the nearest supply elsewhere. Site details are as stated by each business and are flagged as possibly out of date when not confirmed for 90 days. The **price board** shows what sellers charged for LPG, CNG, diesel, petrol and kerosene by state, only as medians across at least three sellers, with week-on-week change. **Delivery jobs** let any business post a load, delivery partners quote, the poster accepts one and both sides confirm delivery. **Supply agreements** record standing arrangements; the seller logs each delivery and the buyer confirms or disputes it, building each seller's public delivery record. Sellers who report prices on at least two days a fortnight get a **Reports prices** badge. Verified businesses can buy the **Business plan** (30 days): their listings come first in search, matches and the refinery list, always labelled ★ Featured, with up to 200 live listings instead of 50. An administrator can add plan days for payments taken offline. RefineryLens only introduces businesses and carries their messages: it takes no payments, holds no goods and guarantees no one. Behind it sits the evidence-first research layer (announcements, metrics, conflicts, theses, assistant), built from Dangote's public website.
+The **business opportunities hub** maps 14 ways for businesses from micro to enterprise scale to grow in Nigeria's fuel, gas and refining value chain: fuel retail and depots, tanker haulage, CNG and LPG, polypropylene conversion and resin distribution, Jet A-1, regional export, crude supply, modular refining, marine logistics and plant services. Each opportunity shows dated reports that bear on it, questions to answer and licences to check, plus a sizing tool with visible formulas. Users keep a private opportunity board and saved scenarios. **Find my fit** asks for business size, areas of interest and assets the business already has, then ranks matching opportunities and shows why each is listed. Each opportunity has a **readiness checklist** (progress shows on the board), every sizing tool shows a **what-if table** (each key input moved ±10%), and users can download a **one-page PDF brief** with sources, readiness answers and a saved scenario. The **trade hub** connects **sellers, buyers, delivery partners and refineries**: businesses post product offers, buy requests and delivery capacity, see matching listings from the other side of the deal, and message each other privately. Anyone can post straight away; a *Verified* badge appears once an administrator has checked the business's CAC registration and licences, and names of well-known refiners stay hidden until verified. The hub's **gas network** maps LPG and CNG supply across Nigeria's 36 states and the FCT: businesses list their terminals, depots, refill plants, cylinder retail points, CNG stations and gas truck bases, and the map shows supply points, delivery coverage, buyer demand and gaps (demand with no supply or delivery) by state, with the nearest supply elsewhere. Site details are as stated by each business and are flagged as possibly out of date when not confirmed for 90 days. The **price board** shows what sellers charged for LPG, CNG, diesel, petrol and kerosene by state, only as medians across at least three sellers, with week-on-week change. **Delivery jobs** let any business post a load, delivery partners quote, the poster accepts one and both sides confirm delivery. **Supply agreements** record standing arrangements; the seller logs each delivery and the buyer confirms or disputes it, building each seller's public delivery record. Sellers who report prices on at least two days a fortnight get a **Reports prices** badge. Verified businesses can buy the **Business plan** (30 days): their listings come first in search, matches and the refinery list, always labelled ★ Featured, with up to 200 live listings instead of 50. An administrator can add plan days for payments taken offline. RefineryLens only introduces businesses and carries their messages: it takes no payments, holds no goods and guarantees no one. Behind it sits the evidence-first research layer (announcements, metrics, conflicts, theses, assistant), shown here on a clearly labelled fictional demo company.
 
-Product copy says "Dangote", never "Dangote refinery" or the company's full refinery name; that is a standing product decision. The only exception is the hidden news search query in `prisma/seed-dangote.ts`. RefineryLens is not affiliated with, endorsed by or sponsored by Dangote or any Dangote company, the opportunities are analysis rather than offers, and nothing in it is investment or financial advice.
+RefineryLens is not affiliated with, endorsed by or sponsored by any company it covers, the opportunities are analysis rather than offers, and nothing in it is investment or financial advice.
 
 ---
 
@@ -41,7 +41,7 @@ cp .env.example .env
 createdb refinerylens            # or create it any way you like
 npm run db:migrate
 
-# 4. Load the Dangote source facts and the fictional demo company
+# 4. Load the demo users, businesses and the fictional demo company
 npm run db:seed
 
 # 5. Run
@@ -61,7 +61,7 @@ Production build: `npm run build && npm start`. Optionally run `npm run worker` 
 | `npm run worker` | Background job worker (document extraction, alert emails, open-data refreshes) |
 | `npm run ingest` | Pull every available open-data feed once and print the result |
 | `npm run db:migrate` | Apply Prisma migrations (`prisma migrate deploy`) |
-| `npm run db:seed` | Truncate and load demo users, Dangote source facts and fictional demo data |
+| `npm run db:seed` | Truncate and load demo users, businesses, stations and the fictional demo company |
 | `npm run db:reset` | Reset schema and reseed |
 | `npm run typecheck` | TypeScript check |
 | `npm test` | Unit and integration tests (needs a `refinerylens_test` database) |
@@ -90,11 +90,9 @@ All demo accounts use the password **`RefineryLens-demo-2026`**.
 
 Every trade hub business in the seed (`prisma/seed-hub.ts`) is fictional, named "(demo)", flagged as a demo account in the UI, and its prices are labelled as demo figures.
 
-### Two companies, deliberately different
+### The fictional demo company
 
-**Dangote (Lekki complex)** (`prisma/seed-dangote.ts`, slug `dangote`): facts taken from the company's public website, retrieved 25 October 2026, labelled *Company-disclosed* with URLs and retrieval times. They are loaded **as drafts awaiting editorial review**, not as published content, because the spec requires AI-prepared summaries to stay drafts until a human checks them. Financial metrics the company has not published are stored as *Not publicly disclosed*. Two source conflicts found on the site (an offer described as open versus a page saying there are no active public offerings; processing versus capacity wording) are recorded for an editor to review. No Dangote branding, logos or imagery are used. Sign in as the editor to review and publish them.
-
-**Lagoon Coast Refining Co. (fictional demo)** (`prisma/seed-demo.ts`): an invented company that exercises every feature with realistic-looking data, including generated PDF reports stamped *FICTIONAL DEMONSTRATION DOCUMENT - NOT A REAL COMPANY - NOT DANGOTE RESULTS*, published, corrected, retracted and superseded announcements, an unresolved conflict and a risk register. Every page for it shows a fictional-data banner.
+**Lagoon Coast Refining Co. (fictional demo)** (`prisma/seed-demo.ts`): an invented company that exercises every feature with realistic-looking data, including generated PDF reports stamped *FICTIONAL DEMONSTRATION DOCUMENT - NOT A REAL COMPANY*, published, corrected, retracted and superseded announcements, an unresolved conflict and a risk register. Every page for it shows a fictional-data banner.
 
 ---
 
@@ -239,7 +237,7 @@ These are enforced in code and covered by tests:
 - Corrections and retractions are logged publicly and alert watchers immediately.
 - Evidence suggestions never edit a user's thesis; the user accepts or dismisses them.
 - No share prices, tickers or offer deadlines are shown unless an editor has verified them against a primary source.
-- Opportunities are RefineryLens analysis, never presented as Dangote offers. Their anchors are company-stated facts with page links; their context notes are dated reports with provenance labels. The catalogue states no opportunity sizes; sizing tools start empty, label example numbers as placeholders, prefill market data only from approved open-data series with attribution, and refuse inconsistent inputs. Saved scenarios store inputs only and are recalculated on display.
+- Opportunities are RefineryLens analysis, never presented as offers from any company. Their context notes are dated reports with provenance labels. The catalogue states no opportunity sizes; sizing tools start empty, label example numbers as placeholders, prefill market data only from approved open-data series with attribution, and refuse inconsistent inputs. Saved scenarios store inputs only and are recalculated on display.
 
 ---
 
@@ -257,7 +255,7 @@ npm run test:e2e
 PLAYWRIGHT_CHROMIUM_PATH=/path/to/chromium npm run test:e2e
 ```
 
-Current results: **59 unit and integration tests** and **10 browser tests** (desktop and mobile) passing. They cover calculations and comparability, upload validation and extraction, permissions, the publication and correction workflow (including an editor publishing and correcting in the browser, and the update reaching a reader's thesis), alerts, email delivery and digests, S3 storage, private-file isolation (database, assistant and HTTP), assistant citations and insufficient-evidence handling, honest unavailable states for Dangote, and no horizontal scrolling on mobile.
+Current results: **59 unit and integration tests** and **10 browser tests** (desktop and mobile) passing. They cover calculations and comparability, upload validation and extraction, permissions, the publication and correction workflow (including an editor publishing and correcting in the browser, and the update reaching a reader's thesis), alerts, email delivery and digests, S3 storage, private-file isolation (database, assistant and HTTP), assistant citations and insufficient-evidence handling, and no horizontal scrolling on mobile.
 
 ---
 
@@ -280,7 +278,6 @@ prisma/
   schema.prisma          data model
   migrations/            SQL migrations
   seed.ts                demo users, theses, watchlists, private uploads
-  seed-dangote.ts        Dangote website facts (drafts awaiting review)
   seed-demo.ts           fictional demo company and generated PDFs
 scripts/worker.ts        background job worker
 scripts/ingest.ts        one-off open-data refresh

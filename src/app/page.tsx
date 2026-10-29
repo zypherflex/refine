@@ -1,16 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, BookOpenCheck, Flame, Fuel, GitCompareArrows, Layers, Lock, MessagesSquare, Repeat, ShieldCheck, Tags, Truck } from "lucide-react";
-import { db } from "@/lib/db";
 import { getCurrentUser } from "@/server/auth";
-import { companyFacts, factsIn } from "@/lib/company-facts";
-import { ScaleTiles } from "@/components/CompanyFacts";
 import { Logo } from "@/components/Logo";
 import { OPPORTUNITIES, SCALES, SEGMENTS } from "@/lib/opportunities/catalog";
 
 export const dynamic = "force-dynamic";
-
-const COVERAGE_SLUG = "dangote";
 
 const questions = [
   ["What changed?", "Reviewed announcements with plain-language summaries, dated by event and by publication."],
@@ -21,7 +16,7 @@ const questions = [
 
 // Framed as open questions for investors to research, not as findings.
 const nigeriaQuestions = [
-  ["From importer to exporter?", "The company states an ambition to make Nigeria a net exporter of refined products. RefineryLens tracks what is disclosed about exports, and says plainly when it is not."],
+  ["From importer to exporter?", "New refining capacity could make Nigeria a net exporter of refined products. RefineryLens tracks what companies disclose about exports, and says plainly when they do not."],
   ["Naira and dollar exposure", "Crude is priced in US dollars while much fuel is sold in naira. We explain how that mismatch can affect cash flow, and separate general explanation from company evidence."],
   ["Crude supply and pricing reform", "Where the crude comes from and how domestic fuel prices are set both shape refining margins. We follow regulator and company disclosures as they appear."],
   ["Scale versus utilization", "Stated capacity is not the same as barrels actually processed. We keep capacity, throughput, production and sales apart."],
@@ -41,10 +36,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
   if (me) redirect(me.audience === "PERSONAL" ? "/today" : "/hub");
   // The installed apps open on something useful straight away rather than on the marketing page.
   if ((await searchParams).source === "app") redirect("/today");
-  const coverage = await db.company.findUnique({ where: { slug: COVERAGE_SLUG }, select: { name: true, profileFacts: true } }).catch(() => null);
-  const facts = companyFacts(coverage?.profileFacts);
-  const scale = factsIn(facts, "scale");
-  const sizeClaims = factsIn(facts, "global").filter((f) => f.label.startsWith("Size claim"));
 
   return (
     <div className="min-h-screen bg-white">
@@ -70,7 +61,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
               Buy, sell and move fuel and gas with <span className="text-[#ffd166]">businesses you can check.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/90">
-              Today&apos;s LPG, diesel and petrol prices by state. Verified sellers, buyers, hauliers and refineries. Delivery jobs with quotes, regular supply you can track, and a map of the gas network. And for the bigger picture, sourced research on where your business fits around Dangote&apos;s Lekki complex.
+              Today&apos;s LPG, diesel and petrol prices by state. Verified sellers, buyers, hauliers and refineries. Delivery jobs with quotes, regular supply you can track, and a map of the gas network. And for the bigger picture, sourced research on business opportunities across Nigeria&apos;s fuel and gas value chain.
             </p>
             <ul className="mt-6 grid max-w-xl grid-cols-2 gap-x-4 gap-y-2 text-sm text-ink-100 sm:grid-cols-3">
               {([[Tags, "Price board"], [ShieldCheck, "Verified businesses"], [Truck, "Delivery jobs"], [Repeat, "Regular supply"], [Flame, "Gas network map"], [Layers, "Opportunity research"]] as const).map(([Icon, t]) => (
@@ -84,40 +75,37 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
               <Link href="/login" className="btn border border-white/15 px-5 py-3 text-base text-white hover:bg-white/10">Sign in</Link>
             </div>
             <p className="mt-6 max-w-xl text-xs leading-relaxed text-white/80">
-              Find the opportunity. Examine the evidence. Size it with your own numbers. RefineryLens is independent and is not affiliated with, endorsed by or sponsored by Dangote or any Dangote company. Nothing here is an offer from Dangote.
+              Find the opportunity. Examine the evidence. Size it with your own numbers. RefineryLens is independent and is not affiliated with, endorsed by or sponsored by any company it covers.
             </p>
           </div>
 
-          {sizeClaims.length === 2 ? (
-            <figure aria-label="Example: two company statements about size, shown side by side" className="relative">
-              <div className="absolute -inset-4 rounded-3xl bg-brand-400/10 blur-2xl" aria-hidden />
-              <div className="relative rounded-2xl border border-white/10 bg-white p-5 text-ink-900 shadow-2xl sm:p-6">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[11px] font-medium">Company-disclosed</span>
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800">Sources differ</span>
-                </div>
-                <p className="mt-3 font-serif text-xl font-semibold leading-snug text-ink-950">How big is it? The company’s own pages say it two ways.</p>
-                <div className="mt-4 space-y-3">
-                  {sizeClaims.map((f) => (
-                    <blockquote key={f.label} className="rounded-xl border-l-4 border-brand-600 bg-brand-50 px-3 py-2.5 text-sm leading-relaxed text-ink-800">
-                      {f.value}
-                      <footer className="mt-1 text-[11px] text-ink-600">{f.label.replace("Size claim ", "").replace(/[()]/g, "")} · <a href={f.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">source ↗</a></footer>
-                    </blockquote>
-                  ))}
-                </div>
-                <p className="mt-4 border-t border-ink-100 pt-3 text-xs text-ink-600">We show both, label them as company claims, and leave the difference visible until it is resolved.</p>
+          <figure aria-label="Example of a trade hub listing with matches" className="relative">
+            <div className="absolute -inset-4 rounded-3xl bg-[#ffd166]/25 blur-2xl" aria-hidden />
+            <div className="relative rounded-2xl border border-white/10 bg-white p-5 text-ink-900 shadow-2xl sm:p-6">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-medium text-brand-800">Offer</span>
+                <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[11px] font-medium">Verified seller</span>
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800">Fictional sample</span>
               </div>
-            </figure>
-          ) : (
-            <div aria-hidden className="hidden lg:block" />
-          )}
+              <p className="mt-3 font-serif text-xl font-semibold leading-snug text-ink-950">Diesel (AGO), 66,000 litres a week, ex-depot Apapa</p>
+              <p className="mt-2 text-sm leading-relaxed text-ink-700">Loading Monday to Saturday. Price on request, quality certificate with every load.</p>
+              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-xl bg-brand-50 p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-brand-800">Matching buy requests</p>
+                  <p className="mt-1 text-xs leading-relaxed text-ink-800">3 buyers looking for diesel in Lagos and Ogun</p>
+                </div>
+                <div className="rounded-xl bg-sun-50 p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-sun-700">Delivery partners</p>
+                  <p className="mt-1 text-xs leading-relaxed text-ink-800">2 tanker operators covering the route</p>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center justify-between border-t border-ink-100 pt-3 text-xs text-ink-600">
+                <span>Ikeja, Lagos · posted today</span>
+                <span className="font-medium text-brand-700">Message the seller →</span>
+              </div>
+            </div>
+          </figure>
         </main>
-        {scale.length > 0 && (
-          <section aria-labelledby="scale-h" className="relative mx-auto max-w-6xl px-4 pb-16 sm:px-8">
-            <h2 id="scale-h" className="mb-3 text-[11px] font-semibold uppercase tracking-eyebrow text-white/85">Scale at a glance · as stated by the company</h2>
-            <ScaleTiles facts={scale} dark />
-          </section>
-        )}
       </div>
 
       <section aria-labelledby="everyday-h" className="border-b border-ink-100 bg-brand-50/60">
@@ -156,7 +144,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
 
       <section aria-labelledby="ng" className="border-b border-ink-100">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-8">
-          <p className="eyebrow">Lekki to world markets</p>
+          <p className="eyebrow">Nigeria to world markets</p>
           <h2 id="ng" className="mt-2 max-w-3xl font-serif text-3xl font-semibold tracking-tight">The questions that matter for Nigeria, Africa and global fuel markets.</h2>
           <ul className="mt-10 grid gap-5 sm:grid-cols-2">
             {nigeriaQuestions.map(([t, d]) => (
@@ -173,8 +161,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
       <section aria-labelledby="opps" className="border-b border-ink-100">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-8">
           <p className="eyebrow">Business opportunities</p>
-          <h2 id="opps" className="mt-2 max-w-3xl font-serif text-3xl font-semibold tracking-tight">From one truck to a crude cargo: where your business could fit around the refinery.</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-ink-600">{OPPORTUNITIES.length} researched business models across {SEGMENTS.length} areas, each with the company-stated facts it rests on, dated reports for and against, and a sizing tool that shows its formula. Independent analysis, not offers from the company.</p>
+          <h2 id="opps" className="mt-2 max-w-3xl font-serif text-3xl font-semibold tracking-tight">From one truck to a crude cargo: where your business could fit in fuel and gas.</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-ink-600">{OPPORTUNITIES.length} researched business models across {SEGMENTS.length} areas, each with what to check before committing, the licences involved and a sizing tool that shows its formula. Independent analysis, not offers from any company.</p>
           <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {SCALES.map((s) => (
               <li key={s.id} className="rounded-2xl border border-ink-100 bg-white p-4 shadow-card">
@@ -228,8 +216,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
           <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
             <div>
               <p className="eyebrow text-[#ffd166]">Coverage</p>
-              <h2 id="coverage" className="mt-2 font-serif text-3xl font-semibold tracking-tight text-white">Opportunities around Dangote first. More of Africa’s energy hubs next.</h2>
-              <p className="mt-4 max-w-xl text-white/90">Every opportunity rests on Dangote’s public disclosures and dated independent reports, moved through editorial review. The platform is designed to add more refining and energy hubs across Africa and beyond.</p>
+              <h2 id="coverage" className="mt-2 font-serif text-3xl font-semibold tracking-tight text-white">Nigeria first. More of Africa’s energy hubs next.</h2>
+              <p className="mt-4 max-w-xl text-white/90">Every opportunity rests on public disclosures, regulator sources and dated independent reports, moved through editorial review. The platform is designed to add more refining and energy hubs across Africa and beyond.</p>
             </div>
             <div className="flex lg:justify-end">
               <Link href="/register" className="btn bg-[#ffd166] px-5 py-3 text-base font-semibold text-ink-950 hover:bg-[#ffc23d]">Create a free account <ArrowRight size={18} aria-hidden /></Link>

@@ -5,8 +5,6 @@
  * Shared by the browser (live results) and the server (saved scenarios), so nothing here may touch the database.
  */
 
-export const DANGOTE_STATED_CDU_BPD = 700_000;
-export const DANGOTE_STATED_PP_KTPA = 830;
 export const LITRES_PER_US_GALLON = 3.785411784;
 export const GALLONS_PER_BARREL = 42;
 
@@ -166,15 +164,13 @@ function ppConverter(inputs: Inputs): CalcOutput {
     const resinCost = v.resinTonnes * v.resinPrice;
     const conversion = v.resinTonnes * v.conversionCost;
     const net = revenue - resinCost - conversion - v.fixedMonthly;
-    const share = ((v.resinTonnes * 12) / (DANGOTE_STATED_PP_KTPA * 1000)) * 100;
     const lines = [
       line("Saleable product per month", product, "tonnes", "resin tonnes × saleable yield"),
       line("Revenue per month", revenue, "NGN", "saleable tonnes × selling price"),
       line("Resin and conversion costs per month", resinCost + conversion, "NGN", "resin tonnes × (resin price + conversion cost)"),
       line("Operating profit per month", net, "NGN", "revenue − resin and conversion costs − fixed costs"),
-      line("Your annual resin use as a share of stated plant capacity", share, "%", `resin tonnes × 12 ÷ ${DANGOTE_STATED_PP_KTPA} KTPA (company-stated polypropylene capacity)`),
     ];
-    return { ok: true, headline: lines[3], lines, notes: ["The capacity share only shows scale. Stated nameplate capacity is not output, and the company does not publish sales volumes."] };
+    return { ok: true, headline: lines[3], lines, notes: [] };
   });
 }
 
@@ -258,7 +254,6 @@ function modularRefinery(inputs: Inputs): CalcOutput {
       line("Margin after operating cost", net, "USD/bbl", "gross refining margin − operating cost"),
       line("Average throughput", throughput, "barrels/day", "capacity × utilisation"),
       line("Margin after operating cost per year", (net * throughput * v.daysPerYear) / 1e6, "USD million", "margin per barrel × throughput × operating days ÷ 1,000,000"),
-      line("Capacity as a share of Dangote's stated CDU capacity", (v.capacityBpd / DANGOTE_STATED_CDU_BPD) * 100, "%", `capacity ÷ ${DANGOTE_STATED_CDU_BPD.toLocaleString("en-GB")} bpd (company-stated)`),
     ];
     const notes = [
       `Yields add up to ${yieldTotal}%; the remaining ${(100 - yieldTotal).toFixed(1)}% is treated as fuel and loss with no value.`,
@@ -275,7 +270,7 @@ export const CALCULATORS: Record<CalculatorId, CalculatorDef> = {
   haulage: { id: "haulage", name: "Tanker haulage economics", summary: "Trips per month, litres delivered and profit for a truck fleet.", fields: haulageFields, compute: (i) => haulage(i), drivers: ["ratePerLitre", "fuelCostPerKm", "avgSpeedKmh", "loadUnloadHours"] },
   "pp-converter": { id: "pp-converter", name: "Polypropylene converter", summary: "Monthly profit for turning resin into sacks, film or moulded goods.", fields: ppFields, compute: (i) => ppConverter(i), drivers: ["productPrice", "resinPrice", "yieldPct", "conversionCost"] },
   "import-parity": { id: "import-parity", name: "Import parity check", summary: "Compares a local quote with the landed cost of an imported cargo.", fields: parityFields, compute: (i) => importParity(i), drivers: ["intlPriceUsdGal", "fxNgnUsd", "freightUsdTonne", "otherNgnLitre"] },
-  "modular-refinery": { id: "modular-refinery", name: "Modular refinery margin", summary: "Margin per barrel and per year for a small crude or condensate plant, benchmarked against Dangote's stated scale.", fields: modularFields, compute: (i) => modularRefinery(i), drivers: ["crudeUsdBbl", "p_diesel", "utilisationPct", "opexUsdBbl"] },
+  "modular-refinery": { id: "modular-refinery", name: "Modular refinery margin", summary: "Margin per barrel and per year for a small crude or condensate plant.", fields: modularFields, compute: (i) => modularRefinery(i), drivers: ["crudeUsdBbl", "p_diesel", "utilisationPct", "opexUsdBbl"] },
 };
 
 export function isCalculatorId(id: string): id is CalculatorId {

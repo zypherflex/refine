@@ -148,7 +148,7 @@ export function ListingForm({ kinds, listing, initialKind }: { kinds: HubListing
       </fieldset>
       <div>
         <label htmlFor="l-title" className="label">Title *</label>
-        <input id="l-title" name="title" className="input" required minLength={4} maxLength={140} defaultValue={listing?.title ?? ""} placeholder={kind === "OFFER" ? "e.g. 33,000 litres AGO available ex-Lekki" : kind === "REQUEST" ? "e.g. Weekly 20 tonnes LPG for Ibadan skid plant" : "e.g. Two 33,000-litre tankers, Lagos to the North"} />
+        <input id="l-title" name="title" className="input" required minLength={4} maxLength={140} defaultValue={listing?.title ?? ""} placeholder={kind === "OFFER" ? "e.g. 33,000 litres AGO available ex-Apapa" : kind === "REQUEST" ? "e.g. Weekly 20 tonnes LPG for Ibadan skid plant" : "e.g. Two 33,000-litre tankers, Lagos to the North"} />
       </div>
       <fieldset>
         <legend className="label">{kind === "DELIVERY" ? "Products you can carry *" : "Products *"}</legend>

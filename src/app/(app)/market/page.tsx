@@ -88,7 +88,7 @@ export default async function MarketPage() {
   return (
     <>
       <PageHeader eyebrow="Research" title="Market & macro context" subtitle="Oil benchmarks, product prices and Nigerian macro data from free public sources, each with its publisher, period, units and retrieval time." />
-      <div className="mb-6"><Notice title="Context, not company data">This page is the same whichever company you are researching. Benchmark prices, national statistics and exchange rates describe the market a refinery operates in. They are not disclosures by Dangote or any other company and are never mixed into company figures.</Notice></div>
+      <div className="mb-6"><Notice title="Context, not company data">This page is the same whichever company you are researching. Benchmark prices, national statistics and exchange rates describe the market a refinery operates in. They are not disclosures by any company and are never mixed into company figures.</Notice></div>
 
       <h2 className="h-section mb-3">Global oil market</h2>
       <section className="card mb-4" aria-labelledby="h-crack">

@@ -54,7 +54,7 @@ describe("gas network sites", () => {
     const { u: seller } = await trader("Ikeja Energy", ["SELLER"]);
     const { u: north } = await trader("Kano Gas", ["BUYER", "SELLER"], "Kano");
     const { u: buyer } = await trader("Bauchi Gas", ["BUYER"], "Bauchi");
-    const { u: hidden } = await trader("Dangote Gas Depot", ["SELLER"]);
+    const { u: hidden } = await trader("NNPC Gas Depot", ["SELLER"]);
     await createSite(seller, depot);
     await createSite(seller, { ...depot, name: "Ogun plant", kind: "REFILL_PLANT", state: "Ogun" });
     await createSite(north, { name: "Kano kiosk", kind: "CYLINDER_RETAIL", gases: ["lpg_cylinder"], state: "Kano" });

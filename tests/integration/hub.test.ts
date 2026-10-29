@@ -75,7 +75,7 @@ describe("trade hub businesses and listings", () => {
 
   it("keeps unverified businesses using a refiner's name hidden from others until verified", async () => {
     const admin = await user("ADMIN");
-    const { u, b } = await trader("Dangote Gas Depot", ["SELLER"]);
+    const { u, b } = await trader("NNPC Gas Depot", ["SELLER"]);
     const l = await createListing(u, offer);
     const viewer = await user();
     expect(await browseListings(viewer, {})).toHaveLength(0);
@@ -116,7 +116,7 @@ describe("trade hub businesses and listings", () => {
     const admin = await user("ADMIN");
     const { b: a } = await trader("Alpha Modular Refinery", ["REFINERY"]);
     const { u: zu, b: z } = await trader("Zeta Refinery", ["REFINERY"]);
-    await trader("Dangote Refinery Sales", ["REFINERY"]);
+    await trader("NNPC Refinery Sales", ["REFINERY"]);
     await requestVerification(zu);
     await decideVerification(admin, z.id, "VERIFY", "");
     const viewer = await user();
