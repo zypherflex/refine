@@ -67,7 +67,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
               Nigeria's trade hub for fuel and gas
             </p>
             <h1 className="mt-6 font-serif text-[2.4rem] font-semibold leading-[1.08] tracking-tight text-white sm:text-[3.4rem]">
-              Buy, sell and move fuel and gas with businesses you can check. <span className="text-[#ffd166]">Plus business opportunities around Dangote.</span>
+              Buy, sell and move fuel and gas with <span className="text-[#ffd166]">businesses you can check.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/90">
               Today&apos;s LPG, diesel and petrol prices by state. Verified sellers, buyers, hauliers and refineries. Delivery jobs with quotes, regular supply you can track, and a map of the gas network. And for the bigger picture, sourced research on where your business fits around Dangote&apos;s Lekki complex.

@@ -46,7 +46,7 @@ async function selectCompany(page: Page, slug: string) {
 test("landing page presents RefineryLens as independent @mobile", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Buy, sell and move fuel and gas");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("business opportunities around Dangote");
+  await expect(page.getByRole("heading", { level: 1 })).not.toContainText("opportunities around Dangote");
   const text = await page.locator("body").innerText();
   expect(text).not.toMatch(/dangote (petroleum )?refinery/i);
   await expect(page.getByText(/not affiliated with, endorsed by or sponsored by/).first()).toBeVisible();
