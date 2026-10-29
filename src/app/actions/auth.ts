@@ -25,21 +25,32 @@ export async function loginAction(_: FormState, form: FormData): Promise<FormSta
   if (!user) return { error: "That email and password do not match an account." };
   await createSession(user.id);
   await audit(user.id, "user.login", "User", user.id);
-  redirect(safeNext(form.get("next")));
+  const next = String(form.get("next") ?? "");
+  redirect(next ? safeNext(next) : user.audience === "PERSONAL" ? "/today" : "/hub");
 }
 
 export async function registerAction(_: FormState, form: FormData): Promise<FormState> {
+  let personal = false;
   const ip = await clientIp();
   if (!rateLimit(`register:${ip}`, 10, 60 * 60_000)) return { error: "Too many sign-ups from this network. Try again later." };
   try {
-    const user = await registerUser({ name: String(form.get("name") ?? ""), email: String(form.get("email") ?? ""), password: String(form.get("password") ?? "") });
+    const user = await registerUser({
+      name: String(form.get("name") ?? ""),
+      email: String(form.get("email") ?? ""),
+      password: String(form.get("password") ?? ""),
+      audience: form.get("audience") === "BUSINESS" ? "BUSINESS" : "PERSONAL",
+      homeState: String(form.get("homeState") ?? "") || null,
+    });
     await createSession(user.id);
+    personal = user.audience === "PERSONAL";
   } catch (e) {
     if (e instanceof ZodError) return { error: e.issues.map((i) => i.message).join(" ") };
     if (e instanceof AppError) return { error: e.message };
     throw e;
   }
-  redirect("/hub?welcome=1");
+  // Anyone who signed up on the way somewhere (e.g. "Start free trial" on /data) goes back there.
+  const next = String(form.get("next") ?? "");
+  redirect(next ? safeNext(next) : personal ? "/today?welcome=1" : "/hub?welcome=1");
 }
 
 export async function logoutAction() {

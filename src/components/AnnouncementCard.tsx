@@ -17,16 +17,16 @@ export function AnnouncementCard({ a, compact = false }: { a: A; compact?: boole
         {a.revision > 1 && a.status === "PUBLISHED" && <span className="text-xs text-amber-800">Corrected (revision {a.revision})</span>}
       </div>
       <h3 id={`ann-${a.id}`} className="mt-2 text-base font-semibold leading-snug">
-        <Link href={`/announcements/${a.id}`} className="text-navy-950">{a.headline}</Link>
+        <Link href={`/announcements/${a.id}`} className="text-ink-950">{a.headline}</Link>
       </h3>
-      <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-navy-700">
+      <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-ink-700">
         <div><dt className="inline">Event date: </dt><dd className="inline">{fmtDate(a.eventDate)}</dd></div>
         <div><dt className="inline">Published by source: </dt><dd className="inline">{fmtDate(a.sourcePublishedAt)}</dd></div>
         <div><dt className="inline">Source: </dt><dd className="inline"><SourceLink href={a.sourceUrl}>{a.publisher}</SourceLink> · {documentTypeLabel[a.documentType]}</dd></div>
         {a.legalEntity && <div><dt className="inline">Entity: </dt><dd className="inline">{a.legalEntity.name}</dd></div>}
       </dl>
       {a.status === "RETRACTED" && <p className="mt-2 rounded bg-risk-50 px-2 py-1 text-sm text-risk-800"><strong>Retracted:</strong> {a.retractionReason}</p>}
-      {a.status === "SUPERSEDED" && <p className="mt-2 rounded bg-navy-50 px-2 py-1 text-sm">Superseded{a.supersededBy ? <> by <Link href={`/announcements/${a.supersededBy.id}`}>{a.supersededBy.headline}</Link></> : ""}.</p>}
+      {a.status === "SUPERSEDED" && <p className="mt-2 rounded bg-ink-50 px-2 py-1 text-sm">Superseded{a.supersededBy ? <> by <Link href={`/announcements/${a.supersededBy.id}`}>{a.supersededBy.headline}</Link></> : ""}.</p>}
       <p className="mt-2 text-sm">{a.summary}</p>
       {!compact && (
         <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">

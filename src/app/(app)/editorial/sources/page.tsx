@@ -22,7 +22,7 @@ export default async function SourcesPage() {
           <li key={s.id} className="card">
             <div className="flex flex-wrap items-center gap-1.5"><ProvenanceBadge p={s.provenance} /><Pill className={s.approved ? "bg-brand-100 text-brand-800" : "bg-amber-100 text-amber-800"}>{s.approved ? `Approved ${fmtDate(s.approvedAt)}` : "Awaiting approval"}</Pill>{s.isFictional && <Pill className="bg-amber-100 text-amber-800">Fictional</Pill>}</div>
             <p className="mt-1 font-medium">{s.name}</p>
-            <p className="text-xs text-navy-700">{s.publisher} · {s.homepageUrl && <SourceLink href={s.homepageUrl}>{s.homepageUrl}</SourceLink>} · {s._count.documents} documents · {s._count.announcements} announcements</p>
+            <p className="text-xs text-ink-700">{s.publisher} · {s.homepageUrl && <SourceLink href={s.homepageUrl}>{s.homepageUrl}</SourceLink>} · {s._count.documents} documents · {s._count.announcements} announcements</p>
             {s.licenseNotes && <p className="mt-1 text-sm"><span className="font-medium">Licence and permissions:</span> {s.licenseNotes}</p>}
             {editor && <form action={approveSourceAction} className="mt-2"><input type="hidden" name="id" value={s.id} /><button name="approve" value={s.approved ? "0" : "1"} className={s.approved ? "btn-secondary btn-sm" : "btn-primary btn-sm"}>{s.approved ? "Revoke approval" : "Approve source"}</button></form>}
           </li>

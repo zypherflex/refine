@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">RefineryLens</string>
+    <string name="title_activity_main">RefineryLens</string>
+    <string name="package_name">ng.refinerylens.app</string>
+    <string name="custom_url_scheme">ng.refinerylens.app</string>
+    <string name="app_link_host">app.refinerylens.ng</string>
+</resources>

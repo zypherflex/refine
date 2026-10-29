@@ -13,6 +13,8 @@ export type CurrentUser = {
   role: Role;
   plan: "FREE" | "PRO" | "TEAM";
   organizationId: string | null;
+  audience: "PERSONAL" | "BUSINESS";
+  homeState: string | null;
 };
 
 export async function createSession(userId: string) {
@@ -43,12 +45,13 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   const session = await db.session.findUnique({ where: { tokenHash: hashToken(token) }, include: { user: true } });
   if (!session || session.expiresAt < new Date()) return null;
   const u = session.user;
-  return { id: u.id, email: u.email, name: u.name, role: u.role, plan: u.plan, organizationId: u.organizationId };
+  return { id: u.id, email: u.email, name: u.name, role: u.role, plan: u.plan, organizationId: u.organizationId, audience: u.audience, homeState: u.homeState };
 }
 
-export async function requireUser(): Promise<CurrentUser> {
+/** `next` brings the person back to the page they wanted after signing in. */
+export async function requireUser(next?: string): Promise<CurrentUser> {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect(next ? `/login?next=${encodeURIComponent(next)}` : "/login");
   return user;
 }
 

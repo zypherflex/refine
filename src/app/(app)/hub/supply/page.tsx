@@ -24,10 +24,10 @@ export default async function SupplyPage() {
             const other = iAmBuyer ? a.seller : a.buyer;
             return (
               <li key={a.id} className="card">
-                <div className="flex flex-wrap items-center gap-2"><Pill className={style[a.status]}>{agreementStatus[a.status]}</Pill><span className="text-xs text-navy-600">You {iAmBuyer ? "buy from" : "supply"} {other.name}</span></div>
+                <div className="flex flex-wrap items-center gap-2"><Pill className={style[a.status]}>{agreementStatus[a.status]}</Pill><span className="text-xs text-ink-600">You {iAmBuyer ? "buy from" : "supply"} {other.name}</span></div>
                 <h2 className="mt-2 text-base font-semibold"><Link href={`/hub/supply/${a.id}`}>{a.quantity.toLocaleString("en-GB")} {a.unit} of {productLabel(a.product)}, {every[a.frequency]}</Link></h2>
-                <p className="text-sm text-navy-700">To {a.deliverTo} · from {fmtDate(a.startDate)}{a.endDate ? ` to ${fmtDate(a.endDate)}` : ""}</p>
-                <p className="mt-2 text-xs text-navy-600">{a._count.deliveries} deliver{a._count.deliveries === 1 ? "y" : "ies"} logged</p>
+                <p className="text-sm text-ink-700">To {a.deliverTo} · from {fmtDate(a.startDate)}{a.endDate ? ` to ${fmtDate(a.endDate)}` : ""}</p>
+                <p className="mt-2 text-xs text-ink-600">{a._count.deliveries} deliver{a._count.deliveries === 1 ? "y" : "ies"} logged</p>
               </li>
             );
           })}

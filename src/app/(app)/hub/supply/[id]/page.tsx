@@ -45,10 +45,10 @@ export default async function AgreementPage({ params }: { params: Promise<{ id: 
           <section className="card">
             <h2 className="h-section">Terms</h2>
             <dl className="mt-2 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
-              <div><dt className="text-navy-600">Price terms</dt><dd>{a.priceNote || "Not stated"}</dd></div>
-              <div><dt className="text-navy-600">Next delivery due</dt><dd className="font-medium">{next ? fmtDate(next) : "–"}</dd></div>
+              <div><dt className="text-ink-600">Price terms</dt><dd>{a.priceNote || "Not stated"}</dd></div>
+              <div><dt className="text-ink-600">Next delivery due</dt><dd className="font-medium">{next ? fmtDate(next) : "–"}</dd></div>
             </dl>
-            {a.notes && <p className="mt-3 whitespace-pre-line text-sm text-navy-800">{a.notes}</p>}
+            {a.notes && <p className="mt-3 whitespace-pre-line text-sm text-ink-800">{a.notes}</p>}
           </section>
 
           {side === "SELLER" && a.status === "ACTIVE" && (
@@ -58,14 +58,14 @@ export default async function AgreementPage({ params }: { params: Promise<{ id: 
           <section aria-labelledby="del-h">
             <h2 id="del-h" className="h-section">Deliveries ({deliveries.length})</h2>
             {deliveries.length === 0 ? <p className="muted">{side === "SELLER" ? "Log each delivery after it arrives." : "The seller logs each delivery; you confirm it here."}</p> : (
-              <ul className="mt-2 divide-y divide-navy-100 rounded-xl border border-navy-100 bg-white">
+              <ul className="mt-2 divide-y divide-ink-100 rounded-xl border border-ink-100 bg-white">
                 {deliveries.map((d) => (
                   <li key={d.id} className="px-4 py-3 text-sm">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span><span className="font-medium">{fmtDate(d.deliveredOn)}</span> · <span className="num">{d.quantity.toLocaleString("en-GB")} {a.unit}</span></span>
                       <Pill className={deliveryStyle[d.status]}>{deliveryLabel[d.status]}</Pill>
                     </div>
-                    {d.buyerNote && <p className="mt-1 text-navy-700">Buyer: {d.buyerNote}</p>}
+                    {d.buyerNote && <p className="mt-1 text-ink-700">Buyer: {d.buyerNote}</p>}
                     {side === "BUYER" && d.status === "LOGGED" && <ReviewDeliveryForm agreementId={a.id} deliveryId={d.id} />}
                   </li>
                 ))}
@@ -77,7 +77,7 @@ export default async function AgreementPage({ params }: { params: Promise<{ id: 
           <section className="card">
             <p className="eyebrow">{a.seller.name}&apos;s delivery record</p>
             <p className="num mt-1 text-2xl font-semibold">{record.rate === null ? "No reviews yet" : `${record.rate}% confirmed`}</p>
-            <p className="text-xs text-navy-600">{record.confirmed} confirmed, {record.disputed} disputed, across all agreements · {record.activeBuyers} active buyer{record.activeBuyers === 1 ? "" : "s"}</p>
+            <p className="text-xs text-ink-600">{record.confirmed} confirmed, {record.disputed} disputed, across all agreements · {record.activeBuyers} active buyer{record.activeBuyers === 1 ? "" : "s"}</p>
           </section>
           {(a.status === "ACTIVE" || a.status === "PAUSED") && (
             <section className="card flex flex-wrap gap-2">

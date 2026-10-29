@@ -15,16 +15,16 @@ export function PeriodChart({ title, unit, points, description }: { title: strin
       <div role="img" aria-label={summary} className="h-48 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={points} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-            <CartesianGrid vertical={false} stroke="#e4ebf5" />
-            <XAxis dataKey="period" tick={{ fontSize: 12, fill: "#11294a" }} axisLine={{ stroke: "#c9d4e5" }} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: "#11294a" }} axisLine={false} tickLine={false} width={64} tickFormatter={(v: number) => v.toLocaleString("en-GB")} />
-            <ReferenceLine y={0} stroke="#28507f" />
+            <CartesianGrid vertical={false} stroke="#e4eee8" />
+            <XAxis dataKey="period" tick={{ fontSize: 12, fill: "#0f2f20" }} axisLine={{ stroke: "#d0ded6" }} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: "#0f2f20" }} axisLine={false} tickLine={false} width={64} tickFormatter={(v: number) => v.toLocaleString("en-GB")} />
+            <ReferenceLine y={0} stroke="#365a48" />
             <Tooltip formatter={(v) => [`${Number(v).toLocaleString("en-GB")} ${unit}`, title]} contentStyle={{ fontSize: 12 }} />
-            <Bar dataKey="value" fill="#0f8a84" radius={[3, 3, 0, 0]} maxBarSize={56} isAnimationActive={false} />
+            <Bar dataKey="value" fill="#5b2ee8" radius={[3, 3, 0, 0]} maxBarSize={56} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <figcaption className="mt-1 text-xs text-navy-700">{description}</figcaption>
+      <figcaption className="mt-1 text-xs text-ink-700">{description}</figcaption>
       <details className="mt-1 text-xs">
         <summary className="text-brand-700">Show chart data as a table</summary>
         <table className="mt-1 w-full text-left">

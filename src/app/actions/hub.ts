@@ -6,11 +6,15 @@ import { requireRole, requireUser } from "@/server/auth";
 import { requestVerification, saveBusiness } from "@/server/hub/business";
 import { closeListing, createListing, renewListing, updateListing } from "@/server/hub/listings";
 import { reply, sendEnquiry } from "@/server/hub/messages";
+import { confirmSite, createSite, updateSite } from "@/server/hub/gas";
 import { reportPrices } from "@/server/hub/prices";
 import { acceptQuote, cancelJob, confirmDelivered, postJob, submitQuote, withdrawQuote } from "@/server/hub/jobs";
 import { logDelivery, proposeAgreement, respond, reviewDelivery, setStatus } from "@/server/hub/supply";
 import { closeReport, decideVerification, reinstateBusiness, reportBusiness, suspendBusiness } from "@/server/hub/moderation";
 import { AppError } from "@/lib/errors";
+import { BUSINESS_PLAN_DAYS, extendBusinessPlan } from "@/server/connect/paystack";
+import { startBusinessPlanCheckout } from "@/server/data/billing";
+import { audit } from "@/server/audit";
 
 export type ActionState = { error?: string | null; ok?: string | null };
 
@@ -179,6 +183,41 @@ export async function closeReportAction(form: FormData) {
   revalidatePath("/admin/hub");
 }
 
+export async function saveSiteAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  const id = text(form, "id");
+  const fields = {
+    name: text(form, "name"),
+    kind: text(form, "kind") as never,
+    status: (text(form, "status") || "OPERATING") as never,
+    gases: form.getAll("gases").map(String),
+    cylinderSizes: form.getAll("cylinderSizes").map(Number),
+    state: text(form, "state"),
+    town: text(form, "town"),
+    address: text(form, "address"),
+    storageTonnes: num(form, "storageTonnes"),
+    hours: text(form, "hours"),
+    delivers: form.get("delivers") === "1",
+    notes: text(form, "notes"),
+  };
+  let siteId: string;
+  try {
+    siteId = id ? (await updateSite(user, id, fields)).id : (await createSite(user, fields)).id;
+  } catch (e) {
+    return { error: message(e) };
+  }
+  revalidatePath("/hub", "layout");
+  redirect(`/hub/gas/sites/${siteId}?saved=1`);
+}
+
+export async function confirmSiteAction(form: FormData) {
+  const user = await requireUser();
+  await confirmSite(user, text(form, "id")).catch(message);
+  revalidatePath("/hub", "layout");
+}
+
+// ---- Price board, delivery jobs and supply agreements ----
+
 export async function reportPricesAction(_: ActionState, form: FormData): Promise<ActionState> {
   const user = await requireUser();
   const prices: Record<string, number | null> = {};
@@ -291,4 +330,27 @@ export async function reviewDeliveryAction(_: ActionState, form: FormData): Prom
   }
   revalidatePath(`/hub/supply/${text(form, "agreementId")}`);
   return { ok: "Saved." };
+}
+
+export async function startBusinessCheckoutAction(): Promise<ActionState> {
+  const user = await requireUser();
+  let url: string;
+  try {
+    url = await startBusinessPlanCheckout(user);
+  } catch (e) {
+    if (e instanceof AppError) return { error: e.message };
+    console.error("business checkout", e);
+    return { error: "The payment page could not be opened. Try again in a minute." };
+  }
+  redirect(url);
+}
+
+/** For payments taken outside the app (bank transfer): an administrator adds 30 days to a business's plan. */
+export async function grantBusinessPlanAction(form: FormData) {
+  const admin = await requireRole("ADMIN");
+  const id = text(form, "businessId");
+  await extendBusinessPlan(id, BUSINESS_PLAN_DAYS);
+  await audit(admin.id, "hub.business.grant_plan", "HubBusiness", id, { days: BUSINESS_PLAN_DAYS });
+  revalidatePath("/admin/hub");
+  revalidatePath("/hub", "layout");
 }

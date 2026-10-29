@@ -8,3 +8,10 @@ playwright-report
 *.tsbuildinfo
 next-env.d.ts
 storage-test/
+
+# Mobile signing and push credentials: never commit
+*.jks
+*.keystore
+android/app/google-services.json
+ios/App/App/GoogleService-Info.plist
+*.p8

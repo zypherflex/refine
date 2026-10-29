@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { allowedKinds, counterpartKinds, isProtectedName, isPubliclyVisible, PRODUCTS } from "@/lib/hub/catalog";
+import { allowedKinds, counterpartKinds, isProtectedName, isPubliclyVisible, productsForSegment, PRODUCTS } from "@/lib/hub/catalog";
+import { SEGMENTS } from "@/lib/opportunities/catalog";
 
 describe("trade hub rules", () => {
   it("treats well-known refiner names as protected however they are written", () => {
@@ -29,8 +30,25 @@ describe("trade hub rules", () => {
     expect(counterpartKinds("DELIVERY")).toEqual(["OFFER", "REQUEST"]);
   });
 
-  it("lists each product once, with a label", () => {
-    expect(new Set(PRODUCTS.map((p) => p.id)).size).toBe(PRODUCTS.length);
-    for (const p of PRODUCTS) expect(p.label.length).toBeGreaterThan(0);
+  it("maps every opportunity area to at least one known product", () => {
+    const ids = new Set<string>(PRODUCTS.map((p) => p.id));
+    for (const s of SEGMENTS) {
+      const products = productsForSegment(s.id);
+      expect(products.length, s.id).toBeGreaterThan(0);
+      for (const p of products) expect(ids.has(p)).toBe(true);
+    }
+  });
+});
+
+describe("Business plan rules", () => {
+  it("features only verified businesses with a running plan, and lifts the listing limit", async () => {
+    const { isFeatured, listingLimit } = await import("@/lib/hub/catalog");
+    const soon = new Date(Date.now() + 86_400_000);
+    const past = new Date(Date.now() - 86_400_000);
+    expect(isFeatured({ verification: "VERIFIED", planUntil: soon })).toBe(true);
+    expect(isFeatured({ verification: "UNVERIFIED", planUntil: soon })).toBe(false);
+    expect(isFeatured({ verification: "VERIFIED", planUntil: past })).toBe(false);
+    expect(listingLimit({ planUntil: soon })).toBe(200);
+    expect(listingLimit({ planUntil: null })).toBe(50);
   });
 });

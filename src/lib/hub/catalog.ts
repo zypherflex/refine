@@ -1,4 +1,5 @@
 import type { HubListingKind, HubRole, HubVerification } from "@prisma/client";
+import type { SegmentId } from "../opportunities/catalog";
 
 /**
  * The trade hub connects sellers, buyers, delivery partners and refineries. RefineryLens lists who is offering or
@@ -12,9 +13,6 @@ export const HUB_ROLES: { id: HubRole; label: string; who: string }[] = [
   { id: "DELIVERY", label: "Delivery partner", who: "Tanker, truck, vessel and last-mile operators" },
   { id: "REFINERY", label: "Refinery", who: "Large, modular and regional refineries selling product or buying feedstock" },
 ];
-
-/** Product groups, used to group the product filter. */
-type SegmentId = "fuels" | "gas" | "petrochemicals" | "feedstock" | "services";
 
 export const PRODUCTS = [
   { id: "pms", label: "Petrol (PMS)", segment: "fuels", unit: "litres" },
@@ -45,7 +43,7 @@ export const NIGERIAN_STATES = [
   "Osun", "Oyo", "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara",
 ] as const;
 /** Outside Nigeria, for regional trade, import and export. */
-export const OTHER_LOCATIONS = ["Benin", "Cameroon", "Chad", "Ghana", "Niger Republic", "Togo", "Elsewhere in West Africa", "Outside Africa"] as const;
+export const OTHER_LOCATIONS = ["Benin", "Cameroon", "Chad", "Ghana", "Niger Republic", "Togo", "Elsewhere in West Africa", "United States", "Outside Africa"] as const;
 export const LOCATIONS: readonly string[] = [...NIGERIAN_STATES, ...OTHER_LOCATIONS];
 
 /** How long a new listing stays live before its owner must renew it, so stale offers drop off. */
@@ -54,6 +52,13 @@ export const LISTING_DAYS = [7, 30, 90] as const;
 export const roleLabel = (id: string) => HUB_ROLES.find((r) => r.id === id)?.label ?? id;
 export const productLabel = (id: string) => PRODUCTS.find((p) => p.id === id)?.label ?? id;
 export const kindLabel = (id: string) => LISTING_KINDS.find((k) => k.id === id)?.label ?? id;
+
+/** Products a hub search shows for an opportunity's segment, so opportunity pages can link to live listings. */
+export function productsForSegment(segment: string): ProductId[] {
+  if (segment === "logistics" || segment === "trade") return ["pms", "ago", "dpk", "jet", "lpg"];
+  if (segment === "refining") return ["crude", "condensate"];
+  return PRODUCTS.filter((p) => p.segment === segment).map((p) => p.id);
+}
 
 /**
  * Names nobody can trade under until an administrator has verified the business, so an unverified account cannot pass
@@ -74,6 +79,17 @@ export function isPubliclyVisible(b: Visible): boolean {
   if (isProtectedName(b.name) && b.verification !== "VERIFIED") return false;
   return true;
 }
+
+/**
+ * A business on the paid Business plan is featured (listed first, always labelled "Featured") only while the plan runs
+ * and the business is verified, so paid placement never goes to a business RefineryLens has not checked.
+ */
+export function isFeatured(b: { verification: HubVerification; planUntil: Date | null }, now = new Date()) {
+  return b.verification === "VERIFIED" && !!b.planUntil && b.planUntil > now;
+}
+
+/** Live listings a business may have at once. */
+export const listingLimit = (b: { planUntil: Date | null }, now = new Date()) => (b.planUntil && b.planUntil > now ? 200 : 50);
 
 export const verificationLabel: Record<HubVerification, string> = {
   UNVERIFIED: "Unverified",

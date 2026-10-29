@@ -1,6 +1,6 @@
 "use client";
 import { useActionState, useState } from "react";
-import type { HubBusiness, HubListing, HubListingKind } from "@prisma/client";
+import type { GasSite, GasSiteKind, HubBusiness, HubListing, HubListingKind } from "@prisma/client";
 import {
   decideVerificationAction,
   reportBusinessAction,
@@ -8,11 +8,15 @@ import {
   requestVerificationAction,
   saveBusinessAction,
   saveListingAction,
+  saveSiteAction,
   sendEnquiryAction,
+  startBusinessCheckoutAction,
   suspendBusinessAction,
 } from "@/app/actions/hub";
 import { HUB_ROLES, LISTING_DAYS, LISTING_KINDS, LOCATIONS, NIGERIAN_STATES, OTHER_LOCATIONS, PRODUCTS, UNITS } from "@/lib/hub/catalog";
+import { CYLINDER_SIZES, GASES, SITE_KINDS } from "@/lib/hub/gas";
 import { FieldError } from "../ui";
+import { useIsNativeApp } from "../native/NativeBridge";
 
 function Status({ state }: { state: { error?: string | null; ok?: string | null } }) {
   return (
@@ -46,9 +50,9 @@ export function BusinessForm({ business }: { business: HubBusiness | null }) {
         <legend className="label">What does your business do on the hub? *</legend>
         <div className="grid gap-2 sm:grid-cols-2">
           {HUB_ROLES.map((r) => (
-            <label key={r.id} className="flex gap-2 rounded-lg border border-navy-100 bg-white p-3 text-sm">
+            <label key={r.id} className="flex gap-2 rounded-lg border border-ink-100 bg-white p-3 text-sm">
               <input type="checkbox" name="roles" value={r.id} checked={roles.includes(r.id)} onChange={(e) => setRoles(e.target.checked ? [...roles, r.id] : roles.filter((x) => x !== r.id))} />
-              <span><span className="font-medium">{r.label}</span><span className="block text-xs text-navy-600">{r.who}</span></span>
+              <span><span className="font-medium">{r.label}</span><span className="block text-xs text-ink-600">{r.who}</span></span>
             </label>
           ))}
         </div>
@@ -79,8 +83,8 @@ export function BusinessForm({ business }: { business: HubBusiness | null }) {
       )}
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label htmlFor="b-reg" className="label">CAC registration number</label>
-          <input id="b-reg" name="registrationNumber" className="input" maxLength={40} defaultValue={business?.registrationNumber ?? ""} placeholder="e.g. RC 1234567" />
+          <label htmlFor="b-reg" className="label">Company registration number (CAC, or your country's registry)</label>
+          <input id="b-reg" name="registrationNumber" className="input" maxLength={40} defaultValue={business?.registrationNumber ?? ""} placeholder="e.g. RC 1234567, or a US state file number" />
           <p className="hint">Needed for verification. Only RefineryLens administrators see it.</p>
         </div>
         <div>
@@ -134,7 +138,7 @@ export function ListingForm({ kinds, listing, initialKind }: { kinds: HubListing
         <legend className="label">Type of listing *</legend>
         <div className="flex flex-wrap gap-2">
           {LISTING_KINDS.map((k) => (
-            <label key={k.id} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${kind === k.id ? "border-brand-600 bg-brand-50" : "border-navy-100 bg-white"} ${!kinds.includes(k.id) || (listing && listing.kind !== k.id) ? "opacity-50" : ""}`}>
+            <label key={k.id} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${kind === k.id ? "border-brand-600 bg-brand-50" : "border-ink-100 bg-white"} ${!kinds.includes(k.id) || (listing && listing.kind !== k.id) ? "opacity-50" : ""}`}>
               <input type="radio" name="kind" value={k.id} checked={kind === k.id} disabled={!kinds.includes(k.id) || (!!listing && listing.kind !== k.id)} onChange={() => setKind(k.id)} />
               {k.verb}
             </label>
@@ -174,7 +178,7 @@ export function ListingForm({ kinds, listing, initialKind }: { kinds: HubListing
           <LocationOptions />
         </select>
       </div>
-      <details className="rounded-lg border border-navy-100 bg-white p-3" open={!!listing?.areas.length}>
+      <details className="rounded-lg border border-ink-100 bg-white p-3" open={!!listing?.areas.length}>
         <summary className="text-sm font-medium">{areas}{listing?.areas.length ? ` (${listing.areas.length} chosen)` : ""}</summary>
         <div className="mt-3"><Checkboxes name="areas" options={LOCATIONS.map((s) => ({ id: s, label: s }))} selected={listing?.areas ?? []} columns="grid-cols-2 sm:grid-cols-4" /></div>
       </details>
@@ -226,7 +230,7 @@ export function ReportForm({ businessId }: { businessId: string }) {
   const [state, action, pending] = useActionState(reportBusinessAction, {});
   return (
     <details className="text-sm">
-      <summary className="cursor-pointer text-navy-600 hover:text-risk-800">Report this business</summary>
+      <summary className="cursor-pointer text-ink-600 hover:text-risk-800">Report this business</summary>
       <form action={action} className="mt-2 space-y-2">
         <input type="hidden" name="businessId" value={businessId} />
         <label htmlFor="rep-reason" className="label">What happened?</label>
@@ -265,6 +269,109 @@ export function SuspendForm({ businessId, name }: { businessId: string; name: st
       </div>
       <button className="btn-danger btn-sm" disabled={pending}>Suspend</button>
       <Status state={state} />
+    </form>
+  );
+}
+
+export function SiteForm({ kinds, site }: { kinds: GasSiteKind[]; site: GasSite | null }) {
+  const [state, action, pending] = useActionState(saveSiteAction, {});
+  const [kind, setKind] = useState<GasSiteKind>(site?.kind ?? kinds[0]);
+  const [gases, setGases] = useState<string[]>(site?.gases ?? []);
+  const supply = kind !== "LOGISTICS_BASE";
+  return (
+    <form action={action} className="space-y-4">
+      {site && <input type="hidden" name="id" value={site.id} />}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label htmlFor="s-name" className="label">Site name *</label>
+          <input id="s-name" name="name" className="input" required minLength={2} maxLength={120} defaultValue={site?.name ?? ""} placeholder="e.g. Sabon Gari refill plant" />
+        </div>
+        <div>
+          <label htmlFor="s-kind" className="label">Type of site *</label>
+          <select id="s-kind" name="kind" className="input" value={kind} onChange={(e) => setKind(e.target.value as GasSiteKind)}>
+            {SITE_KINDS.filter((k) => kinds.includes(k.id) || k.id === site?.kind).map((k) => <option key={k.id} value={k.id}>{k.label}</option>)}
+          </select>
+          <p className="hint">{SITE_KINDS.find((k) => k.id === kind)?.help}</p>
+        </div>
+      </div>
+      <fieldset>
+        <legend className="label">{supply ? "Gas supplied *" : "Gas carried *"}</legend>
+        <div className="flex flex-wrap gap-4">
+          {GASES.map((g) => (
+            <label key={g.id} className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="gases" value={g.id} checked={gases.includes(g.id)} onChange={(e) => setGases(e.target.checked ? [...gases, g.id] : gases.filter((x) => x !== g.id))} />
+              {g.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      {gases.includes("lpg_cylinder") && (
+        <fieldset>
+          <legend className="label">Cylinder sizes (kg)</legend>
+          <div className="flex flex-wrap gap-4">
+            {CYLINDER_SIZES.map((c) => (
+              <label key={c} className="flex items-center gap-2 text-sm"><input type="checkbox" name="cylinderSizes" value={c} defaultChecked={site?.cylinderSizes.includes(c)} />{c} kg</label>
+            ))}
+          </div>
+        </fieldset>
+      )}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div>
+          <label htmlFor="s-state" className="label">State *</label>
+          <select id="s-state" name="state" className="input" required defaultValue={site?.state ?? ""}>
+            <option value="" disabled>Choose…</option>
+            {NIGERIAN_STATES.map((st) => <option key={st}>{st}</option>)}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="s-town" className="label">Town or LGA</label>
+          <input id="s-town" name="town" className="input" maxLength={80} defaultValue={site?.town ?? ""} />
+        </div>
+        <div>
+          <label htmlFor="s-status" className="label">Status</label>
+          <select id="s-status" name="status" className="input" defaultValue={site?.status ?? "OPERATING"}>
+            <option value="OPERATING">Operating</option>
+            <option value="PLANNED">Planned or under construction</option>
+            <option value="CLOSED">Closed (hidden from the map)</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label htmlFor="s-address" className="label">Address or landmark</label>
+        <input id="s-address" name="address" className="input" maxLength={200} defaultValue={site?.address ?? ""} />
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {supply && (
+          <div>
+            <label htmlFor="s-storage" className="label">Storage (tonnes)</label>
+            <input id="s-storage" name="storageTonnes" className="input" inputMode="decimal" defaultValue={site?.storageTonnes ?? ""} />
+          </div>
+        )}
+        <div>
+          <label htmlFor="s-hours" className="label">Opening hours</label>
+          <input id="s-hours" name="hours" className="input" maxLength={120} defaultValue={site?.hours ?? ""} placeholder="e.g. Mon–Sat 7:00–19:00" />
+        </div>
+      </div>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="delivers" value="1" defaultChecked={site?.delivers} /> {supply ? "Delivers from this site" : "Takes delivery jobs from this base"}</label>
+      <div>
+        <label htmlFor="s-notes" className="label">Notes for buyers</label>
+        <textarea id="s-notes" name="notes" className="input min-h-20" maxLength={1000} defaultValue={site?.notes ?? ""} placeholder="Minimum order, payment terms, truck access, safety rules." />
+      </div>
+      <p className="hint">Details are shown as stated by your business. Saving confirms they are current; entries not confirmed for 90 days are marked as possibly out of date.</p>
+      <FieldError message={state.error} />
+      <button className="btn-primary" disabled={pending}>{site ? "Save and confirm" : "Add site to the gas network"}</button>
+    </form>
+  );
+}
+
+export function BusinessPlanButton({ label }: { label: string }) {
+  const [state, action, pending] = useActionState(startBusinessCheckoutAction, {});
+  // App store rules require their own billing for in-app purchases, so plans are bought on the website only.
+  if (useIsNativeApp()) return <p className="rounded-xl bg-ink-50 px-3 py-2 text-xs text-ink-700">Plans are managed on the RefineryLens website, not in the app.</p>;
+  return (
+    <form action={action} className="space-y-2">
+      <button className="btn-primary w-full" disabled={pending}>{pending ? "Opening secure payment…" : label}</button>
+      <FieldError message={state.error} />
     </form>
   );
 }

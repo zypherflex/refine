@@ -10,7 +10,7 @@ import { EmptyState, PageHeader, Pill } from "@/components/ui";
 export const metadata = { title: "Delivery jobs" };
 
 const statusLabel = { OPEN: "Taking quotes", AWARDED: "Awarded", DELIVERED: "Delivered", CANCELLED: "Cancelled" } as const;
-const statusStyle = { OPEN: "bg-brand-100 text-brand-800", AWARDED: "bg-navy-100 text-navy-800", DELIVERED: "bg-navy-100 text-navy-800", CANCELLED: "bg-navy-50 text-navy-500 line-through" } as const;
+const statusStyle = { OPEN: "bg-brand-100 text-brand-800", AWARDED: "bg-navy-100 text-navy-800", DELIVERED: "bg-ink-100 text-ink-800", CANCELLED: "bg-ink-50 text-ink-500 line-through" } as const;
 
 function LocationSelect({ id, name, label, value }: { id: string; name: string; label: string; value: string }) {
   return (
@@ -48,11 +48,11 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
           <div className="card">
             <h2 id="mine-h" className="h-section">Jobs you posted ({mine.posted.length})</h2>
             {mine.posted.length === 0 ? <p className="muted">None yet.</p> : (
-              <ul className="mt-2 divide-y divide-navy-100 text-sm">
+              <ul className="mt-2 divide-y divide-ink-100 text-sm">
                 {mine.posted.slice(0, 8).map((j) => (
                   <li key={j.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                     <Link href={`/hub/jobs/${j.id}`} className="font-medium">{j.title}</Link>
-                    <span className="flex items-center gap-2"><Pill className={statusStyle[j.status]}>{statusLabel[j.status]}</Pill><span className="text-xs text-navy-600">{j._count.quotes} quote{j._count.quotes === 1 ? "" : "s"}</span></span>
+                    <span className="flex items-center gap-2"><Pill className={statusStyle[j.status]}>{statusLabel[j.status]}</Pill><span className="text-xs text-ink-600">{j._count.quotes} quote{j._count.quotes === 1 ? "" : "s"}</span></span>
                   </li>
                 ))}
               </ul>
@@ -61,11 +61,11 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
           <div className="card">
             <h2 className="h-section">Your quotes ({mine.quoted.length})</h2>
             {mine.quoted.length === 0 ? <p className="muted">{isCarrier ? "Quote on an open job below." : "Delivery partners quote on jobs here."}</p> : (
-              <ul className="mt-2 divide-y divide-navy-100 text-sm">
+              <ul className="mt-2 divide-y divide-ink-100 text-sm">
                 {mine.quoted.slice(0, 8).map((q) => (
                   <li key={q.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                     <Link href={`/hub/jobs/${q.jobId}`} className="font-medium">{q.job.title}</Link>
-                    <span className="num text-xs text-navy-700">₦{q.priceNaira.toLocaleString("en-GB")} · {q.status.toLowerCase()}</span>
+                    <span className="num text-xs text-ink-700">₦{q.priceNaira.toLocaleString("en-GB")} · {q.status.toLowerCase()}</span>
                   </li>
                 ))}
               </ul>
@@ -74,7 +74,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
         </section>
       )}
 
-      <form method="get" className="mb-5 grid gap-3 rounded-xl border border-navy-100 bg-white p-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end" role="search" aria-label="Filter jobs">
+      <form method="get" className="mb-5 grid gap-3 rounded-xl border border-ink-100 bg-white p-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end" role="search" aria-label="Filter jobs">
         <LocationSelect id="from" name="from" label="From" value={from} />
         <LocationSelect id="to" name="to" label="To" value={to} />
         <div>
@@ -92,11 +92,11 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
           <ul className="mt-3 grid gap-4 md:grid-cols-2">
             {jobs.map((j) => (
               <li key={j.id} className="card flex flex-col">
-                <div className="flex flex-wrap gap-1.5">{j.products.map((p) => <Pill key={p} className="bg-navy-50 text-navy-700 ring-1 ring-inset ring-navy-100">{productLabel(p)}</Pill>)}</div>
+                <div className="flex flex-wrap gap-1.5">{j.products.map((p) => <Pill key={p} className="bg-ink-50 text-ink-700 ring-1 ring-inset ring-ink-100">{productLabel(p)}</Pill>)}</div>
                 <h3 className="mt-2 text-base font-semibold"><Link href={`/hub/jobs/${j.id}`}>{j.title}</Link></h3>
-                <p className="mt-1 text-sm text-navy-800"><span className="font-medium">{[j.fromTown, j.fromState].filter(Boolean).join(", ")}</span> → <span className="font-medium">{[j.toTown, j.toState].filter(Boolean).join(", ")}</span></p>
-                <p className="num text-sm text-navy-700">{j.quantity.toLocaleString("en-GB")} {j.unit} · pickup {fmtDate(j.pickupDate)}</p>
-                <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-3 text-xs text-navy-700">
+                <p className="mt-1 text-sm text-ink-800"><span className="font-medium">{[j.fromTown, j.fromState].filter(Boolean).join(", ")}</span> → <span className="font-medium">{[j.toTown, j.toState].filter(Boolean).join(", ")}</span></p>
+                <p className="num text-sm text-ink-700">{j.quantity.toLocaleString("en-GB")} {j.unit} · pickup {fmtDate(j.pickupDate)}</p>
+                <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-3 text-xs text-ink-700">
                   <Link href={`/hub/businesses/${j.poster.id}`}>{j.poster.name}</Link><VerificationBadge v={j.poster.verification} />{j.poster.isDemo && <DemoTag />}
                   <span className="ml-auto">{j._count.quotes} quote{j._count.quotes === 1 ? "" : "s"}</span>
                 </div>

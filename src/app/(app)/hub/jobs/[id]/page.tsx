@@ -8,6 +8,8 @@ import { fmtDate, fmtDateTime } from "@/lib/format";
 import { QuoteForm } from "@/components/hub/opsForms";
 import { DemoTag, SafetyNote, VerificationBadge } from "@/components/hub/parts";
 import { Notice, PageHeader, Pill } from "@/components/ui";
+import { DriverLinkForm } from "@/components/tracking/DriverLinkForm";
+import { LiveMap } from "@/components/tracking/LiveMap";
 
 export const metadata = { title: "Delivery job" };
 
@@ -27,18 +29,18 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
         eyebrow={statusLabel[job.status]}
         title={job.title}
         subtitle={`${[job.fromTown, job.fromState].filter(Boolean).join(", ")} → ${[job.toTown, job.toState].filter(Boolean).join(", ")}`}
-        actions={<div className="flex flex-wrap gap-1.5">{job.products.map((p) => <Pill key={p} className="bg-navy-50 text-navy-700 ring-1 ring-inset ring-navy-100">{productLabel(p)}</Pill>)}</div>}
+        actions={<div className="flex flex-wrap gap-1.5">{job.products.map((p) => <Pill key={p} className="bg-ink-50 text-ink-700 ring-1 ring-inset ring-ink-100">{productLabel(p)}</Pill>)}</div>}
       />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <section className="card">
             <h2 className="h-section">The load</h2>
             <dl className="mt-2 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
-              <div><dt className="text-navy-600">Quantity</dt><dd className="num font-medium">{job.quantity.toLocaleString("en-GB")} {job.unit}</dd></div>
-              <div><dt className="text-navy-600">Pickup</dt><dd className="font-medium">{fmtDate(job.pickupDate)}</dd></div>
-              <div><dt className="text-navy-600">Posted</dt><dd>{fmtDate(job.createdAt)}</dd></div>
+              <div><dt className="text-ink-600">Quantity</dt><dd className="num font-medium">{job.quantity.toLocaleString("en-GB")} {job.unit}</dd></div>
+              <div><dt className="text-ink-600">Pickup</dt><dd className="font-medium">{fmtDate(job.pickupDate)}</dd></div>
+              <div><dt className="text-ink-600">Posted</dt><dd>{fmtDate(job.createdAt)}</dd></div>
             </dl>
-            {job.details && <p className="mt-4 whitespace-pre-line text-sm text-navy-800">{job.details}</p>}
+            {job.details && <p className="mt-4 whitespace-pre-line text-sm text-ink-800">{job.details}</p>}
           </section>
 
           {job.status === "AWARDED" && accepted && (isPoster || isCarrier) && (
@@ -51,8 +53,12 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
               {((isPoster && !job.posterConfirmedAt) || (isCarrier && !job.carrierConfirmedAt)) && (
                 <form action={confirmJobAction}><input type="hidden" name="jobId" value={job.id} /><button className="btn-primary btn-sm">{isPoster ? "Confirm the load arrived" : "Confirm I delivered the load"}</button></form>
               )}
-              <p className="text-xs text-navy-600">Message each other from the <Link href={`/hub/businesses/${isPoster ? accepted.carrier.id : job.poster.id}`}>business profile</Link> to arrange pickup.</p>
+              {isCarrier && <DriverLinkForm kind="DELIVERY_JOB" id={job.id} hasLink={!!job.trip} compact={!!job.trip} />}
+              <p className="text-xs text-ink-600">Message each other from the <Link href={`/hub/businesses/${isPoster ? accepted.carrier.id : job.poster.id}`}>business profile</Link> to arrange pickup.</p>
             </section>
+          )}
+          {(job.status === "AWARDED" || (job.status === "DELIVERED" && job.trip)) && (isPoster || isCarrier) && (
+            <LiveMap kind="job" id={job.id} waitingText={isCarrier ? "Create a driver link above and send it to your driver to show the truck here." : "When the carrier's driver starts sharing their location, you will see the truck here."} />
           )}
           {job.status === "DELIVERED" && <Notice tone="ok" title="Delivered">Both sides confirmed this delivery. It counts towards the carrier&apos;s record.</Notice>}
           {job.status === "CANCELLED" && <Notice title="Cancelled">The business cancelled this job.</Notice>}
@@ -66,8 +72,8 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
                     <li key={q.id} className={`card flex flex-wrap items-start justify-between gap-3 ${q.status === "ACCEPTED" ? "ring-2 ring-brand-600" : ""}`}>
                       <div className="min-w-0 text-sm">
                         <p className="flex flex-wrap items-center gap-1.5"><Link href={`/hub/businesses/${q.carrier.id}`} className="font-medium">{q.carrier.name}</Link><VerificationBadge v={q.carrier.verification} />{q.carrier.isDemo && <DemoTag />}</p>
-                        {q.note && <p className="mt-1 whitespace-pre-line text-navy-800">{q.note}</p>}
-                        <p className="mt-1 text-xs text-navy-500">{q.status === "PENDING" ? `Sent ${fmtDateTime(q.updatedAt)}` : q.status.toLowerCase()}</p>
+                        {q.note && <p className="mt-1 whitespace-pre-line text-ink-800">{q.note}</p>}
+                        <p className="mt-1 text-xs text-ink-500">{q.status === "PENDING" ? `Sent ${fmtDateTime(q.updatedAt)}` : q.status.toLowerCase()}</p>
                       </div>
                       <div className="text-right">
                         <p className="num text-xl font-semibold">{naira(q.priceNaira)}</p>
@@ -95,7 +101,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
             <section className="card space-y-3">
               <h2 className="h-section">{myQuote && myQuote.status !== "WITHDRAWN" ? "Your quote" : "Quote for this job"}</h2>
               <QuoteForm jobId={job.id} current={myQuote && myQuote.status !== "WITHDRAWN" ? myQuote : undefined} />
-              {myQuote?.status === "PENDING" && <form action={withdrawQuoteAction}><input type="hidden" name="jobId" value={job.id} /><button className="text-xs text-navy-600 hover:text-risk-800">Withdraw quote</button></form>}
+              {myQuote?.status === "PENDING" && <form action={withdrawQuoteAction}><input type="hidden" name="jobId" value={job.id} /><button className="text-xs text-ink-600 hover:text-risk-800">Withdraw quote</button></form>}
             </section>
           )}
           {!isPoster && !canQuote && job.status === "OPEN" && !myQuote && <section className="card text-sm">Delivery partners can quote on this job. <Link href="/hub/me">Add the delivery partner role</Link> to your business to quote.</section>}

@@ -20,11 +20,11 @@ export default async function ThesisList() {
         <ul className="grid gap-3 sm:grid-cols-2">
           {theses.map((t) => (
             <li key={t.id}>
-              <Link href={`/thesis/${t.id}`} className="card block text-navy-900 no-underline hover:border-brand-600">
-                <p className="text-xs text-navy-700">{t.company.name}</p>
+              <Link href={`/thesis/${t.id}`} className="card block text-ink-900 no-underline hover:border-brand-600">
+                <p className="text-xs text-ink-700">{t.company.name}</p>
                 <p className="mt-1 font-semibold">{t.title}</p>
-                <p className="mt-1 line-clamp-2 text-sm text-navy-800">{t.rationale}</p>
-                <div className="mt-2 flex flex-wrap gap-2 text-xs text-navy-700">
+                <p className="mt-1 line-clamp-2 text-sm text-ink-800">{t.rationale}</p>
+                <div className="mt-2 flex flex-wrap gap-2 text-xs text-ink-700">
                   <span>Version {t.version}</span>
                   <span>Updated {fmtDate(t.updatedAt)}</span>
                   {t.reviewDate && <span>Review by {fmtDate(t.reviewDate)}</span>}

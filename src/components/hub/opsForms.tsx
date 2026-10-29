@@ -55,7 +55,7 @@ export function PriceReportForm({ defaultState }: { defaultState: string }) {
         <div className="grid gap-3 sm:grid-cols-3">
           {PRICE_ITEMS.map((p) => (
             <div key={p.id}>
-              <label htmlFor={`price-${p.id}`} className="text-xs font-medium text-navy-800">{p.label} <span className="font-normal text-navy-500">{p.unit}</span></label>
+              <label htmlFor={`price-${p.id}`} className="text-xs font-medium text-ink-800">{p.label} <span className="font-normal text-ink-500">{p.unit}</span></label>
               <input id={`price-${p.id}`} name={`price:${p.id}`} className="input mt-1" inputMode="decimal" placeholder="₦" />
             </div>
           ))}

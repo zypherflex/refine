@@ -32,30 +32,58 @@ model Organization {
 }
 
 model User {
-  id             String        @id @default(cuid())
-  email          String        @unique
-  name           String
-  passwordHash   String
-  role           Role          @default(USER)
-  plan           Plan          @default(FREE)
-  organizationId String?
-  organization   Organization? @relation(fields: [organizationId], references: [id])
+  id               String        @id @default(cuid())
+  email            String        @unique
+  name             String
+  passwordHash     String
+  role             Role          @default(USER)
+  plan             Plan          @default(FREE)
+  organizationId   String?
+  organization     Organization? @relation(fields: [organizationId], references: [id])
   // Opt-in to email copies of alerts. Only offered when an email provider is configured.
-  emailAlerts    Boolean       @default(false)
-  createdAt      DateTime      @default(now())
+  emailAlerts      Boolean       @default(false)
+  // Phone in international format (e.g. +2348012345678) for SMS or WhatsApp copies of alerts and the price digest.
+  phone            String?
+  textAlerts       Boolean       @default(false)
+  priceDigest      Boolean       @default(false)
+  // State whose prices the morning digest covers.
+  digestState      String?
+  // Household users land on the everyday pages (prices, stations, gas orders); businesses on the trade hub.
+  audience         Audience      @default(BUSINESS)
+  // State shown first on the everyday pages.
+  homeState        String?
+  // Set by an administrator: the person can no longer add places or report at stations.
+  reportingBlocked Boolean       @default(false)
+  createdAt        DateTime      @default(now())
 
-  sessions      Session[]
-  theses        Thesis[]
-  documents     Document[]        @relation("DocumentOwner")
-  watchlists    Watchlist[]
-  alerts        Alert[]
-  conversations Conversation[]
-  reviews       EditorialReview[]
-  auditLogs     AuditLog[]
-  hubBusiness   HubBusiness?
-  hubThreads    HubThread[]       @relation("HubThreadStarter")
-  hubMessages   HubMessage[]
-  hubReports    HubReport[]
+  sessions        Session[]
+  theses          Thesis[]
+  documents       Document[]             @relation("DocumentOwner")
+  watchlists      Watchlist[]
+  alerts          Alert[]
+  conversations   Conversation[]
+  reviews         EditorialReview[]
+  auditLogs       AuditLog[]
+  opportunities   OpportunityBoardItem[]
+  scenarios       OpportunityScenario[]
+  businessProfile BusinessProfile?
+  hubBusiness     HubBusiness?
+  hubThreads      HubThread[]            @relation("HubThreadStarter")
+  hubMessages     HubMessage[]
+  hubReports      HubReport[]
+  payments        Payment[]
+  devices         DeviceToken[]
+  outletReports   OutletReport[]
+  outletsAdded    Outlet[]
+  gasOrders       GasOrder[]
+  cylinders       GasCylinder[]
+  contentFlags    ContentFlag[]
+  dataAccount     DataAccount?
+}
+
+enum Audience {
+  PERSONAL
+  BUSINESS
 }
 
 model Session {
@@ -88,6 +116,8 @@ model Company {
   isFictional    Boolean        @default(false)
   // Company-stated facts shown on the profile with their source, e.g. [{label, value, sourceUrl, retrievedAt}]
   profileFacts   Json?
+  // GDELT query used to find news leads for editors, e.g. "Dangote". Empty disables news leads.
+  newsQuery      String         @default("")
   createdAt      DateTime       @default(now())
 
   legalEntities LegalEntity[]
@@ -98,6 +128,7 @@ model Company {
   theses        Thesis[]
   watchlists    Watchlist[]
   conflicts     SourceConflict[]
+  newsLeads     NewsLead[]
 }
 
 enum EntityScope {
@@ -144,6 +175,8 @@ model Source {
 
   documents     Document[]
   announcements Announcement[]
+  marketSeries  MarketSeries[]
+  refineries    RefineryAsset[]
 }
 
 enum DocumentType {
@@ -575,6 +608,10 @@ model Alert {
   readAt    DateTime?
   // Set once an email copy has been sent (or deliberately skipped when the user opted in later).
   emailedAt DateTime?
+  // Set once an SMS or WhatsApp copy has been sent (or skipped for alerts that predate opting in).
+  textedAt  DateTime?
+  // Set once a push notification has been sent to the user's phones (or skipped for alerts that predate opting in).
+  pushedAt  DateTime?
   createdAt DateTime  @default(now())
 
   @@unique([userId, dedupeKey])
@@ -632,6 +669,8 @@ model AuditLog {
   createdAt  DateTime @default(now())
 
   @@index([entityType, entityId])
+  @@index([createdAt])
+  @@index([actorId, createdAt])
 }
 
 model Job {
@@ -650,6 +689,169 @@ model Job {
 
   @@index([status, runAt])
 }
+
+// --- Open data feeds ---
+// Market and macro series pulled from free public APIs. They are context for the sector and the country, never
+// company figures, and readers only see a series once an editor has approved its source.
+
+enum ContextScope {
+  GLOBAL_MARKET
+  NIGERIA_MACRO
+}
+
+model MarketSeries {
+  id              String              @id @default(cuid())
+  key             String              @unique // e.g. "eia.brent_spot"
+  provider        String // eia | worldbank | exchangerate-api
+  externalId      String
+  label           String
+  description     String
+  unit            String
+  frequency       String // DAILY | MONTHLY | ANNUAL
+  contextScope    ContextScope
+  geography       String
+  sourceId        String
+  source          Source              @relation(fields: [sourceId], references: [id])
+  sourcePageUrl   String              @default("")
+  attribution     String              @default("")
+  lastRetrievedAt DateTime?
+  lastError       String              @default("")
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  observations    MarketObservation[]
+}
+
+model MarketObservation {
+  id          String       @id @default(cuid())
+  seriesId    String
+  series      MarketSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  // The period exactly as the publisher labels it ("2026-10-20", "2026-09", "2025").
+  period      String
+  periodStart DateTime
+  periodEnd   DateTime
+  value       Decimal      @db.Decimal(24, 6)
+  retrievedAt DateTime
+  // The request that returned this value, with any API key removed.
+  requestUrl  String       @default("")
+
+  @@unique([seriesId, period])
+  @@index([seriesId, periodStart])
+}
+
+model IngestionRun {
+  id            String    @id @default(cuid())
+  provider      String
+  status        String // OK | FAILED | SKIPPED
+  message       String    @default("")
+  itemsUpserted Int       @default(0)
+  startedAt     DateTime  @default(now())
+  finishedAt    DateTime?
+
+  @@index([provider, startedAt])
+}
+
+// A news article found by a news-monitoring feed. Only metadata and the link are stored; an editor decides whether it
+// becomes a reviewed announcement.
+model NewsLead {
+  id            String    @id @default(cuid())
+  companyId     String
+  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  provider      String
+  url           String
+  title         String
+  domain        String    @default("")
+  language      String    @default("")
+  sourceCountry String    @default("")
+  seenAt        DateTime
+  retrievedAt   DateTime
+  status        String    @default("NEW") // NEW | DRAFTED | DISMISSED
+  reviewedById  String?
+  reviewedAt    DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@unique([companyId, url])
+  @@index([status, seenAt])
+}
+
+// A refinery from a global asset inventory (Climate TRACE). Directory and benchmarking context; capacities and
+// emissions are the inventory's modelled estimates, not company disclosures.
+model RefineryAsset {
+  id             String   @id @default(cuid())
+  provider       String
+  externalId     String
+  name           String
+  countryCode    String // ISO 3166-1 alpha-3
+  assetType      String   @default("")
+  capacityBpd    Decimal? @db.Decimal(14, 2)
+  owners         String[] @default([])
+  lat            Float?
+  lon            Float?
+  emissionsTCo2e Decimal? @db.Decimal(18, 2)
+  emissionsYear  Int?
+  sourceId       String
+  source         Source   @relation(fields: [sourceId], references: [id])
+  sourceUrl      String   @default("")
+  retrievedAt    DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([provider, externalId])
+  @@index([countryCode])
+}
+
+// Business opportunities hub. The opportunity catalogue itself is editorial content in code
+// (src/lib/opportunities); these tables hold each user's private pipeline and saved sizing scenarios.
+enum OpportunityStage {
+  EXPLORING
+  VALIDATING
+  PURSUING
+  PARKED
+}
+
+model OpportunityBoardItem {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportunitySlug String
+  stage           OpportunityStage @default(EXPLORING)
+  notes           String           @default("")
+  nextStep        String           @default("")
+  // Readiness questions the user has ticked, stored by their text so catalogue edits never tick the wrong one.
+  checked         String[]         @default([])
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@unique([userId, opportunitySlug])
+}
+
+// Inputs are the user's own assumptions; results are recalculated from them on display, never stored.
+model OpportunityScenario {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calculatorId    String
+  opportunitySlug String?
+  name            String
+  inputs          Json
+  createdAt       DateTime @default(now())
+
+  @@index([userId, calculatorId])
+}
+
+// What a user tells "Find my fit" about their business. Used only to rank opportunities for that user.
+model BusinessProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scale     String
+  segments  String[] @default([])
+  assets    String[] @default([])
+  updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Trade hub: sellers, buyers, delivery partners and refineries find each other and talk in the app. RefineryLens
+// does not take payments, hold goods or guarantee anyone; deals are agreed off-platform.
 
 enum HubRole {
   SELLER
@@ -687,6 +889,11 @@ model HubBusiness {
   verificationNote   String          @default("")
   verifiedAt         DateTime?
   verifiedById       String?
+  // What the company registry returned for the registration number, when a registry lookup is configured.
+  registryCheck      Json?
+  // Paid Business plan: featured placement and higher limits while in the future. Only verified businesses buy it.
+  planUntil          DateTime?
+  registryCheckedAt  DateTime?
   // Seeded demo businesses are labelled so nobody mistakes them for real trading partners.
   isDemo             Boolean         @default(false)
   createdAt          DateTime        @default(now())
@@ -695,11 +902,23 @@ model HubBusiness {
   listings         HubListing[]
   threads          HubThread[]
   reports          HubReport[]
+  gasSites         GasSite[]
   priceReports     PriceReport[]
   jobsPosted       DeliveryJob[]     @relation("JobPoster")
   quotes           DeliveryQuote[]
   buyerAgreements  SupplyAgreement[] @relation("AgreementBuyer")
   sellerAgreements SupplyAgreement[] @relation("AgreementSeller")
+  gasOrders        GasOrder[]
+  driverTrips      DriverTrip[]
+
+  // Home delivery of LPG refills to households. Only verified sellers receive orders.
+  homeDelivery     Boolean  @default(false)
+  // States the business delivers to households in.
+  deliveryStates   String[] @default([])
+  // Price per kg of LPG the business charges households, and a flat delivery fee, both in naira. The final price is
+  // confirmed by the seller when accepting an order.
+  homePricePerKg   Float?
+  deliveryFeeNaira Float?
 
   @@index([verification])
 }
@@ -795,6 +1014,60 @@ model HubReport {
   @@index([status])
 }
 
+// ---------------------------------------------------------------------------------------------------------------
+// Gas network: the LPG and CNG supply points businesses operate, shown by state so buyers find the nearest supply
+// and sellers and hauliers see where demand is not met. Details are as stated by the business.
+
+enum GasSiteKind {
+  TERMINAL
+  DEPOT
+  REFILL_PLANT
+  CYLINDER_RETAIL
+  CNG_STATION
+  CNG_MOTHER
+  LOGISTICS_BASE
+}
+
+enum GasSiteStatus {
+  OPERATING
+  PLANNED
+  CLOSED
+}
+
+model GasSite {
+  id              String        @id @default(cuid())
+  businessId      String
+  business        HubBusiness   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name            String
+  kind            GasSiteKind
+  status          GasSiteStatus @default(OPERATING)
+  // lpg_bulk, lpg_cylinder, cng
+  gases           String[]
+  // LPG cylinder sizes handled, in kg.
+  cylinderSizes   Float[]       @default([])
+  state           String
+  town            String        @default("")
+  address         String        @default("")
+  storageTonnes   Float?
+  hours           String        @default("")
+  delivers        Boolean       @default(false)
+  notes           String        @default("")
+  // The owner confirms the details are still right; older entries are flagged as possibly out of date.
+  lastConfirmedAt DateTime      @default(now())
+  // From geocoding the town and state, when a geocoder is configured. Approximate.
+  lat             Float?
+  lon             Float?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([state, status])
+  @@index([businessId])
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Price board: prices sellers state for their own sales. Shown only as medians across several sellers per state,
+// so no single seller's price is exposed and the board reports the market rather than coordinating it.
+
 model PriceReport {
   id         String      @id @default(cuid())
   businessId String
@@ -852,6 +1125,7 @@ model DeliveryJob {
   updatedAt          DateTime          @updatedAt
 
   quotes DeliveryQuote[]
+  trip   DriverTrip?
 
   @@index([status, pickupDate])
 }
@@ -934,4 +1208,374 @@ model SupplyDelivery {
   createdAt   DateTime             @default(now())
 
   @@unique([agreementId, deliveredOn])
+}
+
+// Card payments through a payment provider (Paystack). Only the provider's verified result changes a plan.
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider      String
+  reference     String        @unique
+  purpose       String
+  // For BUSINESS_PLAN payments, the business the plan is for.
+  businessId    String?
+  // For DATA_PLAN payments, the data account and how many days it buys.
+  dataAccountId String?
+  planId        String?
+  periodDays    Int?
+  // Amount in the currency's minor unit: kobo for NGN, cents for USD.
+  amountKobo    Int
+  currency      String        @default("NGN")
+  status        PaymentStatus @default(PENDING)
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+}
+
+// Phones that receive push notifications in the Google Play and App Store apps. The token comes from FCM (Android)
+// or APNs (iOS) and is deleted when the push service reports it as no longer valid, or when the user signs out.
+model DeviceToken {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token      String   @unique
+  platform   String
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Everyday use: filling stations, gas shops and CNG stations that anyone can look up, with prices, availability and
+// problems reported by signed-in members of the public. Prices are shown as medians across several people.
+
+enum OutletKind {
+  FILLING_STATION
+  GAS_RETAILER
+  CNG_STATION
+}
+
+model Outlet {
+  id           String         @id @default(cuid())
+  name         String
+  // Brand on the forecourt, e.g. NNPC, MRS, Conoil, or an independent.
+  brand        String         @default("")
+  kind         OutletKind
+  state        String
+  // Neighbourhood or LGA, e.g. Surulere or Wuse 2.
+  area         String
+  address      String         @default("")
+  lat          Float?
+  lon          Float?
+  addedById    String?
+  addedBy      User?          @relation(fields: [addedById], references: [id], onDelete: SetNull)
+  // Hidden by an administrator (duplicate, closed or not real).
+  hidden       Boolean        @default(false)
+  isDemo       Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  reports      OutletReport[]
+  contentFlags ContentFlag[]
+
+  @@index([state, kind])
+}
+
+enum OutletReportKind {
+  PRICE
+  AVAILABILITY
+  PROBLEM
+}
+
+model OutletReport {
+  id         String           @id @default(cuid())
+  outletId   String
+  outlet     Outlet           @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  // Reports stay (without the link) when the person deletes their account; they describe the outlet, not the person.
+  userId     String?
+  user       User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  kind       OutletReportKind
+  // PRICE: an entry from PRICE_ITEMS sold at the pump or counter (pms_retail_litre, lpg_retail_kg, ...).
+  item       String?
+  priceNaira Float?
+  // AVAILABILITY: whether the product was being sold, and the queue (NONE, SHORT, LONG).
+  available  Boolean?
+  queue      String?
+  // PROBLEM: SHORT_MEASURE, OVERCHARGED, BAD_PRODUCT, REFUSED_SALE or OTHER.
+  problem    String?
+  note       String           @default("")
+  hidden     Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+  flags      ContentFlag[]
+
+  @@index([outletId, createdAt])
+  @@index([kind, item, createdAt])
+  @@index([userId, createdAt])
+}
+
+enum GasOrderStatus {
+  PLACED
+  ACCEPTED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  DECLINED
+  CANCELLED
+}
+
+// A household orders an LPG refill from a verified seller that delivers. Paid in cash or transfer on delivery,
+// directly to the seller; RefineryLens records the order and its progress.
+model GasOrder {
+  id            String         @id @default(cuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessId    String
+  business      HubBusiness    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  cylinderKg    Float
+  cylinders     Int            @default(1)
+  state         String
+  area          String
+  address       String
+  phone         String
+  note          String         @default("")
+  // Estimate from the seller's listed prices when ordered, and the price the seller confirmed on accepting.
+  estimateNaira Float?
+  priceNaira    Float?
+  status        GasOrderStatus @default(PLACED)
+  sellerNote    String         @default("")
+  rating        Int?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deliveredAt   DateTime?
+  trip          DriverTrip?
+
+  @@index([userId, createdAt])
+  @@index([businessId, status])
+}
+
+// A household's gas cylinder and its refills, to estimate when it will run out and remind the owner.
+model GasCylinder {
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label      String           @default("Kitchen")
+  sizeKg     Float
+  // Days a full cylinder usually lasts, as the owner estimates, until refills give a measured figure.
+  usualDays  Int              @default(30)
+  remind     Boolean          @default(true)
+  // Set when a "running low" alert was sent for the latest refill, so it is sent once.
+  remindedAt DateTime?
+  createdAt  DateTime         @default(now())
+  refills    CylinderRefill[]
+
+  @@index([userId])
+}
+
+model CylinderRefill {
+  id         String      @id @default(cuid())
+  cylinderId String
+  cylinder   GasCylinder @relation(fields: [cylinderId], references: [id], onDelete: Cascade)
+  filledAt   DateTime
+  priceNaira Float?
+  createdAt  DateTime    @default(now())
+
+  @@index([cylinderId, filledAt])
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Live driver tracking. The seller (gas orders) or carrier (delivery jobs) sends its driver a private link; the
+// driver opens it on any phone and shares their position while the page is open. The customer or job poster sees a
+// live map. Sharing stops when the delivery ends, and positions are deleted a week after the trip ends.
+
+enum TripStatus {
+  WAITING
+  LIVE
+  ENDED
+}
+
+model DriverTrip {
+  id            String       @id @default(cuid())
+  gasOrderId    String?      @unique
+  gasOrder      GasOrder?    @relation(fields: [gasOrderId], references: [id], onDelete: Cascade)
+  deliveryJobId String?      @unique
+  deliveryJob   DeliveryJob? @relation(fields: [deliveryJobId], references: [id], onDelete: Cascade)
+  // The business whose driver it is: the seller of a gas order or the carrier of a delivery job.
+  businessId    String
+  business      HubBusiness  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  driverName    String
+  driverPhone   String       @default("")
+  // Only a hash of the driver link's secret is stored. A new link replaces the old one.
+  tokenHash     String       @unique
+  status        TripStatus   @default(WAITING)
+  startedAt     DateTime?
+  endedAt       DateTime?
+  lastLat       Float?
+  lastLon       Float?
+  lastAccuracy  Float?
+  lastSpeed     Float?
+  lastAt        DateTime?
+  // Where the load is going, when it could be placed on the map. Approximate.
+  destLat       Float?
+  destLon       Float?
+  destLabel     String       @default("")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  pings         TripPing[]
+
+  @@index([status, endedAt])
+}
+
+model TripPing {
+  id         String     @id @default(cuid())
+  tripId     String
+  trip       DriverTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  lat        Float
+  lon        Float
+  // Metres, as the phone reports it.
+  accuracy   Float?
+  // Metres per second and degrees from north, when the phone reports them.
+  speed      Float?
+  heading    Float?
+  recordedAt DateTime   @default(now())
+
+  @@index([tripId, recordedAt])
+}
+
+// People flag station reports and places that are wrong or abusive; administrators review them. A report flagged by
+// several different people is hidden until reviewed. Places are only hidden by an administrator.
+enum FlagStatus {
+  OPEN
+  ACTIONED
+  DISMISSED
+}
+
+model ContentFlag {
+  id           String        @id @default(cuid())
+  // Exactly one of outletId (the place itself) or reportId (one report at it).
+  outletId     String?
+  outlet       Outlet?       @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  reportId     String?
+  report       OutletReport? @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  userId       String?
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  reason       String
+  note         String        @default("")
+  status       FlagStatus    @default(OPEN)
+  resolvedAt   DateTime?
+  resolvedById String?
+  createdAt    DateTime      @default(now())
+
+  @@index([status, createdAt])
+  @@index([reportId])
+  @@index([outletId])
+}
+
+// An administrator's message to a group of people, delivered as an in-app alert and a push notification.
+model Broadcast {
+  id         String   @id @default(cuid())
+  title      String
+  body       String
+  link       String
+  // all, households, businesses, sellers, buyers, delivery, refineries, home_delivery
+  segment    String
+  state      String?
+  recipients Int
+  sentById   String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// RefineryLens Data: the daily price index sold by API and CSV, priced in USD for customers billed outside Nigeria
+// and in naira for customers in Nigeria (Nigerian parties must deal in naira under the CBN FX Manual).
+
+// One row per day, state, product and source: the median and range of the latest report from each distinct reporter
+// that day. Built by the worker from station reports (PUBLIC) and seller reports (SELLER); only rows with enough
+// reporters are written, so the index never exposes one person's or one seller's price.
+model PriceIndexDaily {
+  id           String   @id @default(cuid())
+  day          DateTime
+  state        String
+  item         String
+  source       String
+  median       Float
+  low          Float
+  high         Float
+  reporters    Int
+  // True when demo stations or sellers contributed, so a demo installation's figures are never sold as market data.
+  includesDemo Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@unique([day, state, item, source])
+  @@index([item, day])
+}
+
+model DataAccount {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organisation   String
+  // ISO country code where the customer is billed. NG pays in naira; everyone else in US dollars.
+  billingCountry String
+  plan           String
+  // Access runs until this time; a trial or paid period extends it.
+  paidUntil      DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  keys           ApiKey[]
+}
+
+model ApiKey {
+  id         String      @id @default(cuid())
+  accountId  String
+  account    DataAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  name       String
+  // Shown so people can tell keys apart; only a hash of the full key is stored.
+  prefix     String
+  hash       String      @unique
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime    @default(now())
+  usage      ApiUsage[]
+
+  @@index([accountId])
+}
+
+model ApiUsage {
+  id       String   @id @default(cuid())
+  keyId    String
+  key      ApiKey   @relation(fields: [keyId], references: [id], onDelete: Cascade)
+  day      DateTime
+  requests Int      @default(0)
+
+  @@unique([keyId, day])
+}
+
+// A paid, labelled placement for a supplier (CNG conversion kits, cylinders, skid plants, safety services), sold and
+// invoiced in US dollars by the RefineryLens team. Always shown with a "Sponsored" label.
+model Sponsorship {
+  id          String   @id @default(cuid())
+  sponsor     String
+  headline    String
+  body        String
+  url         String
+  // cng-savings, stations, today, gas-network, hub
+  placements  String[]
+  // Empty means every state.
+  states      String[] @default([])
+  priceUsd    Float
+  startsAt    DateTime
+  endsAt      DateTime
+  active      Boolean  @default(true)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@index([active, startsAt, endsAt])
 }

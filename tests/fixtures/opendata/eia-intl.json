@@ -1,0 +1,4 @@
+{"response":{"total":2,"frequency":"monthly","data":[
+{"period":"2026-06","productId":"57","productName":"Crude oil including lease condensate","activityId":"1","activityName":"Production","countryRegionId":"NGA","countryRegionName":"Nigeria","unit":"TBPD","unitName":"thousand barrels per day","value":"1550.2"},
+{"period":"2026-05","productId":"57","activityId":"1","countryRegionId":"NGA","unit":"TBPD","value":"--"}
+]}}

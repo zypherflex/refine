@@ -60,8 +60,8 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
                   <Pill className={d.status === "APPROVED" ? "bg-brand-100 text-brand-800" : "bg-amber-100 text-amber-800"}>{d.status === "APPROVED" ? "Approved source" : `${d.status.toLowerCase()} (staff only)`}</Pill>
                   {d.isFictional && <FictionTag />}
                 </div>
-                <p className="mt-1 font-medium"><Link href={`/documents/${d.id}`} className="text-navy-950">{d.title}</Link></p>
-                <p className="text-xs text-navy-700">{d.publisher} · {documentTypeLabel[d.documentType]} · published {fmtDate(d.publishedAt)} · retrieved {fmtDate(d.retrievedAt)} · {d.pageCount} page(s){d.company && ` · ${d.company.name}`}</p>
+                <p className="mt-1 font-medium"><Link href={`/documents/${d.id}`} className="text-ink-950">{d.title}</Link></p>
+                <p className="text-xs text-ink-700">{d.publisher} · {documentTypeLabel[d.documentType]} · published {fmtDate(d.publishedAt)} · retrieved {fmtDate(d.retrievedAt)} · {d.pageCount} page(s){d.company && ` · ${d.company.name}`}</p>
               </li>
             ))}
           </ul>
@@ -73,10 +73,10 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
         <p className="muted">Upload your own reports or notes to analyse with the research assistant. Private files are stored outside the public library and only you can open them. Not even administrators can view them.</p>
         <div className="mt-3"><PrivateUploadForm companies={companies.map((c) => ({ id: c.id, name: c.name }))} maxMb={maxUploadBytes() / 1024 / 1024} /></div>
         {mine.length > 0 && (
-          <ul className="mt-4 divide-y divide-navy-50">
+          <ul className="mt-4 divide-y divide-ink-50">
             {mine.map((d) => (
               <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
-                <span><Link href={`/documents/${d.id}`}>{d.title}</Link> <span className="text-xs text-navy-700">· {d.status === "EXTRACTED" ? `${d.pageCount} page(s) ready` : d.status.toLowerCase()} · {(d.sizeBytes / 1024).toFixed(0)} KB</span></span>
+                <span><Link href={`/documents/${d.id}`}>{d.title}</Link> <span className="text-xs text-ink-700">· {d.status === "EXTRACTED" ? `${d.pageCount} page(s) ready` : d.status.toLowerCase()} · {(d.sizeBytes / 1024).toFixed(0)} KB</span></span>
                 <span className="flex gap-2">
                   <Link href={`/assistant?document=${d.id}`} className="btn-secondary btn-sm">Ask about it</Link>
                   <details className="text-xs"><summary className="btn btn-sm text-risk-700">Delete</summary><form action={deletePrivateAction} className="mt-1"><input type="hidden" name="id" value={d.id} /><button className="btn-danger btn-sm">Confirm delete</button></form></details>

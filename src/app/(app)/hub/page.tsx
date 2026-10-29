@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sponsored } from "@/components/Sponsored";
 import type { HubListingKind } from "@prisma/client";
 import { requireUser } from "@/server/auth";
 import { getMyBusiness } from "@/server/hub/business";
@@ -6,10 +7,11 @@ import { browseListings } from "@/server/hub/listings";
 import { HUB_ROLES, LISTING_KINDS, LOCATIONS, NIGERIAN_STATES, OTHER_LOCATIONS, PRODUCTS, kindLabel, productLabel } from "@/lib/hub/catalog";
 import { ListingCard, SafetyNote } from "@/components/hub/parts";
 import { EmptyState, Notice, PageHeader } from "@/components/ui";
+import { QuickActions } from "@/components/hub/QuickActions";
 
 export const metadata = { title: "Trade hub" };
 
-type Search = Promise<{ kind?: string; product?: string; state?: string; verified?: string; q?: string }>;
+type Search = Promise<{ kind?: string; product?: string; state?: string; verified?: string; q?: string; welcome?: string }>;
 
 export default async function HubPage({ searchParams }: { searchParams: Search }) {
   const user = await requireUser();
@@ -40,12 +42,20 @@ export default async function HubPage({ searchParams }: { searchParams: Search }
           )
         }
       />
+      {sp.welcome && (
+        <div className="mb-6">
+          <Notice tone="ok" title="Welcome to RefineryLens">
+            Two good places to start: <Link href="/hub/me">set up your business</Link> so others can find and message you, or <Link href="/opportunities/fit">find the opportunities that fit you</Link>. Prices, the gas map and listings are open to browse now.
+          </Notice>
+        </div>
+      )}
+      <QuickActions />
       {!mine && (
         <div className="mb-6 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {HUB_ROLES.map((r) => (
-            <Link key={r.id} href="/hub/me" className="card-link block rounded-xl border border-navy-100 bg-white p-3 no-underline hover:no-underline">
-              <p className="font-semibold text-navy-950">{r.label}</p>
-              <p className="mt-1 text-xs text-navy-600">{r.who}</p>
+            <Link key={r.id} href="/hub/me" className="card-link block rounded-xl border border-ink-100 bg-white p-3 no-underline hover:no-underline">
+              <p className="font-semibold text-ink-950">{r.label}</p>
+              <p className="mt-1 text-xs text-ink-600">{r.who}</p>
             </Link>
           ))}
         </div>
@@ -53,14 +63,15 @@ export default async function HubPage({ searchParams }: { searchParams: Search }
 
       <nav aria-label="Listing type" className="mb-4 flex flex-wrap gap-2">
         {[null, ...LISTING_KINDS.map((k) => k.id)].map((k) => (
-          <Link key={k ?? "all"} href={qs(k)} aria-current={kind === k ? "page" : undefined} className={`rounded-full px-3 py-1.5 text-sm font-medium no-underline hover:no-underline ${kind === k ? "bg-brand-600 text-white shadow-sm shadow-brand-600/25" : "bg-white text-navy-800 ring-1 ring-inset ring-navy-100 hover:bg-navy-50"}`}>
+          <Link key={k ?? "all"} href={qs(k)} aria-current={kind === k ? "page" : undefined} className={`rounded-full px-3 py-1.5 text-sm font-medium no-underline hover:no-underline ${kind === k ? "bg-ink-950 text-white" : "bg-white text-ink-800 ring-1 ring-inset ring-ink-100 hover:bg-ink-50"}`}>
             {k ? kindLabel(k) : "All listings"}
           </Link>
         ))}
-        <Link href="/hub/refineries" className="rounded-full bg-white px-3 py-1.5 text-sm font-medium text-navy-800 no-underline ring-1 ring-inset ring-navy-100 hover:bg-navy-50 hover:no-underline">Refineries</Link>
+        <Link href="/hub/gas" className="rounded-full bg-white px-3 py-1.5 text-sm font-medium text-ink-800 no-underline ring-1 ring-inset ring-ink-100 hover:bg-ink-50 hover:no-underline">Gas network map</Link>
+        <Link href="/hub/refineries" className="rounded-full bg-white px-3 py-1.5 text-sm font-medium text-ink-800 no-underline ring-1 ring-inset ring-ink-100 hover:bg-ink-50 hover:no-underline">Refineries</Link>
       </nav>
 
-      <form method="get" className="mb-5 grid gap-3 rounded-xl border border-navy-100 bg-white p-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1.3fr_auto_auto] lg:items-end" role="search" aria-label="Filter listings">
+      <form method="get" className="mb-5 grid gap-3 rounded-xl border border-ink-100 bg-white p-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1.3fr_auto_auto] lg:items-end" role="search" aria-label="Filter listings">
         {kind && <input type="hidden" name="kind" value={kind} />}
         <div>
           <label htmlFor="product" className="label">Product</label>
@@ -87,7 +98,7 @@ export default async function HubPage({ searchParams }: { searchParams: Search }
 
       <section aria-labelledby="results-h">
         <h2 id="results-h" className="sr-only">Listings</h2>
-        <p className="mb-3 text-sm text-navy-600" role="status">
+        <p className="mb-3 text-sm text-ink-600" role="status">
           {listings.length} live listing{listings.length === 1 ? "" : "s"}
           {kind ? ` · ${kindLabel(kind).toLowerCase()}` : ""}
           {product ? ` · ${productLabel(product)}` : ""}
@@ -110,6 +121,7 @@ export default async function HubPage({ searchParams }: { searchParams: Search }
           <SafetyNote />
         </Notice>
       </div>
+      <div className="mt-6"><Sponsored placement="hub" /></div>
     </>
   );
 }

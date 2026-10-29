@@ -97,12 +97,12 @@ export function ThesisEditor({ initial, companies, topics, metricOptions }: { in
         <p className="hint">Tag each assumption with topics. When a published disclosure covers those topics, RefineryLens suggests it for your review. It never edits your thesis.</p>
         <div className="mt-3 space-y-4">
           {t.assumptions.map((a, i) => (
-            <div key={i} className="rounded-md border border-navy-100 p-3">
+            <div key={i} className="rounded-md border border-ink-100 p-3">
               <label className="label" htmlFor={`as-${i}`}>Assumption {i + 1}</label>
               <input id={`as-${i}`} className="input" value={a.statement} placeholder="e.g. Improved utilization should support operating cash flow." onChange={(e) => upd({ assumptions: t.assumptions.map((x, j) => (j === i ? { ...x, statement: e.target.value } : x)) })} />
               <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label={`Topics for assumption ${i + 1}`}>
                 {topics.map((tp) => (
-                  <label key={tp.value} className={`cursor-pointer rounded-full border px-2 py-0.5 text-xs ${a.topics.includes(tp.value) ? "border-brand-700 bg-brand-50 text-brand-800" : "border-navy-100"}`}>
+                  <label key={tp.value} className={`cursor-pointer rounded-full border px-2 py-0.5 text-xs ${a.topics.includes(tp.value) ? "border-brand-700 bg-brand-50 text-brand-800" : "border-ink-100"}`}>
                     <input type="checkbox" className="sr-only" checked={a.topics.includes(tp.value)} onChange={(e) => upd({ assumptions: t.assumptions.map((x, j) => (j === i ? { ...x, topics: e.target.checked ? [...x.topics, tp.value] : x.topics.filter((y) => y !== tp.value) } : x)) })} />
                     {tp.label}
                   </label>
@@ -120,7 +120,7 @@ export function ThesisEditor({ initial, companies, topics, metricOptions }: { in
         <p className="hint">Choose disclosed metrics to monitor and the level that would concern you. Thresholds are compared only with published, disclosed figures.</p>
         <div className="mt-3 space-y-3">
           {t.indicators.map((ind, i) => (
-            <div key={i} className="grid gap-2 rounded-md border border-navy-100 p-3 sm:grid-cols-4">
+            <div key={i} className="grid gap-2 rounded-md border border-ink-100 p-3 sm:grid-cols-4">
               <div className="sm:col-span-2">
                 <label className="label" htmlFor={`ind-${i}`}>Metric</label>
                 <select id={`ind-${i}`} className="input" value={ind.metricKey} onChange={(e) => { const m = metricOptions.find((x) => x.key === e.target.value); upd({ indicators: t.indicators.map((x, j) => (j === i ? { ...x, metricKey: e.target.value, label: m?.label ?? "", unit: m?.unit ?? "" } : x)) }); }}>
@@ -163,7 +163,7 @@ export function ThesisEditor({ initial, companies, topics, metricOptions }: { in
       <FieldError message={state.error} />
       <div className="flex gap-2">
         <button className="btn-primary" disabled={pending}>{pending ? "Saving…" : t.id ? "Save new version" : "Save thesis"}</button>
-        <p className="self-center text-xs text-navy-700">Your thesis is private. Only you can see it.</p>
+        <p className="self-center text-xs text-ink-700">Your thesis is private. Only you can see it.</p>
       </div>
     </form>
   );

@@ -11,7 +11,7 @@ import { EmptyState, Notice, PageHeader, Pill } from "@/components/ui";
 export const metadata = { title: "Watchlist and alerts" };
 
 const kindLabel: Record<string, string> = { NEW_ANNOUNCEMENT: "New", CORRECTION: "Correction", RETRACTION: "Retraction", SUPERSESSION: "Superseded", THESIS_MATCH: "Thesis evidence", HUB_MESSAGE: "Trade hub message", HUB_VERIFICATION: "Trade hub", HUB_JOB: "Delivery job", HUB_SUPPLY: "Supply agreement" };
-const kindStyle: Record<string, string> = { NEW_ANNOUNCEMENT: "bg-brand-100 text-brand-800", CORRECTION: "bg-amber-100 text-amber-800", RETRACTION: "bg-risk-100 text-risk-800", SUPERSESSION: "bg-navy-100 text-navy-800", THESIS_MATCH: "bg-navy-900 text-white", HUB_MESSAGE: "bg-brand-600 text-white", HUB_VERIFICATION: "bg-brand-100 text-brand-800", HUB_JOB: "bg-brand-100 text-brand-800", HUB_SUPPLY: "bg-brand-100 text-brand-800" };
+const kindStyle: Record<string, string> = { NEW_ANNOUNCEMENT: "bg-brand-100 text-brand-800", CORRECTION: "bg-amber-100 text-amber-800", RETRACTION: "bg-risk-100 text-risk-800", SUPERSESSION: "bg-ink-100 text-ink-800", THESIS_MATCH: "bg-ink-900 text-white", HUB_MESSAGE: "bg-brand-600 text-white", HUB_VERIFICATION: "bg-brand-100 text-brand-800", HUB_JOB: "bg-brand-100 text-brand-800", HUB_SUPPLY: "bg-brand-100 text-brand-800" };
 
 export default async function WatchlistPage() {
   const user = await requireUser();
@@ -45,9 +45,9 @@ export default async function WatchlistPage() {
             {alerts.visible.map((a) => (
               <li key={a.id} className={`card flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between ${a.readAt ? "opacity-75" : "border-brand-600/40"}`}>
                 <div>
-                  <div className="flex flex-wrap items-center gap-2"><Pill className={kindStyle[a.kind] ?? ""}>{kindLabel[a.kind] ?? a.kind}</Pill><span className="text-xs text-navy-700">{fmtDateTime(a.createdAt)}</span>{!a.readAt && <span className="text-xs font-semibold text-brand-800">Unread</span>}</div>
-                  <p className="mt-1 font-medium"><Link href={a.link} className="text-navy-950">{a.title}</Link></p>
-                  <p className="text-sm text-navy-800">{a.body}</p>
+                  <div className="flex flex-wrap items-center gap-2"><Pill className={kindStyle[a.kind] ?? ""}>{kindLabel[a.kind] ?? a.kind}</Pill><span className="text-xs text-ink-700">{fmtDateTime(a.createdAt)}</span>{!a.readAt && <span className="text-xs font-semibold text-brand-800">Unread</span>}</div>
+                  <p className="mt-1 font-medium"><Link href={a.link} className="text-ink-950">{a.title}</Link></p>
+                  <p className="text-sm text-ink-800">{a.body}</p>
                 </div>
                 {!a.readAt && <form action={markReadAction}><input type="hidden" name="id" value={a.id} /><button className="btn-secondary btn-sm">Mark read</button></form>}
               </li>
@@ -66,7 +66,7 @@ export default async function WatchlistPage() {
                 <input type="hidden" name="companyId" value={c.id} />
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-medium">{c.name}</p>
-                  {w ? <Pill className="bg-brand-100 text-brand-800">Following</Pill> : <Pill className="bg-navy-100 text-navy-800">Not following</Pill>}
+                  {w ? <Pill className="bg-brand-100 text-brand-800">Following</Pill> : <Pill className="bg-ink-100 text-ink-800">Not following</Pill>}
                 </div>
                 <fieldset className="mt-3">
                   <legend className="label">Topics (leave all unticked for everything)</legend>

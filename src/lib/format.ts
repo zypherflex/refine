@@ -4,6 +4,7 @@ export function fmtDate(d: Date | string | null | undefined): string {
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 }
 
+/** Date and time in Lagos (West Africa Time, UTC+1), the home market of RefineryLens coverage. */
 export function fmtDateTime(d: Date | string | null | undefined): string {
   if (!d) return "Not stated";
   const date = typeof d === "string" ? new Date(d) : d;
@@ -14,8 +15,8 @@ export function fmtDateTime(d: Date | string | null | undefined): string {
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      timeZone: "UTC",
-    }) + " UTC"
+      timeZone: "Africa/Lagos",
+    }) + " WAT"
   );
 }
 
@@ -28,6 +29,8 @@ export function fmtMoney(value: number, currency: string | null | undefined, sca
   const s = scale === "billions" ? " bn" : scale === "millions" ? " m" : scale === "thousands" ? " k" : "";
   return `${currency ? currency + " " : ""}${fmtNumber(value)}${s}`;
 }
+
+export const fmtUsd = (v: number, digits = 2) => `$${v.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
 
 export function daysBetween(a: Date, b: Date): number {
   return Math.round((b.getTime() - a.getTime()) / 86_400_000);

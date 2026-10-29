@@ -1,0 +1,14 @@
+import { NextResponse, type NextRequest } from "next/server";
+import { verifyStripeReturn } from "@/server/connect/stripe";
+
+/** Stripe sends the customer back here; access changes only after the session is fetched from Stripe. */
+export async function GET(req: NextRequest) {
+  const q = req.nextUrl.searchParams;
+  const base = (process.env.APP_URL ?? req.nextUrl.origin).replace(/\/$/, "");
+  try {
+    const r = await verifyStripeReturn(q.get("ref") ?? "", q.get("session_id") ?? "");
+    return NextResponse.redirect(`${base}/account/data?payment=${r.ok ? "success" : "failed"}`);
+  } catch {
+    return NextResponse.redirect(`${base}/account/data?payment=failed`);
+  }
+}

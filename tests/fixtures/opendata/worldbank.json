@@ -1,0 +1,5 @@
+[{"page":1,"pages":1,"per_page":40,"total":3,"sourceid":"2","lastupdated":"2026-10-08"},[
+{"indicator":{"id":"PA.NUS.FCRF","value":"Official exchange rate (LCU per US$, period average)"},"country":{"id":"NG","value":"Nigeria"},"countryiso3code":"NGA","date":"2026","value":null,"unit":"","obs_status":"","decimal":1},
+{"indicator":{"id":"PA.NUS.FCRF","value":"Official exchange rate (LCU per US$, period average)"},"country":{"id":"NG","value":"Nigeria"},"countryiso3code":"NGA","date":"2025","value":1500.5,"unit":"","obs_status":"","decimal":1},
+{"indicator":{"id":"PA.NUS.FCRF","value":"Official exchange rate (LCU per US$, period average)"},"country":{"id":"NG","value":"Nigeria"},"countryiso3code":"NGA","date":"2024","value":1450.25,"unit":"","obs_status":"","decimal":1}
+]]
